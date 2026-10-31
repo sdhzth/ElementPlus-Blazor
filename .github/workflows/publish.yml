@@ -40,9 +40,10 @@ jobs:
           dotnet pack src/X/Element.X.csproj -c Release --no-build -o ./artifacts
           dotnet pack src/Markdown/Element.Markdown.csproj -c Release --no-build -o ./artifacts
 
-      # Trusted publishing: authenticate via GitHub OIDC (no stored API key needed).
-      # Requires `id-token: write` above and a matching trusted publisher registered on NuGet.org.
-      - name: Push to NuGet.org (trusted publisher / OIDC)
+      # Publish with a NuGet API key stored as the NUGET_API_KEY repo secret.
+      - name: Push to NuGet.org
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
-          dotnet nuget push "./artifacts/*.nupkg" --source https://api.nuget.org/v3/index.json --skip-duplicate
-          dotnet nuget push "./artifacts/*.snupkg" --source https://api.nuget.org/v3/index.json --skip-duplicate
+          dotnet nuget push "./artifacts/*.nupkg" --source https://api.nuget.org/v3/index.json --api-key "$NUGET_API_KEY" --skip-duplicate
+          dotnet nuget push "./artifacts/*.snupkg" --source https://api.nuget.org/v3/index.json --api-key "$NUGET_API_KEY" --skip-duplicate
