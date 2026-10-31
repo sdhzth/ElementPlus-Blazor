@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write   # required for NuGet.org trusted publishing (OIDC)
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,9 +38,9 @@ jobs:
           dotnet pack src/X/Element.X.csproj -c Release --no-build -o ./artifacts
           dotnet pack src/Markdown/Element.Markdown.csproj -c Release --no-build -o ./artifacts
 
-      - name: Push to NuGet.org
-        env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+      # Trusted publishing: authenticate via GitHub OIDC (no stored API key needed).
+      # Requires `id-token: write` above and a matching trusted publisher registered on NuGet.org.
+      - name: Push to NuGet.org (trusted publisher / OIDC)
         run: |
-          dotnet nuget push "./artifacts/*.nupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
-          dotnet nuget push "./artifacts/*.snupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
+          dotnet nuget push "./artifacts/*.nupkg" --source https://api.nuget.org/v3/index.json --skip-duplicate
+          dotnet nuget push "./artifacts/*.snupkg" --source https://api.nuget.org/v3/index.json --skip-duplicate
