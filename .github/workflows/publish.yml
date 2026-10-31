@@ -23,11 +23,19 @@ jobs:
       - name: Restore
         run: dotnet restore ElementPlus-Blazor.slnx
 
+      # RCL 含静态资源，需先 build 生成 obj/Release/net10.0/staticwebassets.build.json，
+      # 再用 --no-build 打包，否则 dotnet pack 直接打会报 "Manifest file ... not found"。
+      - name: Build (generate static web asset manifest)
+        run: |
+          dotnet build src/Components/Element.csproj -c Release
+          dotnet build src/X/Element.X.csproj -c Release
+          dotnet build src/Markdown/Element.Markdown.csproj -c Release
+
       - name: Pack
         run: |
-          dotnet pack src/Components/Element.csproj -c Release -o ./artifacts
-          dotnet pack src/X/Element.X.csproj -c Release -o ./artifacts
-          dotnet pack src/Markdown/Element.Markdown.csproj -c Release -o ./artifacts
+          dotnet pack src/Components/Element.csproj -c Release --no-build -o ./artifacts
+          dotnet pack src/X/Element.X.csproj -c Release --no-build -o ./artifacts
+          dotnet pack src/Markdown/Element.Markdown.csproj -c Release --no-build -o ./artifacts
 
       - name: Push to NuGet.org
         env:
