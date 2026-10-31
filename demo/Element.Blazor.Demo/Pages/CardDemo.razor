@@ -1,0 +1,145 @@
+@page "/card"
+@using ElementPlus
+
+<div class="demo-page">
+    <h2>ElCard 卡片（对齐 Element Plus Card）</h2>
+    <p class="demo-note">
+        结构为 <code>Header</code> / <code>Body</code>(默认内容) / <code>Footer</code> 三段，均可选。
+        标题与页脚既支持 <code>HeaderText</code> / <code>FooterText</code> 字符串属性（对齐 EP 的 <code>header</code> / <code>footer</code> 属性），
+        也支持 <code>Header</code> / <code>Footer</code> 插槽；两者并存时插槽优先（与 EP 行为一致）。
+    </p>
+
+    <div class="demo-section">
+        <h3>基础用法（HeaderText / FooterText 字符串属性 + 默认内容）</h3>
+        <ElCard Shadow="ShadowShowType.Always" Style="width:420px;" HeaderText="Card name" FooterText="Footer content">
+            <p class="text item">List item 1</p>
+            <p class="text item">List item 2</p>
+            <p class="text item">List item 3</p>
+            <p class="text item">List item 4</p>
+        </ElCard>
+    </div>
+
+    <div class="demo-section">
+        <h3>使用 Header / Footer 插槽（DOM 节点）</h3>
+        <ElCard Shadow="ShadowShowType.Always" Style="width:420px;">
+            <Header>
+                <div class="card-header">
+                    <span>卡片标题（插槽）</span>
+                    <ElButton Size="ButtonSize.Small">操作</ElButton>
+                </div>
+            </Header>
+            <ChildContent>
+                <p class="text item">List item 1</p>
+                <p class="text item">List item 2</p>
+                <p class="text item">List item 3</p>
+                <p class="text item">List item 4</p>
+            </ChildContent>
+            <Footer>Footer content（插槽）</Footer>
+        </ElCard>
+    </div>
+
+    <div class="demo-section">
+        <h3>简单卡片（仅 Body）</h3>
+        <ElCard Shadow="ShadowShowType.Always" Style="width:420px;">
+            <p class="text item">List item 1</p>
+            <p class="text item">List item 2</p>
+            <p class="text item">List item 3</p>
+            <p class="text item">List item 4</p>
+        </ElCard>
+    </div>
+
+    <div class="demo-section">
+        <h3>有图片内容的卡片（BodyStyle 自定义 Body 内边距）</h3>
+        <ElCard Shadow="ShadowShowType.Always" Style="width:420px;" HeaderText="Yummy hamburger"
+                BodyStyle="padding:0;">
+            <img src="@HamburgerSvg" alt="cover" style="width:100%;display:block;" />
+            <div style="padding:14px 20px;">
+                <p class="text item">用 BodyStyle 把 Body 内边距设为 0，让图片铺满卡片宽度。</p>
+            </div>
+        </ElCard>
+    </div>
+
+    <div class="demo-section">
+        <h3>阴影时机（Shadow：Always / Hover / Never）</h3>
+        <div class="demo-row demo-row-wrap" style="gap:16px;">
+            <ElCard Shadow="ShadowShowType.Always" Style="width:240px;">Always</ElCard>
+            <ElCard Shadow="ShadowShowType.Hover" Style="width:240px;">Hover</ElCard>
+            <ElCard Shadow="ShadowShowType.Never" Style="width:240px;">Never</ElCard>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h3>自定义 Header / Body / Footer 的 Class（对齐 EP header-class / body-class / footer-class）</h3>
+        <p class="demo-note">
+            本组件用 <code>HeaderCls</code> / <code>BodyCls</code> / <code>FooterCls</code> 对应 EP 的
+            <code>header-class</code> / <code>body-class</code> / <code>footer-class</code>，其值会作为附加 class 落到对应段。
+        </p>
+        <ElCard Shadow="ShadowShowType.Always" Style="width:420px;"
+                HeaderText="标题（HeaderCls）" FooterText="页脚（FooterCls）"
+                HeaderCls="demo-card-accent-header" BodyCls="demo-card-accent-body" FooterCls="demo-card-accent-footer">
+            <p class="text item">Body（BodyCls）内容。</p>
+        </ElCard>
+    </div>
+
+    <div class="demo-section">
+        <h3>新增能力自检：分隔线 / 分段高度 / 分段底色</h3>
+        <p class="demo-note">
+            以下能力为原 ElCard 扩展并保留：Header / Footer 分隔线显隐与颜色、粗细；Header / Body / Footer 的最小高度（min-height，内容更高时照常撑开）；以及各段背景色。
+        </p>
+        <div class="demo-row demo-row-wrap" style="gap:18px 24px;align-items:center;">
+            <label class="demo-check">
+                <input type="checkbox" @bind="cHeaderDividerOn" /> Header 分隔线
+            </label>
+            <label class="demo-check">
+                线色 <input type="color" @bind="cHeaderDividerColor" style="width:44px;height:28px;padding:0;" />
+            </label>
+            <label class="demo-check">
+                线粗 <input type="number" @bind="cHeaderDividerWidth" min="0" max="10" style="width:56px;" /> px
+            </label>
+            <label class="demo-check">
+                Header 高 <input type="text" @bind="cHeaderHeight" placeholder="如 60 / 4rem" style="width:96px;" />
+            </label>
+            <label class="demo-check">
+                Body 高 <input type="text" @bind="cBodyHeight" placeholder="如 120px" style="width:96px;" />
+            </label>
+            <label class="demo-check">
+                <input type="checkbox" @bind="cHeaderBgOn" /> Header 底色
+                <input type="color" @bind="cHeaderBg" style="width:44px;height:28px;padding:0;" />
+            </label>
+            <label class="demo-check">
+                <input type="checkbox" @bind="cBodyBgOn" /> Body 底色
+                <input type="color" @bind="cBodyBg" style="width:44px;height:28px;padding:0;" />
+            </label>
+        </div>
+        <ElCard Shadow="ShadowShowType.Always" Style="width:420px;margin-top:16px;" HeaderText="可配置标题"
+                ShowHeaderDivider="@cHeaderDividerOn"
+                HeaderDividerColor="@cHeaderDividerColor"
+                HeaderDividerWidth="@cHeaderDividerWidth"
+                HeaderHeight="@cHeaderHeight"
+                BodyHeight="@cBodyHeight"
+                HeaderBackgroundColor="@(cHeaderBgOn ? cHeaderBg : null)"
+                BodyBackgroundColor="@(cBodyBgOn ? cBodyBg : null)">
+            <p class="text item">卡片正文内容。</p>
+            <p class="text item">调节上方控件可实时改变分隔线与高度、底色。</p>
+        </ElCard>
+    </div>
+</div>
+
+@code {
+    private const string HamburgerSvg =
+        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='160'%3E" +
+        "%3Crect width='420' height='160' fill='%23f56c6c'/%3E" +
+        "%3Ctext x='210' y='92' font-size='30' fill='white' text-anchor='middle' font-family='sans-serif'%3EYummy hamburger%3C/text%3E" +
+        "%3C/svg%3E";
+
+    // 新增能力自检绑定字段
+    private bool cHeaderDividerOn = true;
+    private string cHeaderDividerColor = "#f56c6c";
+    private int? cHeaderDividerWidth = 2;
+    private string cHeaderHeight = "56";
+    private string cBodyHeight = "120px";
+    private bool cHeaderBgOn = true;
+    private string cHeaderBg = "#fff1f0";
+    private bool cBodyBgOn = true;
+    private string cBodyBg = "#f0f9ff";
+}

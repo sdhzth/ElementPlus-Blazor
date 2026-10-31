@@ -1,0 +1,15 @@
+@inherits ElementComponentBase
+@* Visible=false ⇒ 整颗按钮不进渲染树（不是 display:none，也不是禁用）。
+   权限/状态驱动的工具条上「这颗按钮此刻不存在」是常态，宿主本来要自己写 @if 包一层；
+   挂在按钮组里时还得为它多开一个片段。默认 true ⇒ 现有用法一字不变。 *@
+@if (Visible)
+{
+    @if (string.IsNullOrWhiteSpace(Image))
+    {
+        @ButtonElement
+    }
+    else
+    {
+        <img src="@showingImage" class="@Cls" @onclick="OnButtonClickedAsync" style="@HtmlPropertyBuilder.CreateCssStyleBuilder().Add(Style).Add("cursor:pointer").ToString()" @onmouseover="MouseOver" @onmouseout="MouseOut" />
+    }
+}

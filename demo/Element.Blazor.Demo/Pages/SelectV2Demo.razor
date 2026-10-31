@@ -1,0 +1,61 @@
+@page "/select-v2"
+@using ElementPlus
+@using System.Linq
+
+<h1 class="demo-page-title">虚拟列表选择器 / ElSelectV2</h1>
+<p class="demo-page-sub">对齐官方：基于虚拟滚动的长列表选择器，支持 @("@bind-Value")、Options（SelectV2Option）、Multiple、Filterable、Clearable、Disabled、Size，适合上千条数据。</p>
+
+<div class="demo-section">
+    <h3>基础用法</h3>
+    <div class="demo-row">
+        <ElSelectV2 TValue="string" @bind-Value="value1" Options="options" Placeholder="请选择" />
+    </div>
+    <p class="demo-note">value1=@value1</p>
+</div>
+
+<div class="demo-section">
+    <h3>可筛选 + 多选</h3>
+    <div class="demo-row">
+        <ElSelectV2 TValue="string" @bind-Value="value2" Options="options" Filterable="true" Placeholder="可搜索" />
+        <ElSelectV2 TValue="string" @bind-Value="value3" @bind-Values="values3" Options="options" Multiple="true" CollapseTags="true" Placeholder="多选" />
+    </div>
+    <p class="demo-note">value2=@value2　|　value3=@value3　|　values3=@(string.Join("、", values3 ?? Enumerable.Empty<string>()))</p>
+    <p class="demo-note">
+        多选用 <code>@("@bind-Values")</code> 承载已选集合（<code>Value</code> 只是最后选中的那一个）。
+        对齐 EP <code>select-v2/src/useSelect.mjs#onSelect</code>：多选点选项<b>不收起</b>面板（官方只在单选分支写
+        <code>expanded.value = false</code>），要关就点控件外或按 Esc —— 对应官方 <code>#handleClickOutside</code>。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>DefaultFirstOption（回车默认选首项）</h3>
+    <div class="demo-row">
+        <ElSelectV2 TValue="string" @bind-Value="value4" Options="options"
+                    Filterable="true" DefaultFirstOption="true"
+                    Placeholder="输入 fru 后直接回车" />
+        <ElSelectV2 TValue="string" @bind-Value="value5" Options="options"
+                    Filterable="true" DefaultFirstOption="false"
+                    Placeholder="对照：回车不选中" />
+    </div>
+    <p class="demo-note">value4=@value4　|　value5=@value5</p>
+    <p class="demo-note">开启后打开面板即高亮首项，输入框直接回车选中它。</p>
+</div>
+
+@code {
+    private string value1 = "2";
+    private string value2;
+    private string value3;
+    private ICollection<string> values3 = new List<string>();
+    private string value4;
+    private string value5;
+
+    private List<SelectV2Option> options = new List<SelectV2Option>
+    {
+        new SelectV2Option { Value = "1", Label = "苹果 Apple" },
+        new SelectV2Option { Value = "2", Label = "香蕉 Banana" },
+        new SelectV2Option { Value = "3", Label = "橘子 Orange" },
+        new SelectV2Option { Value = "4", Label = "梨 Pear" },
+        new SelectV2Option { Value = "5", Label = "西瓜 Watermelon" },
+        new SelectV2Option { Value = "6", Label = "葡萄 Grape", Disabled = true }
+    };
+}

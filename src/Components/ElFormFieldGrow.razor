@@ -1,0 +1,56 @@
+@inherits ElementComponentBase
+@using Microsoft.AspNetCore.Components
+@{
+    var rootCls = BuildCssClass();
+    var rootStyle = BuildStyle();
+    var labelFor = LabelFor;
+    var helperCls = BuildHelperClass();
+    var helperId = HelperId;
+    var helperRole = ShowError ? "alert" : null;
+    var hasLabel = TextTemplate != null || !string.IsNullOrWhiteSpace(EffectiveText);
+}
+<div class="@rootCls" style="@rootStyle" id="@Id" @attributes="Attributes">
+    <div class="el-form-field__content">
+        <CascadingValue TValue="IElFormFieldContext" Value="fieldContext">
+            @if (Start != null)
+            {
+                <div class="el-form-field__start">@Start</div>
+            }
+            @ChildContent
+            @if (hasLabel)
+            {
+                <label class="el-form-field__label" for="@labelFor">
+                    @if (TextTemplate != null)
+                    {
+                        @TextTemplate
+                    }
+                    else
+                    {
+                        <span class="el-form-field__label-text">@EffectiveText</span>
+                        @if (Required)
+                        {
+                            <span class="el-form-field__required" aria-hidden="true">*</span>
+                        }
+                    }
+                </label>
+            }
+            @if (End != null)
+            {
+                <div class="el-form-field__end">@End</div>
+            }
+        </CascadingValue>
+    </div>
+    @if (HasHelperContent)
+    {
+        <div class="@helperCls" id="@helperId" role="@helperRole">
+            @if (Helper != null)
+            {
+                @Helper
+            }
+            else
+            {
+                <span class="el-form-field__helper-text">@EffectiveHelperText</span>
+            }
+        </div>
+    }
+</div>

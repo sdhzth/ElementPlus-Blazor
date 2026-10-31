@@ -1,0 +1,81 @@
+@inherits ElementComponentBase
+
+<CascadingValue Value="@this" IsFixed="true">
+    @ChildContent
+</CascadingValue>
+
+<div id="@Id" class="@DescriptionsClass" style="@Style" aria-label="@AriaLabel" @attributes="Attributes">
+    @if (TitleContent != null || Extra != null || !string.IsNullOrWhiteSpace(Title))
+    {
+        <div class="el-descriptions__header">
+            <div class="el-descriptions__title">
+                @if (TitleContent != null)
+                {
+                    @TitleContent
+                }
+                else
+                {
+                    @Title
+                }
+            </div>
+            @if (Extra != null)
+            {
+                <div class="el-descriptions__extra">
+                    @Extra
+                </div>
+            }
+        </div>
+    }
+    <div class="el-descriptions__body">
+        <table class="@TableClass">
+            <tbody>
+                @foreach (var row in Rows)
+                {
+                    if (Direction == DescriptionsDirection.Vertical)
+                    {
+                        <tr class="el-descriptions__row">
+                            @foreach (var cell in row.Cells)
+                            {
+                                <th class="@cell.Item.GetLabelClass()" colspan="@cell.ColSpan" rowspan="1" style="@cell.Item.GetLabelCellStyle()">
+                                    @cell.Item.RenderLabel()@if (cell.Item.ShowColon) { <span class="el-descriptions__colon">:</span> }
+                                </th>
+                            }
+                        </tr>
+                        <tr class="el-descriptions__row">
+                            @foreach (var cell in row.Cells)
+                            {
+                                <td class="@cell.Item.GetContentClass()" colspan="@cell.ColSpan" rowspan="@(cell.RowSpan * 2 - 1)" style="@cell.Item.GetContentStyle()">
+                                    @cell.Item.ChildContent
+                                </td>
+                            }
+                        </tr>
+                    }
+                    else
+                    {
+                        <tr class="el-descriptions__row">
+                            @foreach (var cell in row.Cells)
+                            {
+                                @if (Border)
+                                {
+                                    <th class="@cell.Item.GetLabelClass()" colspan="1" rowspan="@cell.RowSpan" style="@cell.Item.GetLabelCellStyle()">
+                                        @cell.Item.RenderLabel()@if (cell.Item.ShowColon) { <span class="el-descriptions__colon">:</span> }
+                                    </th>
+                                    <td class="@cell.Item.GetContentClass()" colspan="@(cell.ColSpan * 2 - 1)" rowspan="@cell.RowSpan" style="@cell.Item.GetContentStyle()">
+                                        @cell.Item.ChildContent
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td class="@cell.Item.GetCellClass()" colspan="@cell.ColSpan" rowspan="@cell.RowSpan" style="@cell.Item.GetContentStyle()">
+                                        <span class="@cell.Item.GetLabelSpanClass()" style="@cell.Item.GetLabelSpanStyle()">@cell.Item.RenderLabel()@if (cell.Item.ShowColon) { <span class="el-descriptions__colon">:</span> }</span>
+                                        <span class="@cell.Item.GetContentSpanClass()">@cell.Item.ChildContent</span>
+                                    </td>
+                                }
+                            }
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

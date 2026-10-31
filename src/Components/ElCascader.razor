@@ -1,0 +1,55 @@
+@inherits ElementFieldComponentBase<IList<string>>
+
+<div class="@wrapperClsBuilder.ToString()"
+     style="@Style"
+     @ref="cascaderElement"
+     role="combobox"
+     aria-haspopup="listbox"
+     aria-expanded="@IsDropDownOpen"
+     aria-disabled="@IsCascaderDisabled"
+     aria-controls="@DropDownId"
+     @onclick="OnCascaderClickAsync"
+     @onkeydown="OnRootKeyDownAsync">
+    @* 多选 tag 渲染（类名对齐 EP cascader.vue:72/110：el-cascader__tags / el-cascader__tags-text，
+       容器 max-width:100% 随输入框收缩，文本只在溢出容器时省略——此前借用 el-select__tags-text 的
+       120px 硬顶把「指南 / discipline / 一致性」截成了「一...」 *@
+    @if (Multiple && checkedValues.Any())
+    {
+        <div class="el-cascader__tags">
+            @foreach (var path in VisibleCheckedPaths)
+            {
+                var labelText = GetPathLabel(path);
+                <span class="el-tag el-tag--info el-tag--small el-tag--light" @key="@string.Join("/", path)" title="@(CollapseTagsTooltip ? labelText : null)">
+                    <span class="el-cascader__tags-text">@labelText</span>
+                    @if (!IsCascaderDisabled)
+                    {
+                        <i class="el-tag__close el-icon-close"
+                           @onclick="e => RemoveCheckedPathAsync(path)"
+                           @onclick:stopPropagation></i>
+                    }
+                </span>
+            }
+            @if (CollapsedCount > 0)
+            {
+                <span class="el-tag el-tag--info el-tag--small el-tag--light">
+                    <span class="el-cascader__tags-text">+ @CollapsedCount</span>
+                </span>
+            }
+        </div>
+    }
+    <ElInput TValue="string" @ref="Input"
+             Value="@InputValue"
+             ValueChanged="OnInputValueChangedAsync"
+             Placeholder="@EffectivePlaceholder"
+             Disabled="@IsCascaderDisabled"
+             Readonly="@(!Filterable)"
+             Clearable="@EffectiveClearable"
+             Size="@EffectiveSize"
+             PrefixIcon="@PrefixIcon"
+             SuffixIcon="@SuffixIconClass"
+             ValidateEvent="false"
+             OnClear="OnInputClearAsync"
+             OnFocus="OnInputFocusAsync"
+             OnBlur="OnInputBlurAsync">
+    </ElInput>
+</div>

@@ -1,0 +1,162 @@
+@namespace ElementPlus.Blazor.Demo.Components
+@implements IDisposable
+@inject IJSRuntime JS
+
+<div class="demo-section" id="sec-header-menu">
+    <h3>⑪ 列头点击弹出菜单 + 删除当前列</h3>
+    <p class="demo-page-sub">
+        给每个 <code>ElTableColumn</code> 设置 <code>OnHeaderClick</code>，点击列头即弹出操作菜单：
+        <b>删除此列</b> 调用 <code>RemoveColumn(...)</code> 即时移除该列；另提供 <b>复制列名</b>。
+        点菜单外区域或选定某项都会关闭菜单；删除后用「重置演示」恢复（给 <code>ElTable</code> 换 <code>@@key</code> 重建即可）。
+    </p>
+    <p class="demo-page-sub">
+        本段<b>特意做成一个独立组件</b>：菜单的展开状态、坐标、被删列都只存在这里，点列头只让本组件重渲染。
+        若把这几个字段挂在 <code>/table</code> 页面上（本组件之前的写法），一次列头点击要连带重渲染整页 12 段，
+        实测「点击 → 菜单可见」为 <b>1165 / 1280 ms</b>；隔离后同口径实测 <b>110 / 84 ms</b>。
+        对照：同页只重渲染一张表的组件级变化（⑫ 开筛选面板）176 / 214 ms，而改页面字段的两处点击（⑫ 隐藏表头 / 展开行）473 ~ 557 ms。
+        口径与复现见 <code>demo/tools/probes/diag-page-render-cost.cjs</code>（数字为「点击 → 首个 DOM mutation」，含绘制前那十几毫秒见文档）。
+    </p>
+
+    <div class="demo-toolbar">
+        <ElButton Size="ButtonSize.Small" OnClick="ResetDemo">重置演示</ElButton>
+        <span class="demo-toolbar-status">@msg</span>
+    </div>
+
+    <ElTable @key="tableVersion" @ref="table" DataSource="rows" AutoGenerateColumns="false"
+             HasSelectionColumn="false" Border="true" Height="300">
+        <ElTableColumn Property="Id" Text="ID" Width="70" OnHeaderClick="OnHeaderClickAsync" />
+        <ElTableColumn Property="Name" Text="名称" Width="180" OnHeaderClick="OnHeaderClickAsync" />
+        <ElTableColumn Property="Category" Text="类别" Width="140" OnHeaderClick="OnHeaderClickAsync" />
+        <ElTableColumn Property="Price" Text="单价(元)" Width="120" Align="right" OnHeaderClick="OnHeaderClickAsync" />
+        <ElTableColumn Property="Stock" Text="库存" Width="110" Align="right" OnHeaderClick="OnHeaderClickAsync" />
+        <ElTableColumn Property="OnSale" Text="上架" Width="90" OnHeaderClick="OnHeaderClickAsync" />
+    </ElTable>
+
+    @* 不用全屏遮罩做「点外面收起」：遮罩是 position:fixed 覆盖层，滚轮的滚动链会走到「视口」而不是
+       本演示真正滚的 .demo-main（实测菜单开着时 scrollTop 5642 → 5642，滚轮整页滚不动，
+       与 ElDropDownTableGrow 弹层当初一模一样）。改挂 document 捕获阶段的 mousedown（组件库现成的
+       elementPickerOutsideAttach），菜单节点常驻、收起时只隐藏，ElementReference 才不会失效。 *@
+    <div class="demo-colmenu @(open ? "" : "demo-colmenu--hidden")" @ref="menuRef" style="left:@(x)px;top:@(y)px;">
+        @if (open && header != null)
+        {
+            <div class="demo-colmenu__title">列：@header.Text</div>
+            <button type="button" class="demo-colmenu__item demo-colmenu__item--danger" @onclick="DeleteCurrentColumn">删除此列</button>
+            <button type="button" class="demo-colmenu__item" @onclick="CopyColumnName">复制列名</button>
+        }
+    </div>
+</div>
+
+@code {
+    private ElTable table;
+    private TableHeader header;
+    private bool open;
+    private int x = 8;
+    private int y = 8;
+    private int tableVersion;
+    private string msg = "点击任意列头试试 →";
+    private readonly List<Product> rows = MockData.Products.Take(8).ToList();
+
+    private ElementReference menuRef;
+    private bool outsideBound;
+    private DotNetObjectReference<HeaderMenuDemo> selfRef;
+
+    /// <summary>最近一次列头点击坐标的结构（由 table-header-menu.js 的 demoGetLastHeaderClick 返回）。</summary>
+    private class ClickPos
+    {
+        public int x { get; set; }
+        public int y { get; set; }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // 菜单节点常驻（收起时只隐藏），所以监听只挂一次，页面销毁时解绑
+        if (!outsideBound)
+        {
+            selfRef ??= DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("elementPickerOutsideAttach", menuRef, ".demo-colmenu", selfRef, nameof(CloseFromOutsideAsync));
+            outsideBound = true;
+        }
+    }
+
+    /// <summary>document 捕获阶段收到「菜单之外」的按下：收起菜单。</summary>
+    [JSInvokable]
+    public Task CloseFromOutsideAsync()
+    {
+        if (!open)
+        {
+            return Task.CompletedTask;
+        }
+        return CloseMenu();
+    }
+
+    /// <summary>列头点击：把菜单定位到点击处并展开。只触发本组件重渲染，页面不参与。</summary>
+    private async Task OnHeaderClickAsync(TableHeader clicked)
+    {
+        header = clicked;
+        var pos = await JS.InvokeAsync<ClickPos>("demoGetLastHeaderClick");
+        x = pos.x;
+        y = pos.y;
+        open = true;
+        StateHasChanged();
+    }
+
+    /// <summary>删除当前列：调用 ElTable.RemoveColumn 按引用移除该列头。</summary>
+    private void DeleteCurrentColumn()
+    {
+        if (header == null || table == null)
+        {
+            return;
+        }
+        var name = header.Text;
+        table.RemoveColumn(h => ReferenceEquals(h, header));
+        open = false;
+        header = null;
+        msg = $"已删除列「{name}」—— 想恢复点「重置演示」";
+        StateHasChanged();
+    }
+
+    /// <summary>复制列名到剪贴板（安全上下文用 navigator.clipboard，否则 execCommand 兜底）。</summary>
+    private async Task CopyColumnName()
+    {
+        if (header == null)
+        {
+            return;
+        }
+        var name = header.Text;
+        var ok = await JS.InvokeAsync<bool>("demoCopyText", name);
+        open = false;
+        header = null;
+        msg = ok ? $"已复制列名「{name}」到剪贴板" : $"复制失败（浏览器限制），列名：{name}";
+        StateHasChanged();
+    }
+
+    /// <summary>关闭菜单（点菜单外区域）。</summary>
+    private Task CloseMenu()
+    {
+        open = false;
+        header = null;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    /// <summary>重置演示：给 ElTable 换 key 强制整表重建，被删的列全部恢复。</summary>
+    private void ResetDemo()
+    {
+        tableVersion++;
+        open = false;
+        header = null;
+        msg = "已重置演示（列已恢复）";
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        if (outsideBound)
+        {
+            _ = JS.InvokeVoidAsync("elementPickerOutsideDetach", menuRef);
+            outsideBound = false;
+        }
+        selfRef?.Dispose();
+        selfRef = null;
+    }
+}

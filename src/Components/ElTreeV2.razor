@@ -1,0 +1,34 @@
+@inherits ElTree
+
+<div id="@Id"
+     class="@TreeV2Class"
+     role="tree"
+     aria-label="@AriaLabel"
+     style="height:@(Height)px;width:@(Width)"
+     @attributes="Attributes">
+
+    @if (FlattenedNodes.Count > 0)
+    {
+        <div @ref="_bodyRef" class="el-tree-v2__body" @onscroll="OnBodyScrollAsync" style="overflow:auto;height:100%">
+            <div style="padding-top:@(TotalPaddingTop)px;padding-bottom:@(TotalPaddingBottom)px">
+                @foreach (var node in VisibleNodes)
+                {
+                    @RenderNode(node)
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="el-tree__empty-text" style="height:@(Height)px;display:flex;align-items:center;justify-content:center">
+            @if (EmptyContent != null)
+            {
+                @EmptyContent
+            }
+            else
+            {
+                @EmptyText
+            }
+        </div>
+    }
+</div>

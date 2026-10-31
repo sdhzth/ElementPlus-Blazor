@@ -1,0 +1,46 @@
+@page "/radio"
+@using ElementPlus
+
+<h1 class="demo-page-title">单选框 / ElRadio</h1>
+<p class="demo-page-sub">对齐官方：ElRadio 一般配合 ElRadioGroup 使用，支持 @("@bind-SelectedValue")、Disabled、Border，以及扩展的 Size。</p>
+
+<div class="demo-section">
+    <h3>基础用法（单选组）</h3>
+    <div class="demo-row">
+        <ElRadioGroup TValue="string" @bind-SelectedValue="radio1">
+            <ElRadio Value="@("1")">选项 A</ElRadio>
+            <ElRadio Value="@("2")">选项 B</ElRadio>
+            <ElRadio Value="@("3")" Disabled="true">禁用项</ElRadio>
+        </ElRadioGroup>
+    </div>
+    <p class="demo-note">radio1=@radio1</p>
+</div>
+
+<div class="demo-section">
+    <h3>带边框</h3>
+    <div class="demo-row">
+        <ElRadioGroup TValue="string" @bind-SelectedValue="radio2">
+            <ElRadio Value="@("1")" Border="true">备选项 1</ElRadio>
+            <ElRadio Value="@("2")" Border="true">备选项 2</ElRadio>
+        </ElRadioGroup>
+    </div>
+    <p class="demo-note">radio2=@radio2</p>
+</div>
+
+<div class="demo-section">
+    <h3>BorderColor（边框颜色）</h3>
+    <div class="demo-row">
+        <ElRadioGroup TValue="string" @bind-SelectedValue="radio3">
+            <ElRadio Value="@("1")" Border="true" BorderColor="#67c23a">绿色边框</ElRadio>
+            <ElRadio Value="@("2")" Border="true" BorderColor="#e6a23c">橙色边框</ElRadio>
+            <ElRadio Value="@("3")" Border="true" BorderColor="#f56c6c">红色边框</ElRadio>
+        </ElRadioGroup>
+    </div>
+    <p class="demo-note">BorderColor 直接作用于 el-radio 的 border-color，需配合 Border=true。</p>
+</div>
+
+@code {
+    private string radio1 = "1";
+    private string radio2 = "1";
+    private string radio3 = "1";
+}

@@ -1,0 +1,16 @@
+@inherits ElementFieldComponentBase<IEnumerable<TValue>>
+@typeparam TValue
+<div role="group" aria-label="checkbox-group" class="el-checkbox-group @Cls">
+    <CascadingValue Value="this">
+        @* Options 数据源渲染 (2.11.2) *@
+        @if (Options != null)
+        {
+            @foreach (var opt in Options)
+            {
+                var props = GetOptionProps(opt);
+                <ElCheckbox TValue="TValue" Value="@props.Value" Label="@props.Label" Disabled="@props.Disabled" />
+            }
+        }
+        @ChildContent
+    </CascadingValue>
+</div>

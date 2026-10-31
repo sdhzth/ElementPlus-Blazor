@@ -1,0 +1,16 @@
+@inherits LinkBase
+@using ElementPlus.Markdown.IconHandlers
+    <ElForm @ref="form" Value="Link">
+        <ElFormItem TValue="string" IsRequired="true" Name="@nameof(LinkModel.Name)" Label="名称">
+            <ElInput TValue="string"></ElInput>
+        </ElFormItem>
+        <ElFormItem TValue="string" IsRequired="true" Name="@nameof(LinkModel.Url)" Label="地址">
+            <ElInput TValue="string"></ElInput>
+        </ElFormItem>
+        <ElFormItem TValue="string" Name="@nameof(LinkModel.Title)" Label="标题">
+            <ElInput TValue="string"></ElInput>
+        </ElFormItem>
+        <ElFormActionItem Style="text-align:right">
+            <ElButton Type="@ButtonType.Primary" @onclick="Submit">确定</ElButton>
+        </ElFormActionItem>
+    </ElForm>

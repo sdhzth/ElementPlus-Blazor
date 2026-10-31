@@ -1,0 +1,654 @@
+@page "/feedback"
+@inject ElementPlus.MessageService MessageService
+@inject ElementPlus.NotificationService NotificationService
+@inject ElementPlus.MessageBox MessageBox
+
+<h1 class="demo-page-title">反馈组件（带 Mock 数据）</h1>
+<p class="demo-page-sub">提示、对话框、加载、结果页等均使用本地状态或 Mock 文本驱动。</p>
+
+<div class="demo-section">
+    <h3>Alert 提示</h3>
+    <div class="demo-col">
+        <ElAlert Type="ElementPlus.MessageType.Success" Title="处方保存成功" Description="已写入电子病历系统" />
+        <ElAlert Type="ElementPlus.MessageType.Warning" Title="库存偏低" Description="阿莫西林胶囊剩余 320 盒" />
+        <ElAlert Type="ElementPlus.MessageType.Error" Title="医保校验失败" Description="请检查患者医保卡状态" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>ElMessage 全局提示（MessageService）</h3>
+    <p class="demo-page-sub">
+        提示由 Scoped 的 <code>MessageService</code> 驱动，统一由 <code>App.razor</code> 里的
+        <code>&lt;ElPopup /&gt;</code> 渲染到页面根部 —— 页面里不需要再放任何宿主组件。
+        同时最多显示 @MessageService.Max 条，超出会自动淘汰最早的那条。
+    </p>
+    <div class="demo-row">
+        <ElButton Type="ButtonType.Success" OnClick="@MsgSuccess">成功</ElButton>
+        <ElButton Type="ButtonType.Warning" OnClick="@MsgWarning">警告</ElButton>
+        <ElButton Type="ButtonType.Danger" OnClick="@MsgError">错误</ElButton>
+        <ElButton Type="ButtonType.Info" OnClick="@MsgInfo">信息</ElButton>
+        <ElButton Type="ButtonType.Primary" OnClick="@MsgPrimary">主要</ElButton>
+    </div>
+    <div class="demo-row" style="margin-top:12px;">
+        <ElButton OnClick="@MsgPlain">朴素风格 Plain</ElButton>
+        <ElButton OnClick="@MsgSticky">不自动关闭</ElButton>
+        <ElButton OnClick="@MsgGrouping">合并重复内容（@(groupInfo?.RepeatCount ?? 0) 次）</ElButton>
+        <ElButton OnClick="@MsgCenterClose">居中 + 关闭回调</ElButton>
+        <ElButton Type="ButtonType.Danger" OnClick="@(() => MessageService.CloseAll())">全部关闭</ElButton>
+    </div>
+    <div class="demo-row" style="margin-top:12px;">
+        <label style="font-size:13px; color:#606266; display:inline-flex; align-items:center;">
+            距顶 Offset
+            <input id="msg-offset" type="number" @bind="msgOffset" @bind:event="oninput"
+                   style="width:76px; margin-left:6px; padding:3px 6px; border:1px solid #dcdfe6; border-radius:4px;" />
+        </label>
+        <label style="font-size:13px; color:#606266; display:inline-flex; align-items:center;">
+            <input id="msg-center" type="checkbox" @bind="msgCenter" style="vertical-align:middle;" />
+            <span style="margin-left:6px;">居中 Center</span>
+        </label>
+        <ElButton OnClick="@MsgCustom">按上方参数发一条（8 秒）</ElButton>
+    </div>
+    <p class="demo-note">@messageNote</p>
+</div>
+
+<div class="demo-section" id="sec-notification">
+    <h3>ElNotification 通知栏（NotificationService）</h3>
+    <p class="demo-page-sub">
+        同样由 <code>&lt;ElPopup /&gt;</code> 渲染。对齐 Element Plus Notification：
+        <b>默认无类型</b>（<code>type</code> 为空 → 不显示图标、不带类型色）、4500ms 自动关闭、
+        指针悬停时<b>暂停计时</b>（<code>pauseOnHover</code> 默认 true）、
+        <code>duration = 0</code> 表示不自动关闭。同时最多显示 @NotificationService.Max 条。
+    </p>
+    <div class="demo-row">
+        <ElButton OnClick="@NotifBasic">基础用法（4.5 秒关闭）</ElButton>
+        <ElButton OnClick="@NotifSticky">不自动关闭（duration=0）</ElButton>
+        <ElButton OnClick="@NotifNoTitle">无标题（正文去掉上间距）</ElButton>
+    </div>
+    <div class="demo-row" style="margin-top:12px;">
+        <ElButton Type="ButtonType.Primary" OnClick="@NotifPrimary">Primary</ElButton>
+        <ElButton Type="ButtonType.Success" OnClick="@NotifSuccess">Success</ElButton>
+        <ElButton Type="ButtonType.Warning" OnClick="@NotifWarning">Warning</ElButton>
+        <ElButton Type="ButtonType.Info" OnClick="@NotifInfo">Info</ElButton>
+        <ElButton Type="ButtonType.Danger" OnClick="@NotifError">Error</ElButton>
+        <ElButton OnClick="@NotifCustomIcon">自定义图标</ElButton>
+    </div>
+    <div class="demo-row" style="margin-top:12px;">
+        <ElButton OnClick="@(() => NotifAt(NotificationPosition.TopRight))">右上 top-right</ElButton>
+        <ElButton OnClick="@(() => NotifAt(NotificationPosition.TopLeft))">左上 top-left</ElButton>
+        <ElButton OnClick="@(() => NotifAt(NotificationPosition.BottomRight))">右下 bottom-right</ElButton>
+        <ElButton OnClick="@(() => NotifAt(NotificationPosition.BottomLeft))">左下 bottom-left</ElButton>
+    </div>
+    <div class="demo-row" style="margin-top:12px;">
+        <label style="font-size:13px; color:#606266; display:inline-flex; align-items:center;">
+            距边缘 Offset
+            <input id="notif-offset" type="number" @bind="notifOffset" @bind:event="oninput"
+                   style="width:76px; margin-left:6px; padding:3px 6px; border:1px solid #dcdfe6; border-radius:4px;" />
+        </label>
+        <ElButton OnClick="@NotifWithOffset">按上方 Offset 发一条</ElButton>
+        <ElButton OnClick="@(() => NotificationService.UpdateOffsets(NotificationPosition.TopRight))">updateOffsets(右上)</ElButton>
+    </div>
+    <div class="demo-row" style="margin-top:12px;">
+        <ElButton OnClick="@NotifHtml">HTML 片段正文</ElButton>
+        <ElButton OnClick="@NotifProgress">进度条（悬停同时暂停计时与进度）</ElButton>
+        <ElButton OnClick="@NotifNoClose">隐藏关闭按钮</ElButton>
+        <ElButton OnClick="@NotifClick">点击回调 + 点击即关</ElButton>
+        <ElButton OnClick="@NotifGrouping">合并重复内容（@(notifGroup?.RepeatCount ?? 0) 次）</ElButton>
+        <ElButton Type="ButtonType.Danger" OnClick="@(() => NotificationService.CloseAll())">全部关闭</ElButton>
+    </div>
+    <p class="demo-note">@notificationNote</p>
+</div>
+
+<div class="demo-section">
+    <h3>ElMessageBox 消息弹框（MessageBox）</h3>
+    <p class="demo-page-sub">
+        Alert / Confirm / Prompt 三种形态都走同一个 Scoped 的 <code>MessageBox</code>，
+        同样是 <code>&lt;ElPopup /&gt;</code> 负责渲染；<code>await</code> 拿到结果再往下走。
+    </p>
+    <div class="demo-row">
+        <ElButton OnClick="@BoxAlert">Alert 提示</ElButton>
+        <ElButton Type="ButtonType.Primary" OnClick="@BoxConfirm">Confirm 确认</ElButton>
+        <ElButton Type="ButtonType.Warning" OnClick="@BoxDistinguish">区分「取消」与「关闭」</ElButton>
+        <ElButton Type="ButtonType.Danger" OnClick="@BoxPrompt">Prompt 输入病历号</ElButton>
+        <ElButton Type="ButtonType.Info" OnClick="@BoxCenterHtml">居中 + HTML 内容</ElButton>
+    </div>
+    <p class="demo-note">@boxNote</p>
+</div>
+
+<div class="demo-section">
+    <h3>Tooltip / Popover / Loading / Skeleton</h3>
+    <div class="demo-row">
+        <ElTooltip Content="这是一段提示文字">
+            <ElButton>悬停查看提示</ElButton>
+        </ElTooltip>
+        <ElPopover Content="弹层内容：药品详细信息" Trigger="PopperTrigger.Click">
+            <ElButton>点击查看详情</ElButton>
+        </ElPopover>
+        <ElLoading Loading="true" Text="加载中">
+            <div style="width:160px;height:60px;background:#f5f7fa;border-radius:6px;"></div>
+        </ElLoading>
+        <ElSkeleton Loading="true">
+            <div style="width:200px;">真实内容（加载完成后显示）</div>
+        </ElSkeleton>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>Result 结果页 / Empty 空状态</h3>
+    <div class="demo-row" style="align-items:flex-start;">
+        <ElResult Title="提交成功" SubTitle="处方已提交至药房">
+            <Extra>
+                <ElButton>返回列表</ElButton>
+            </Extra>
+        </ElResult>
+        <ElEmpty Description="暂无待办任务" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>Dialog 对话框</h3>
+    <ElButton OnClick="@(() => dialogVisible = true)">打开对话框</ElButton>
+    <ElDialog @bind-Visible="dialogVisible" Title="患者信息">
+        <ChildContent>
+            <div>
+                <p>姓名：@MockData.Patients[0].Name</p>
+                <p>年龄：@MockData.Patients[0].Age</p>
+                <p>诊断：@MockData.Patients[0].Diagnosis</p>
+            </div>
+        </ChildContent>
+        <Footer>
+            <ElButton OnClick="@(() => dialogVisible = false)">关闭</ElButton>
+        </Footer>
+    </ElDialog>
+</div>
+
+<div class="demo-section">
+    <h3>Drawer 抽屉</h3>
+    <p class="demo-page-sub">
+        从屏幕边缘滑出的覆盖层，适合展示详情、表单或辅助操作。默认从右侧滑入（<code>Direction="DrawerDirection.Rtl"</code>），
+        可切换 <code>Ltr</code> / <code>Ttb</code> / <code>Btt</code> 方向，<code>Size</code> 支持百分比或固定像素。
+        点遮罩、按 ESC 或点右上角 × 均可关闭；勾选「有未保存修改」后会触发 <code>BeforeClose</code> 拦截。
+    </p>
+    <div class="demo-row">
+        <ElButton Type="ButtonType.Primary" OnClick="@(() => { drawerDirection = DrawerDirection.Rtl; drawerVisible = true; })">从右滑入</ElButton>
+        <ElButton OnClick="@(() => { drawerDirection = DrawerDirection.Ltr; drawerVisible = true; })">从左滑入</ElButton>
+        <ElButton OnClick="@(() => { drawerDirection = DrawerDirection.Ttb; drawerVisible = true; })">从上滑入</ElButton>
+        <ElButton OnClick="@(() => { drawerDirection = DrawerDirection.Btt; drawerVisible = true; })">从下滑入</ElButton>
+    </div>
+    <div class="demo-row" style="margin-top:12px;">
+        <label style="font-size:13px;color:#606266;display:inline-flex;align-items:center;">
+            <input type="checkbox" @bind="drawerWithHeader" style="vertical-align:middle;" />
+            <span style="margin-left:6px;">显示标题栏</span>
+        </label>
+        <label style="font-size:13px;color:#606266;display:inline-flex;align-items:center;margin-left:16px;">
+            <input type="checkbox" @bind="drawerWithFooter" style="vertical-align:middle;" />
+            <span style="margin-left:6px;">显示底部</span>
+        </label>
+        <label style="font-size:13px;color:#606266;display:inline-flex;align-items:center;margin-left:16px;">
+            <input type="checkbox" @bind="drawerHasUnsaved" style="vertical-align:middle;" />
+            <span style="margin-left:6px;">有未保存修改（阻止关闭）</span>
+        </label>
+        <label style="font-size:13px;color:#606266;display:inline-flex;align-items:center;margin-left:16px;">
+            宽度
+            <input type="text" @bind="drawerSize" @bind:event="oninput"
+                   style="width:72px;margin-left:6px;padding:3px 6px;border:1px solid #dcdfe6;border-radius:4px;" />
+        </label>
+    </div>
+    <p class="demo-note">@drawerNote</p>
+
+    <ElDrawer @bind-Visible="drawerVisible"
+              Direction="drawerDirection"
+              Size="drawerSize"
+              Title="患者详情"
+              WithHeader="drawerWithHeader"
+              BeforeClose="DrawerBeforeClose">
+        <ChildContent>
+            <div>
+                <p>姓名：@MockData.Patients[0].Name</p>
+                <p>年龄：@MockData.Patients[0].Age</p>
+                <p>诊断：@MockData.Patients[0].Diagnosis</p>
+                <p>@drawerNote</p>
+            </div>
+        </ChildContent>
+        <Footer>
+            @if (drawerWithFooter)
+            {
+                <ElButton OnClick="@(() => drawerVisible = false)">取消</ElButton>
+                <ElButton Type="ButtonType.Primary" OnClick="@DrawerSaveAndClose">保存并关闭</ElButton>
+            }
+        </Footer>
+    </ElDrawer>
+</div>
+
+<div class="demo-section">
+    <h3>Drawer 承载另一个 Razor 页面</h3>
+    <p class="demo-page-sub">
+        Drawer 的内容可以是任意组件 —— 直接把页面组件放进 <code>ChildContent</code> 即可嵌套渲染，
+        <b>不需要 iframe</b>。这里嵌入的就是 <code>/form</code> 这个表单演示页（<code>FormDemo.razor</code>）本身。
+        开启 <code>Resizable</code> 后可用鼠标拖动抽屉边缘调整宽度；<code>DestroyOnClose</code> 决定关闭后是否销毁内部页面状态。
+    </p>
+    <div class="demo-row">
+        <ElButton Type="ButtonType.Primary" OnClick="@(() => pageDrawerVisible = true)">在抽屉中打开 /form 表单页</ElButton>
+        <label style="font-size:13px;color:#606266;display:inline-flex;align-items:center;margin-left:16px;">
+            <input type="checkbox" @bind="pageDrawerResizable" style="vertical-align:middle;" />
+            <span style="margin-left:6px;">允许拖拽调宽（Resizable）</span>
+        </label>
+        <label style="font-size:13px;color:#606266;display:inline-flex;align-items:center;margin-left:16px;">
+            <input type="checkbox" @bind="pageDrawerDestroyOnClose" style="vertical-align:middle;" />
+            <span style="margin-left:6px;">关闭即销毁（DestroyOnClose）</span>
+        </label>
+    </div>
+    <p class="demo-note">@pageDrawerNote</p>
+
+    <ElDrawer @bind-Visible="pageDrawerVisible"
+              Size="60%"
+              Title="表单组件演示（内嵌 /form 页面）"
+              Resizable="pageDrawerResizable"
+              DestroyOnClose="pageDrawerDestroyOnClose"
+              BodyClass="demo-drawer-page-body"
+              OnResizeStart="@OnPageDrawerResizeStart"
+              OnResizeEnd="@OnPageDrawerResizeEnd">
+        <ChildContent>
+            <FormDemo />
+        </ChildContent>
+        <Footer>
+            <ElButton OnClick="@(() => pageDrawerVisible = false)">关闭</ElButton>
+        </Footer>
+    </ElDrawer>
+</div>
+
+@code {
+    private bool dialogVisible;
+
+    #region ElNotification
+
+    private string notificationNote = "尚未触发任何通知。";
+
+    private NotificationOption? notifGroup;
+
+    private int notifOffset = 16;
+
+    private void NotifBasic()
+    {
+        NotificationService.Show(new NotificationOption
+        {
+            Title = "基础用法",
+            Message = "默认无类型（type 为空）：不显示图标，4500ms 后自动关闭；指针悬停会暂停计时。"
+        });
+        notificationNote = "已发出一条无类型通知（对齐 EP：type 默认为空串）。";
+    }
+
+    private void NotifSticky()
+    {
+        NotificationService.Show(new NotificationOption
+        {
+            Title = "不会自动关闭",
+            Message = "duration = 0：只有点右上角 × 才关闭",
+            Type = MessageType.Warning,
+            Duration = 0
+        });
+        notificationNote = "duration=0 的通知不会自动关闭。";
+    }
+
+    private void NotifNoTitle()
+    {
+        NotificationService.Show(new NotificationOption
+        {
+            Message = "没有标题时，正文的 margin 归零（对齐 EP 的 :style=\"!!title ? undefined : { margin: 0 }\"）"
+        });
+        notificationNote = "无标题通知：正文不再有 6px 上间距。";
+    }
+
+    private void NotifPrimary() => NotifTyped(MessageType.Primary);
+
+    private void NotifSuccess() => NotifTyped(MessageType.Success);
+
+    private void NotifWarning() => NotifTyped(MessageType.Warning);
+
+    private void NotifInfo() => NotifTyped(MessageType.Info);
+
+    private void NotifError() => NotifTyped(MessageType.Error);
+
+    private void NotifTyped(MessageType type)
+    {
+        NotificationService.Show(new NotificationOption
+        {
+            Title = type.ToString(),
+            Message = $"这是 {type.ToString().ToLowerInvariant()} 类型的通知，图标颜色随类型变化。",
+            Type = type
+        });
+        notificationNote = $"已发出 {type} 类型通知（类型修饰类挂在图标元素上，与 EP 一致）。";
+    }
+
+    private void NotifCustomIcon()
+    {
+        NotificationService.Show(new NotificationOption
+        {
+            Title = "自定义图标",
+            Message = "icon 未设置 type 时生效；设置了 type 则优先用类型图标",
+            Icon = "el-icon-star-on"
+        });
+        notificationNote = "自定义图标：无 type 时使用 Icon 指定的 class。";
+    }
+
+    private void NotifAt(NotificationPosition position)
+    {
+        NotificationService.Show(new NotificationOption
+        {
+            Title = "弹出位置",
+            Message = $"position = {position}",
+            Position = position,
+            Type = MessageType.Info
+        });
+        notificationNote = $"通知从 {position} 弹出（四角可选）。";
+    }
+
+    private void NotifWithOffset()
+    {
+        NotificationService.Show(new NotificationOption
+        {
+            Title = "带偏移",
+            Message = $"offset = {notifOffset}px（EP 要求同一时刻同一方向上的实例 offset 相同）",
+            Offset = notifOffset,
+            Type = MessageType.Primary
+        });
+        notificationNote = $"已按 offset={notifOffset}px 发出；改数值后再发一条，点 updateOffsets 可重排该方向。";
+    }
+
+    private void NotifHtml()
+    {
+        NotificationService.Show(new NotificationOption
+        {
+            Title = "HTML 片段",
+            Message = "正文支持 <strong style=\"color:#409EFF\">HTML</strong>；<br />仅用于可信内容，避免 XSS。",
+            DangerouslyUseHTMLString = true,
+            Duration = 6000
+        });
+        notificationNote = "dangerouslyUseHTMLString = true：正文按 HTML 渲染。";
+    }
+
+    private void NotifProgress()
+    {
+        NotificationService.Show(new NotificationOption
+        {
+            Title = "带进度条",
+            Message = "底部进度条随倒计时收缩；指针悬停时计时与进度条一起暂停（pauseOnHover 默认 true）。",
+            Type = MessageType.Primary,
+            Duration = 8000,
+            Progress = true
+        });
+        notificationNote = "进度条通知已发出（8 秒）：悬停可暂停，移开继续。";
+    }
+
+    private void NotifNoClose()
+    {
+        NotificationService.Show(new NotificationOption
+        {
+            Title = "隐藏关闭按钮",
+            Message = "showClose = false：等它自己超时消失",
+            ShowClose = false,
+            Duration = 3000
+        });
+        notificationNote = "showClose=false：不渲染关闭按钮。";
+    }
+
+    private void NotifClick()
+    {
+        NotificationService.Show(new NotificationOption
+        {
+            Title = "点击回调",
+            Message = "点一下这条通知：触发 onClick 并立即关闭（CloseOnClick）",
+            Type = MessageType.Success,
+            Duration = 0,
+            CloseOnClick = true,
+            // 回调由 ElPopup 触发，改的是本页面的字段 —— 必须显式请求本页重渲染，否则 note 不刷新
+            OnClickSync = () =>
+            {
+                notificationNote = "通知被点击了：" + DateTime.Now.ToString("HH:mm:ss");
+                StateHasChanged();
+            }
+        });
+        notificationNote = "已发出可点击通知：点击后触发回调并关闭。";
+    }
+
+    private void NotifGrouping()
+    {
+        notifGroup = NotificationService.Show(new NotificationOption
+        {
+            Title = "合并重复内容",
+            Message = "同一条内容被合并了",
+            Type = MessageType.Info,
+            Grouping = true,
+            Duration = 5000
+        });
+        notificationNote = $"第 {notifGroup.RepeatCount} 次点击：同类型同标题同正文会合并为一条。";
+    }
+
+    #endregion
+
+    #region ElMessage
+
+    private string messageNote = "尚未触发任何提示。";
+
+    private MessageInfo? groupInfo;
+
+    private void MsgSuccess() => Note(MessageService.Success("处方保存成功"), MessageType.Success);
+
+    private void MsgWarning() => Note(MessageService.Warning("阿莫西林胶囊库存偏低"), MessageType.Warning);
+
+    private void MsgError() => Note(MessageService.Error("医保校验未通过"), MessageType.Error);
+
+    private void MsgInfo() => Note(MessageService.Info("已同步至电子病历系统"), MessageType.Info);
+
+    private void MsgPrimary() => Note(MessageService.Primary("已完成 primary 类型提示演示"), MessageType.Primary);
+
+    private void MsgPlain()
+    {
+        var info = MessageService.Show(new MessageInfo
+        {
+            Message = "朴素风格：无背景色，只有边框与文字",
+            Type = MessageType.Info,
+            Plain = true
+        });
+        Note(info, MessageType.Info);
+    }
+
+    private void MsgSticky()
+    {
+        var info = MessageService.Show(new MessageInfo
+        {
+            Message = "这条不会自动消失，点右侧 × 手动关闭",
+            Type = MessageType.Warning,
+            Duration = 0,
+            ShowClose = true
+        });
+        Note(info, MessageType.Warning);
+    }
+
+    private void MsgGrouping()
+    {
+        // 连续点击同一种「内容 + 类型」的分组提示，只会合并成一条并显示次数
+        groupInfo = MessageService.Show(new MessageInfo
+        {
+            Message = "同一条内容被合并了",
+            Type = MessageType.Info,
+            Grouping = true,
+            Duration = 5000
+        });
+        messageNote = $"第 {groupInfo.RepeatCount} 次点击（弹层上的计数会同步递增）。";
+    }
+
+    private void MsgCenterClose()
+    {
+        var info = MessageService.Show(new MessageInfo
+        {
+            Message = "居中显示，关闭时会触发回调",
+            Type = MessageType.Success,
+            Center = true,
+            ShowClose = true,
+            Duration = 6000,
+            OnCloseSync = () => _ = InvokeAsync(() =>
+            {
+                messageNote = $"回调：提示已关闭（{DateTime.Now:HH:mm:ss}）。";
+                StateHasChanged();
+            })
+        });
+        Note(info, MessageType.Success);
+    }
+
+    private void Note(MessageInfo info, MessageType type)
+    {
+        messageNote = $"已发出[{type}]：{info.Message}";
+        groupInfo = null;
+    }
+
+    // 顶端偏移 / 居中：对应官方 offset 与 center 两个配置项
+    private int msgOffset = 16;
+    private bool msgCenter;
+
+    private void MsgCustom()
+    {
+        var info = MessageService.Show(new MessageInfo
+        {
+            Message = $"Offset={msgOffset}px、Center={msgCenter}",
+            Type = MessageType.Info,
+            Offset = msgOffset,
+            Center = msgCenter,
+            Duration = 8000
+        });
+        Note(info, MessageType.Info);
+    }
+
+    #endregion
+
+    #region ElMessageBox
+
+    private string boxNote = "尚未触发任何弹框。";
+
+    private async Task BoxAlert()
+    {
+        await MessageBox.AlertAsync(new MessageBoxOption
+        {
+            Title = "操作完成",
+            Message = "处方已保存，并同步至药房发药队列。",
+            Type = MessageBoxType.Success
+        });
+        boxNote = "Alert：已关闭（只有「确定」按钮）。";
+    }
+
+    private async Task BoxConfirm()
+    {
+        var result = await MessageBox.ConfirmAsync(new MessageBoxOption
+        {
+            Title = "删除病历",
+            Message = "确定要删除该患者的这一份病历吗？删除后不可恢复。",
+            Type = MessageBoxType.Warning,
+            ConfirmButtonText = "确认删除",
+            CancelButtonText = "再想想",
+            ConfirmButtonType = ButtonType.Danger
+        });
+        boxNote = $"Confirm：{result}";
+    }
+
+    private async Task BoxDistinguish()
+    {
+        var result = await MessageBox.ConfirmAsync(new MessageBoxOption
+        {
+            Title = "未保存提示",
+            Message = "当前病历有修改尚未保存，是否直接关闭？",
+            Type = MessageBoxType.Warning,
+            DistinguishCancelAndClose = true,
+            ConfirmButtonText = "不保存退出",
+            CancelButtonText = "返回继续编辑",
+            ShowClose = true
+        });
+        boxNote = result == MessageBoxResult.Cancel
+            ? "你点了「返回继续编辑」（Cancel）。"
+            : (result == MessageBoxResult.Close
+                ? "你是用 × / ESC / 点遮罩关掉的（Close）。"
+                : "你点了「不保存退出」（Ok）。");
+    }
+
+    private async Task BoxPrompt()
+    {
+        var result = await MessageBox.PromptAsync(new MessageBoxOption
+        {
+            Title = "请输入病历号",
+            Message = "格式：BL + 6 位数字（例如 BL202609）",
+            InputPlaceholder = "BL202609",
+            InputMaxlength = 8,
+            InputValidator = value => string.IsNullOrWhiteSpace(value)
+                ? "病历号不能为空"
+                : (value.StartsWith("BL") && value.Length == 8 && value.Substring(2).All(char.IsDigit)
+                    ? null
+                    : "格式不对，应为 BL 加 6 位数字")
+        });
+        boxNote = $"Prompt：{result.Result}，输入框里的值是「{result.Value}」。";
+    }
+
+    private async Task BoxCenterHtml()
+    {
+        await MessageBox.AlertAsync(new MessageBoxOption
+        {
+            Title = "用药须知",
+            Message = "<b>阿莫西林胶囊</b>　0.25g × 24 粒<br/>用法：口服，一次 2 粒，一日 3 次<br/><span style=\"color:#e6a23c\">青霉素过敏者禁用</span>",
+            DangerouslyUseHTMLString = true,
+            Center = true,
+            RoundButton = true
+        });
+        boxNote = "居中 + HTML 内容：已关闭。";
+    }
+
+    #endregion
+
+    #region Drawer
+
+    private bool drawerVisible;
+    private DrawerDirection drawerDirection = DrawerDirection.Rtl;
+    private bool drawerWithHeader = true;
+    private bool drawerWithFooter = true;
+    private bool drawerHasUnsaved;
+    private string drawerSize = "30%";
+    private string drawerNote = "点击上方按钮打开抽屉，可点遮罩 / 按 ESC / 点右上角 × 关闭。";
+
+    private void DrawerSaveAndClose()
+    {
+        // 模拟「保存」：清除未保存标记后关闭
+        drawerHasUnsaved = false;
+        drawerNote = "已保存，抽屉关闭。";
+        drawerVisible = false;
+    }
+
+    private async Task<bool> DrawerBeforeClose()
+    {
+        if (drawerHasUnsaved)
+        {
+            drawerNote = "有未保存修改，已阻止关闭（请先点「保存并关闭」）。";
+            await InvokeAsync(StateHasChanged);
+            return false;
+        }
+
+        drawerNote = "抽屉已关闭。";
+        return true;
+    }
+
+    #endregion
+
+    #region Drawer 内嵌页面
+
+    private bool pageDrawerVisible;
+    private bool pageDrawerResizable = true;
+    private bool pageDrawerDestroyOnClose;
+    private string pageDrawerNote = "尚未打开「内嵌页面」抽屉。";
+
+    private void OnPageDrawerResizeStart(int size)
+    {
+        pageDrawerNote = "开始拖动：" + size + "px";
+    }
+
+    private void OnPageDrawerResizeEnd(int size)
+    {
+        pageDrawerNote = "拖动结束，当前宽度：" + size + "px";
+    }
+
+    #endregion
+}

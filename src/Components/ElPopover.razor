@@ -1,0 +1,55 @@
+@inherits ElementComponentBase
+
+@* 必须用 mouseenter/mouseleave：onmouseover/onmouseout 会冒泡，参考元素与面板（同一 span 内的
+   子节点）之间的每次过渡都会各触发一次 show/hide，两条带延迟的 SetVisibleAsync 相互抢先后顺序，
+   结果是鼠标早就离开了，面板还挂在屏幕上（同批 ElTooltip 同病，见 docs/tooltip-alignment.md）。 *@
+<span @ref="wrapperRef" class="el-popover__reference-wrapper" style="@ReferenceStyle" @attributes="Attributes"
+      @onmouseenter="OnMouseOverAsync"
+      @onmouseleave="OnMouseOutAsync"
+      @onfocusin="OnFocusInAsync"
+      @onfocusout="OnFocusOutAsync">
+    @* click / contextmenu 挂在「参考元素」这一层，不能挂在外层 wrapper：本库的面板就内联在
+       wrapper 里，挂在 wrapper 上等于面板内每次点击都会冒泡回来触发一次 toggle —— EP 的
+       trigger 事件只绑在 trigger 元素上（tooltip/src/trigger.mjs），点面板内部不算重新点击触发器。
+       实测：点面板里的文字 → 面板自己关掉（P5 红）。 *@
+    <span class="el-popover__reference" @ref="referenceRef" aria-describedby="@PopoverId"
+          @onclick="OnClickAsync"
+          @oncontextmenu="OnContextMenuAsync"
+          @oncontextmenu:preventDefault="PreventContextMenu">
+        @Reference
+        @ChildContent
+    </span>
+    @* x-placement 读 EffectivePlacement：开 FixedPopper 且上方放不下时坐标会翻到下方，箭头要跟着翻；
+       未开 fixed 时 EffectivePlacement 恒等于 Placement，输出与改前逐字节一致。 *@
+    @if (ShouldShowPopover)
+    {
+        <div id="@PopoverId" class="@PopoverClassValue" style="@PopoverStyleValue" role="@Role" tabindex="@Tabindex" x-placement="@EffectivePlacement">
+            @if (TitleContent != null)
+            {
+                <div class="el-popover__title">@TitleContent</div>
+            }
+            else if (!string.IsNullOrWhiteSpace(Title))
+            {
+                <div class="el-popover__title">@Title</div>
+            }
+            <div class="el-popover__content">
+                @if (ContentTemplate != null)
+                {
+                    @ContentTemplate
+                }
+                else
+                {
+                    @Content
+                }
+            </div>
+            @if (Footer != null)
+            {
+                <div class="el-popover__footer">@Footer</div>
+            }
+            @if (ShowArrow)
+            {
+                <div x-arrow="" class="popper__arrow"></div>
+            }
+        </div>
+    }
+</span>

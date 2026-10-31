@@ -1,0 +1,93 @@
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Text;
+
+namespace ElementPlus.ControlRenders
+{
+    public class RenderBase
+    {
+        protected virtual void CreateBind(RenderConfig config, RenderTreeBuilder builder, int startIndex)
+        {
+            CreateBind(config, builder, startIndex, nameof(ElInput<string>.ValueChanged), nameof(ElInput<string>.Value));
+        }
+
+        protected void CreateBind(RenderConfig config, RenderTreeBuilder builder, int startIndex, string valueChangedName, string valueName, Type valueType = null)
+        {
+            valueType = CreateTwoWayBinding(config, builder, startIndex, valueChangedName, valueType);
+            var finalType = Nullable.GetUnderlyingType(valueType) ?? valueType;
+            var value = config.EditingValue ?? config.RawValue;
+            if (value == null)
+            {
+                builder.AddAttribute(startIndex + 1, valueName, Nullable.GetUnderlyingType(valueType) != null ? null : GetDefaultValue(valueType));
+                return;
+            }
+            if (finalType.IsEnum)
+            {
+                if (finalType.IsInstanceOfType(value))
+                {
+                    builder.AddAttribute(startIndex + 1, valueName, value);
+                }
+                else if (config.RawValue == null && finalType != valueType)
+                {
+                    builder.AddAttribute(startIndex + 1, valueName, (object)null);
+                }
+                else if (config.RawValue == null)
+                {
+                    builder.AddAttribute(startIndex + 1, valueName, Activator.CreateInstance(finalType));
+                }
+                else
+                {
+                    builder.AddAttribute(startIndex + 1, valueName, Enum.Parse(finalType, Convert.ToString(value)));
+                }
+            }
+            else
+            {
+                builder.AddAttribute(startIndex + 1, valueName, TypeHelper.ChangeType(value, valueType));
+            }
+        }
+
+        protected Type CreateTwoWayBinding(RenderConfig config, RenderTreeBuilder builder, int startIndex, string propertyName = nameof(ElInput<string>.ValueChanged), Type valueType = null)
+        {
+            valueType = valueType ?? config.ValueType ?? config.InputControlType.GetGenericArguments()[0];
+            var receiver = config.Owner ?? config.Page;
+            if (receiver == null)
+            {
+                return valueType;
+            }
+            var createMethod = typeof(EventCallbackFactory).GetMethods().FirstOrDefault(x =>
+            {
+                if (!x.IsGenericMethod || !x.IsPublic)
+                {
+                    return false;
+                };
+                var parameters = x.GetParameters();
+                if (parameters.Length < 2)
+                {
+                    return false;
+                }
+                var parameterType = parameters[1].ParameterType;
+                if (!parameterType.IsGenericType)
+                {
+                    return false;
+                }
+                return parameterType.IsGenericType && parameterType.GetGenericTypeDefinition() == typeof(Action<>);
+            }).MakeGenericMethod(valueType);
+            var parameterExp = Expression.Parameter(valueType);
+            var body = Expression.Assign(Expression.Property(Expression.Constant(config), nameof(RenderConfig.EditingValue)), Expression.Convert(parameterExp, typeof(object)));
+            var settter = Expression.Lambda(typeof(Action<>).MakeGenericType(valueType), body, parameterExp).Compile();
+            // 接收者决定"这次输入之后重渲染谁"：优先所有者组件（表格），没有才退回页面
+            var setterMethod = createMethod.Invoke(EventCallback.Factory, new object[] { receiver, settter });
+            builder.AddAttribute(startIndex, propertyName, Convert.ChangeType(setterMethod, typeof(EventCallback<>).MakeGenericType(valueType)));
+            return valueType;
+        }
+
+        private static object GetDefaultValue(Type type)
+        {
+            return type.IsValueType ? Activator.CreateInstance(type) : null;
+        }
+    }
+}

@@ -1,0 +1,35 @@
+@inherits ElementComponentBase
+
+<div id="@Id" @ref="containerRef" class="@ScrollClass" style="@ScrollStyle"
+     aria-label="@AriaLabel"
+     aria-busy="@(Loading ? "true" : null)"
+     aria-disabled="@(Disabled ? "true" : null)"
+     @onscroll="OnScrollAsync" @attributes="Attributes">
+    @ChildContent
+    @if (Loading)
+    {
+        <div class="el-infinite-scroll__loading">
+            @if (LoadingContent != null)
+            {
+                @LoadingContent
+            }
+            else
+            {
+                <span class="el-infinite-scroll__spinner" aria-hidden="true"></span><span class="el-infinite-scroll__text">@LoadingText</span>
+            }
+        </div>
+    }
+    @if (Disabled)
+    {
+        <div class="el-infinite-scroll__disabled">
+            @if (DisabledContent != null)
+            {
+                @DisabledContent
+            }
+            else
+            {
+                @DisabledText
+            }
+        </div>
+    }
+</div>

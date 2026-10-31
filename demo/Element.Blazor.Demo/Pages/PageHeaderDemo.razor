@@ -1,0 +1,61 @@
+@page "/page-header"
+
+<div class="demo-section">
+    <h3>ElPageHeader 页头（对齐 Element Plus Page Header）</h3>
+    <p class="demo-page-sub">
+        官方属性：<code>icon</code>（默认 back）、<code>title</code>（默认 Back）、<code>content</code>；
+        官方事件 <code>back</code>（<code>OnBack</code>）；
+        官方插槽 <code>icon</code> / <code>title</code> / <code>content</code> / <code>extra</code> / <code>breadcrumb</code> / <code>default</code>。
+        本库扩展：<code>Id</code> / <code>AriaLabel</code>。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>基础用法</h3>
+    <ElPageHeader Title="返回列表" Content="患者详情" OnBack="@(_ => backCount++)" />
+    <p class="demo-note">返回按钮已点击 @backCount 次</p>
+</div>
+
+<div class="demo-section">
+    <h3>自定义图标与标题（icon / title 插槽）</h3>
+    <ElPageHeader Content="自定义页头">
+        <IconContent>
+            <i class="el-icon-arrow-left" style="margin-right:6px;"></i>
+        </IconContent>
+        <TitleContent>
+            <span style="font-weight:600; color:#409eff;">← 返回上级</span>
+        </TitleContent>
+    </ElPageHeader>
+</div>
+
+<div class="demo-section">
+    <h3>breadcrumb 插槽 + extra 插槽</h3>
+    <ElPageHeader Content="带面包屑的页头">
+        <BreadcrumbContent>
+            <ElBreadcrumb Separator="/">
+                <ElBreadcrumbItem To="/">首页</ElBreadcrumbItem>
+                <ElBreadcrumbItem To="/nav">导航组件</ElBreadcrumbItem>
+                <ElBreadcrumbItem>页头</ElBreadcrumbItem>
+            </ElBreadcrumb>
+        </BreadcrumbContent>
+        <ExtraContent>
+            <ElButton Size="ButtonSize.Small">编辑</ElButton>
+            <ElButton Size="ButtonSize.Small" Type="ButtonType.Primary">保存</ElButton>
+        </ExtraContent>
+    </ElPageHeader>
+</div>
+
+<div class="demo-section">
+    <h3>default 插槽（页头主体内容）</h3>
+    <ElPageHeader Icon="back" Title="返回" Content="住院病历">
+        <ChildContent>
+            <div style="padding:12px; border:1px solid var(--el-border-color-lighter, #ebeef5); border-radius:4px;">
+                这里是页头的主体内容区（default 插槽）。
+            </div>
+        </ChildContent>
+    </ElPageHeader>
+</div>
+
+@code {
+    private int backCount;
+}

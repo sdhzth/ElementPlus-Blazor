@@ -1,0 +1,73 @@
+@page "/calendar"
+@inherits ElementComponentBase
+
+<div class="demo-section">
+    <h3>ElCalendar 日历</h3>
+    <p class="demo-note">对齐 Element Plus 官方 <a href="https://element-plus.org/zh-CN/component/calendar" target="_blank">Calendar</a> 组件：支持 <code>v-model</code> 双向绑定、自定义单元格（date-cell）、范围（range）、自定义头部（header），以及 2.13.1 新增的控制器类型（controller-type=select）。</p>
+</div>
+
+<div class="demo-section">
+    <h3>基础用法</h3>
+    <p class="demo-note">设置 <code>Value</code> 指定显示月份，未指定则显示当月；支持 <code>@@bind-Value</code> 双向绑定。</p>
+    <ElCalendar @bind-Value="basicDate" />
+    <p class="demo-note">当前选中：<strong>@(basicDate?.ToString("yyyy-MM-dd") ?? "未选择")</strong></p>
+</div>
+
+<div class="demo-section">
+    <h3>自定义单元格内容（date-cell）</h3>
+    <p class="demo-note">通过 <code>DateCell</code> 插槽自定义单元格；上下文字段对齐 EP：<code>Type</code>（prev-month/current-month/next-month）、<code>IsSelected</code>、<code>Day</code>（yyyy-MM-dd）、<code>Date</code>。</p>
+    <ElCalendar @bind-Value="cellDate">
+        <DateCell Context="cell">
+            <p class="@(cell.IsSelected ? "is-selected" : "")">
+                @cell.Day.Substring(5)
+                @(cell.IsSelected ? "✔" : "")
+            </p>
+        </DateCell>
+    </ElCalendar>
+</div>
+
+<div class="demo-section">
+    <h3>范围（range）</h3>
+    <p class="demo-note">通过 <code>Range</code> 指定起止日期（长度 2，跨度不超过两个月，起止会自动按周对齐）。</p>
+    <ElCalendar Range="rangeDates" />
+</div>
+
+<div class="demo-section">
+    <h3>自定义头部（header）</h3>
+    <p class="demo-note">通过 <code>Header</code> 插槽完全自定义头部；下面用 <code>@@ref</code> 调用 EP 暴露的 <code>SelectDate</code> 方法实现上/下年、上/下月、今天导航。</p>
+    <ElCalendar @ref="calRef" @bind-Value="headerDate">
+        <Header Context="d">
+            <span>自定义头：@d.ToString("yyyy 年 M 月")</span>
+            <div class="el-button-group">
+                <button type="button" class="el-button el-button--small" @onclick="OnPrevYear">上一年</button>
+                <button type="button" class="el-button el-button--small" @onclick="OnPrevMonth">上一月</button>
+                <button type="button" class="el-button el-button--small" @onclick="OnToday">今天</button>
+                <button type="button" class="el-button el-button--small" @onclick="OnNextMonth">下一月</button>
+                <button type="button" class="el-button el-button--small" @onclick="OnNextYear">下一年</button>
+            </div>
+        </Header>
+    </ElCalendar>
+</div>
+
+<div class="demo-section">
+    <h3>控制器类型（controller-type = select）</h3>
+    <p class="demo-note">设置 <code>ControllerType="CalendarControllerType.Select"</code> 时头部改为年/月下拉选择；可用 <code>Formatter</code> 自定义下拉标签。</p>
+    <ElCalendar @bind-Value="selectDate" ControllerType="CalendarControllerType.Select" Formatter="FormatCalLabel" />
+</div>
+
+@code {
+    private DateTime? basicDate = DateTime.Today;
+    private DateTime? cellDate = DateTime.Today;
+    private DateTime[] rangeDates = new[] { new DateTime(2026, 3, 3), new DateTime(2026, 3, 24) };
+    private DateTime? headerDate = DateTime.Today;
+    private DateTime? selectDate = DateTime.Today;
+    private ElCalendar calRef;
+
+    private void OnPrevYear() => calRef?.SelectDate("prev-year");
+    private void OnPrevMonth() => calRef?.SelectDate("prev-month");
+    private void OnToday() => calRef?.SelectDate("today");
+    private void OnNextMonth() => calRef?.SelectDate("next-month");
+    private void OnNextYear() => calRef?.SelectDate("next-year");
+
+    private string FormatCalLabel(int value, string type) => type == "month" ? $"{value} 月" : $"{value} 年";
+}

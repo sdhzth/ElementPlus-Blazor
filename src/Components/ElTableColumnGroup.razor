@@ -1,0 +1,8 @@
+@inherits ElTableColumn
+
+@* 分组本身不产生任何 DOM：CascadingValue 只是把自身下发给子列，子列因此在 OnInitialized 里
+   走 ParentColumn.AddChildColumn 登记到本分组，而不是登记成表格的顶层叶子列。
+   真正渲染两行表头的是 ElTable 的分组表头分支。 *@
+<CascadingValue TValue="ElTableColumn" Value="@this">
+    @ChildColumns
+</CascadingValue>

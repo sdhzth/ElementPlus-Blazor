@@ -1,0 +1,7 @@
+@inherits ElementComponentBase
+
+<ul id="@Id" class="@TimelineClass" style="@Style" role="list" aria-label="@AriaLabel" @attributes="Attributes">
+    <CascadingValue Value="@this" IsFixed="true">
+        @ChildContent
+    </CascadingValue>
+</ul>

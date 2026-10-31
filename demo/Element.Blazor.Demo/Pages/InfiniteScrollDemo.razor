@@ -1,0 +1,153 @@
+@page "/infinite-scroll"
+
+<h1 class="demo-page-title">无限滚动 Infinite Scroll</h1>
+<p class="demo-page-sub">对齐 Element Plus 官方 infinite-scroll 指令（v-infinite-scroll / infinite-scroll-disabled / infinite-scroll-delay / infinite-scroll-distance / infinite-scroll-immediate），并扩展了加载中 / 结束态的可视化与插槽。</p>
+
+<div class="demo-section">
+    <h3>基础用法（Immediate 首屏加载 + 滚动到底追加）</h3>
+    <p class="demo-note">默认 <code>Distance=0</code>、<code>Immediate=true</code>：首屏自动加载第一页，滚动到容器底部再追加，加载期间显示「加载中」转圈，达到上限（45 条）后显示「没有更多了」。</p>
+    <ElInfiniteScroll Cls="basic-scroll" Height="260px" Distance="0" Immediate="true"
+                      Loading="@basicLoading" Disabled="@BasicDisabled" OnLoad="BasicLoad">
+        <ChildContent>
+            @foreach (var it in basicItems)
+            {
+                <div class="demo-list-row">@it</div>
+            }
+        </ChildContent>
+    </ElInfiniteScroll>
+    <p class="demo-note">已加载 @basicItems.Count 条 / 上限 45 条。</p>
+</div>
+
+<div class="demo-section">
+    <h3>自定义加载中 / 结束内容（LoadingContent / DisabledContent 插槽）</h3>
+    <p class="demo-note">通过具名插槽自定义底部状态，并演示 <code>Distance=40</code> 提前于底部 40px 触发。</p>
+    <ElInfiniteScroll Cls="cust-scroll" Height="240px" Distance="40" Immediate="true"
+                      Disabled="@CustDisabled" OnLoad="CustLoad">
+        <ChildContent>
+            @foreach (var it in custItems)
+            {
+                <div class="demo-list-row">@it</div>
+            }
+        </ChildContent>
+        <LoadingContent><span class="custom-loading">⏳ 正在拼命加载…</span></LoadingContent>
+        <DisabledContent><span class="custom-disabled">— 已经到底啦 —</span></DisabledContent>
+    </ElInfiniteScroll>
+    <p class="demo-note">已加载 @custItems.Count 条 / 上限 30 条。</p>
+</div>
+
+<div class="demo-section">
+    <h3>距离阈值 Distance（提前加载）</h3>
+    <p class="demo-note"><code>Distance=120</code>：距离底部还有 120px 时即触发加载，用户无「等加载」的空白感。上限 40 条。</p>
+    <ElInfiniteScroll Cls="dist-scroll" Height="240px" Distance="120" Immediate="true"
+                      Disabled="@DistDisabled" OnLoad="DistLoad">
+        <ChildContent>
+            @foreach (var it in distItems)
+            {
+                <div class="demo-list-row">@it</div>
+            }
+        </ChildContent>
+    </ElInfiniteScroll>
+    <p class="demo-note">已加载 @distItems.Count 条 / 上限 40 条。</p>
+</div>
+
+<div class="demo-section">
+    <h3>关闭 Immediate（需滚动触发首屏加载）</h3>
+    <p class="demo-note"><code>Immediate=false</code>：首屏不自动加载，内容可滚动后，滚动到底部才触发第一次加载。初始已放入 8 条用于撑出滚动区。上限 32 条。</p>
+    <ElInfiniteScroll Cls="imm-scroll" Height="220px" Distance="0" Immediate="false"
+                      Loading="@immLoading" Disabled="@ImmDisabled" OnLoad="ImmLoad">
+        <ChildContent>
+            @foreach (var it in immItems)
+            {
+                <div class="demo-list-row">@it</div>
+            }
+        </ChildContent>
+    </ElInfiniteScroll>
+    <p class="demo-note">已加载 @immItems.Count 条 / 上限 32 条。</p>
+</div>
+
+<div class="demo-section">
+    <h3>禁用状态（Disabled=true 显示结束文案）</h3>
+    <p class="demo-note"><code>Disabled=true</code> 时不再触发加载，底部固定显示结束文案（默认「没有更多了」，可用 DisabledText / DisabledContent 自定义）。</p>
+    <ElInfiniteScroll Cls="dis-scroll" Height="160px" Disabled="true">
+        <ChildContent>
+            <div class="demo-list-row">门诊病历 #001　已完成</div>
+            <div class="demo-list-row">门诊病历 #002　已完成</div>
+        </ChildContent>
+    </ElInfiniteScroll>
+</div>
+
+<style>
+    .custom-loading { color: var(--el-color-primary, #409eff); font-size: 14px; }
+    .custom-disabled { color: var(--el-text-color-secondary, #909399); font-size: 14px; }
+</style>
+
+@code {
+    private List<string> basicItems = new();
+    private bool basicLoading;
+    private bool BasicDisabled => basicItems.Count >= 45;
+
+    private List<string> custItems = new();
+    private bool CustDisabled => custItems.Count >= 30;
+
+    private List<string> distItems = new();
+    private bool DistDisabled => distItems.Count >= 40;
+
+    private List<string> immItems = InitItems(8, "检验记录", "Laura Bennett", "检验科", "2026-09-21");
+    private bool immLoading;
+    private bool ImmDisabled => immItems.Count >= 32;
+
+    private async Task BasicLoad(InfiniteScrollEventArgs e)
+    {
+        if (BasicDisabled || basicLoading) return;
+        basicLoading = true;
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(400);
+        AppendItems(basicItems, 15, "病历记录", "Kevin Carter", "内科门诊", "2026-09-20");
+        basicLoading = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task CustLoad(InfiniteScrollEventArgs e)
+    {
+        if (CustDisabled) return;
+        await Task.Delay(400);
+        AppendItems(custItems, 10, "处方记录", "Fiona Hayes", "药剂科", "2026-09-22");
+    }
+
+    private async Task DistLoad(InfiniteScrollEventArgs e)
+    {
+        if (DistDisabled) return;
+        await Task.Delay(400);
+        AppendItems(distItems, 10, "检查记录", "赵强", "影像科", "2026-09-23");
+    }
+
+    private async Task ImmLoad(InfiniteScrollEventArgs e)
+    {
+        if (ImmDisabled || immLoading) return;
+        immLoading = true;
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(400);
+        AppendItems(immItems, 8, "检验记录", "Laura Bennett", "检验科", "2026-09-21");
+        immLoading = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private static void AppendItems(List<string> list, int count, string prefix, string name, string dept, string date)
+    {
+        var start = list.Count;
+        for (var i = 0; i < count; i++)
+        {
+            list.Add($"{prefix} #{start + i + 1:D3}　{name}　{dept}　{date}");
+        }
+    }
+
+    private static List<string> InitItems(int n, string prefix, string name, string dept, string date)
+    {
+        var l = new List<string>(n);
+        for (var i = 0; i < n; i++)
+        {
+            l.Add($"{prefix} #{i + 1:D3}　{name}　{dept}　{date}");
+        }
+        return l;
+    }
+}

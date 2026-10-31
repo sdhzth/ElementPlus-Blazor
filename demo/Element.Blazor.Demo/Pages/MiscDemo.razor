@@ -1,0 +1,190 @@
+@page "/misc"
+
+<h1 class="demo-page-title">交互与虚拟化组件（带 Mock 数据）</h1>
+<p class="demo-page-sub">虚拟滚动表格 / 虚拟树、时间选择、穿梭框、上传、抽屉、气泡确认、漫游引导、无限滚动。</p>
+
+<div class="demo-section" id="sec-tablev2">
+    <h3>ElTableV2 虚拟滚动表格（200 行）</h3>
+    <ElTableV2 DataSource="MockData.BigProducts"
+               Columns="v2Columns"
+               RowHeight="40"
+               HeaderHeight="44"
+               Height="320px"
+               RowKey="Id"
+               ShowSummary="true"
+               SumText="合计"
+               Stripe="true" />
+    <p class="demo-note">共 @MockData.BigProducts.Count 行，仅渲染可视区域内的行；滚动查看虚拟滚动效果。</p>
+</div>
+
+<div class="demo-section" id="sec-treev2">
+    <h3>ElTreeV2 虚拟滚动树</h3>
+    <p class="demo-page-sub">
+        <b>双击任意节点</b>触发本轮新增的 <code>OnNodeDblClick</code> 事件（载荷为被双击的 <code>TreeItemBase</code> 节点）。
+    </p>
+    <ElTreeV2 DataSource="treeData" Height="240" ItemSize="32"
+              OnNodeDblClick="@(n => treeDblMsg = $"OnNodeDblClick → 节点「{n.Text}」（Id={n.Id}）")" />
+    <p class="demo-note" id="treev2-dbl">@treeDblMsg</p>
+</div>
+
+<div class="demo-section" id="sec-timeselect">
+    <h3>ElTimeSelect 时间选择</h3>
+    <div class="demo-row">
+        <ElTimeSelect @bind-Value="visitTime" Start="08:00" End="18:00" Step="00:30" Placeholder="选择就诊时间" />
+        <ElTag Type="TagType.Primary"><text>已选：@(string.IsNullOrEmpty(visitTime) ? "未选择" : visitTime)</text></ElTag>
+    </div>
+</div>
+
+<div class="demo-section" id="sec-transfer">
+    <h3>ElTransfer 穿梭框</h3>
+    <ElTransfer List1="transferSource"
+                List2="transferTarget"
+                @bind-Value="transferValue"
+                EnableSearch="true"
+                LeftTitle="待选医生"
+                RightTitle="已选医生"
+                List1SearchPlaceHolder="搜索待选医生"
+                List2SearchPlaceHolder="搜索已选医生"
+                EmptyText="暂无数据"
+                NoMatchText="无匹配项"
+                ToLeftText="移除"
+                ToRightText="加入"
+                PanelWidth="240"
+                PanelHeight="240" />
+    <p class="demo-note">已选（右侧）：@(transferValue.Count == 0 ? "无" : string.Join("、", transferValue))</p>
+</div>
+
+<div class="demo-section" id="sec-upload">
+    <h3>ElUpload 上传</h3>
+    <ElUpload UploadType="UploadType.File"
+              Action="https://example.invalid/upload"
+              Method="POST"
+              Multiple="true"
+              AutoUpload="false"
+              Drag="true"
+              MaxSize="10485760">
+        <ChildContent>
+            <div class="el-upload__text">
+                将文件拖到此处，或 <em>点击选择文件</em>
+            </div>
+        </ChildContent>
+        <Tip>
+            <text>支持 PDF / 图片等格式，单个文件不超过 10MB（演示为本地模式，不会真正上传）。</text>
+        </Tip>
+    </ElUpload>
+</div>
+
+<div class="demo-section" id="sec-popconfirm">
+    <h3>ElDrawer 抽屉 / ElPopconfirm 气泡确认</h3>
+    <div class="demo-row">
+        <ElButton Type="ButtonType.Primary" OnClick="@(() => drawerVisible = true)">打开抽屉</ElButton>
+
+        <ElPopconfirm Title="确认删除该处方？"
+                      Content="删除后不可恢复，请谨慎操作。"
+                      ConfirmButtonText="删除"
+                      CancelButtonText="取消"
+                      ConfirmButtonType="ButtonType.Danger"
+                      OnConfirm="@(() => lastAction = "已删除处方 #20260920")"
+                      OnCancel="@(() => lastAction = "已取消删除")">
+            <ElButton Type="ButtonType.Danger" Plain="true">删除处方</ElButton>
+        </ElPopconfirm>
+
+        <ElTag id="popconfirm-result"><text>@(string.IsNullOrEmpty(lastAction) ? "尚无操作" : lastAction)</text></ElTag>
+    </div>
+
+    <ElDrawer @bind-Visible="drawerVisible" Title="患者详情" Direction="DrawerDirection.Rtl" Size="360px">
+        <ChildContent>
+            <div>
+                <p>姓名：@MockData.Patients[0].Name</p>
+                <p>年龄：@MockData.Patients[0].Age</p>
+                <p>科室：@MockData.Patients[0].Department</p>
+                <p>诊断：@MockData.Patients[0].Diagnosis</p>
+            </div>
+        </ChildContent>
+        <Footer>
+            <ElButton OnClick="@(() => drawerVisible = false)">关闭</ElButton>
+        </Footer>
+    </ElDrawer>
+</div>
+
+<div class="demo-section" id="sec-tour">
+    <h3>ElTour 漫游引导</h3>
+    <div class="demo-row">
+        <ElButton id="tour-target-a" Type="ButtonType.Primary" OnClick="@(() => tourVisible = true)">开始引导</ElButton>
+        <ElTag id="tour-target-b" Type="TagType.Success"><text>引导目标 2</text></ElTag>
+    </div>
+    <ElTour @bind-Value="tourVisible" Steps="tourSteps" Mask="true" />
+</div>
+
+<div class="demo-section" id="sec-infinite">
+    <h3>ElInfiniteScroll 无限滚动</h3>
+    <ElInfiniteScroll Height="220px" Distance="80" OnLoad="LoadMoreAsync" Disabled="@(infiniteItems.Count >= 60)">
+        @foreach (var item in infiniteItems)
+        {
+            <div class="demo-list-row">@item</div>
+        }
+    </ElInfiniteScroll>
+    <p class="demo-note">已加载 @infiniteItems.Count 条（滚动到底部自动追加，最多 60 条）。</p>
+</div>
+
+@code {
+    private List<ElementPlus.TreeItemBase> treeData = MockData.FlatOrgTree();
+    private string treeDblMsg = "（双击任意树节点 → 触发 OnNodeDblClick）";
+
+    private List<TableV2Column> v2Columns = new List<TableV2Column>
+    {
+        new TableV2Column { Key = "id", Title = "编号", Property = "Id", Width = "90px" },
+        new TableV2Column { Key = "name", Title = "药品名称", Property = "Name", Width = "180px" },
+        new TableV2Column { Key = "category", Title = "类别", Property = "Category", Width = "120px" },
+        new TableV2Column { Key = "price", Title = "单价(元)", Property = "Price", Width = "120px", Align = "right" },
+        new TableV2Column { Key = "stock", Title = "库存", Property = "Stock", Width = "120px", Align = "right" },
+    };
+
+    private string visitTime = "09:00";
+
+    private List<TransferItem> transferSource = new List<TransferItem>
+    {
+        new TransferItem { Id = "d1", Label = "张医生（内科）" },
+        new TransferItem { Id = "d2", Label = "李医生（外科）" },
+        new TransferItem { Id = "d3", Label = "王医生（妇科）" },
+        new TransferItem { Id = "d4", Label = "刘医生（骨科）" },
+        new TransferItem { Id = "d5", Label = "陈医生（儿科）" },
+    };
+
+    private List<TransferItem> transferTarget = new List<TransferItem>();
+
+    private List<string> transferValue = new List<string>();
+
+    private bool drawerVisible;
+    private string lastAction = string.Empty;
+
+    private bool tourVisible;
+
+    private List<TourStep> tourSteps = new List<TourStep>
+    {
+        new TourStep { Target = "#tour-target-a", Title = "第一步：开始引导", Description = "这里是引导入口按钮。", Placement = "bottom", ShowClose = true },
+        new TourStep { Target = "#tour-target-b", Title = "第二步：目标标签", Description = "引导会定位到该标签元素。", Placement = "bottom", ShowClose = true },
+    };
+
+    private List<string> infiniteItems = BuildInfinitePage(0, 20);
+
+    private async Task LoadMoreAsync(InfiniteScrollEventArgs args)
+    {
+        if (infiniteItems.Count >= 60)
+        {
+            return;
+        }
+        await Task.Delay(120);
+        infiniteItems.AddRange(BuildInfinitePage(infiniteItems.Count, 20));
+    }
+
+    private static List<string> BuildInfinitePage(int offset, int count)
+    {
+        var list = new List<string>(count);
+        for (var i = 0; i < count; i++)
+        {
+            list.Add($"病历记录 #{offset + i + 1:D3}　Kevin Carter　内科门诊　2026-09-20");
+        }
+        return list;
+    }
+}

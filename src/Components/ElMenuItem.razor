@@ -1,0 +1,37 @@
+@inherits ElementComponentBase
+<li role="menuitem" tabindex="@(Disabled || (Options != null && Options.Disabled) ? -1 : 0)"
+    @onclick="OnClickAsync"
+    @onmouseover="OnOver"
+    @onmouseenter="OnMouseEnterAsync"
+    @onmouseleave="OnMouseLeave"
+    @onkeydown="OnKeyDownAsync"
+    class="@ItemClass"
+    style="@ItemStyle"
+    aria-disabled="@(Disabled || (Options != null && Options.Disabled))"
+    title="@EffectiveTitle">
+    @if (!string.IsNullOrWhiteSpace(EffectiveIcon))
+    {
+        <i class="@EffectiveIcon"></i>
+    }
+    @* 截断悬停看全文（本库扩展）：ElTooltip 的浮层渲染在它自己的触发 span 内部，
+       所以只能包住文字 span，绝不能放进 .el-menu-item__ellipsis-text —— 那层有 overflow:hidden，会把浮层一起裁掉。
+       触发 span 是 .el-menu-item（display:flex）的 flex item，必须 min-width:0 才允许收缩，
+       否则 flex item 的自动最小尺寸＝不折行文字的整行宽度，文字会重新溢出菜单边框。 *@
+    @if (ShowEllipsisTooltip)
+    {
+        <ElTooltip Trigger="@PopperTrigger.Manual" ModelValue="@EllipsisTooltipVisible" Content="@EllipsisTooltipText"
+                   Placement="@EllipsisTooltipPopperPlacement" Effect="@EllipsisTooltipEffect"
+                   PopperClass="@Options?.PopperClass" PopperStyle="@EllipsisTooltipPopperStyle"
+                   Style="min-width:0">
+            <span class="el-menu-item__ellipsis-text" @ref="textElement">@ChildContent</span>
+        </ElTooltip>
+    }
+    else
+    {
+        <span class="@(Options?.Ellipsis == true ? "el-menu-item__ellipsis-text" : null)">@ChildContent</span>
+    }
+    @if (TitleTemplate != null)
+    {
+        <span>@TitleTemplate</span>
+    }
+</li>

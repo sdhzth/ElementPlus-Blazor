@@ -1,0 +1,310 @@
+@page "/form"
+
+<h1 class="demo-page-title">表单组件（带 Mock 数据）</h1>
+<p class="demo-page-sub">以下字段均绑定到本地 Mock 模型，修改即时反映在底部结果区。</p>
+
+<div class="demo-section">
+    <h3>文本与数值</h3>
+    <div class="demo-row">
+        <ElInput TValue="string" @bind-Value="model.Name" Placeholder="请输入姓名" />
+        <ElInputNumber Controls="true" @bind-Value="model.Age" />
+        <ElInput TValue="string" @bind-Value="model.Department" Placeholder="科室" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>选择类</h3>
+    <div class="demo-row">
+        <ElSelect TValue="string" @bind-Value="model.Drug" Placeholder="请选择药品">
+            @foreach (var kv in MockData.KeyValueOptions)
+            {
+                <ElOption TValue="string" Value="@kv.Value" Text="@kv.Label" />
+            }
+        </ElSelect>
+
+        <ElCheckbox TValue="bool" @bind-Value="model.OnSale"><text>是否在售</text></ElCheckbox>
+        <ElSwitch TValue="bool" @bind-Value="model.Enabled" ActiveText="启用" InactiveText="停用" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>评分与滑块</h3>
+    <div class="demo-row">
+        <ElRate @bind-Value="model.Score" />
+        <span>评分：@(model.Score?.ToString("0.0") ?? "—")</span>
+    </div>
+    <div class="demo-row" style="margin-top:12px;">
+        <ElSlider @bind-Value="model.Level" Min="0" Max="100" />
+        <span>等级：@model.Level</span>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>ElInput 属性自检（ShowClearIcon / Autosize）</h3>
+    <div class="demo-row">
+        <ElInput TValue="string" @bind-Value="clearFix" Placeholder="常显清除按钮" Clearable="true" ShowClearIcon="true" />
+        <ElInput TValue="string" @bind-Value="clearHover" Placeholder="悬停才显示" Clearable="true" />
+    </div>
+    <div class="demo-row" style="margin-top:12px;align-items:flex-start;">
+        <ElInput TValue="string" @bind-Value="autoText" Type="InputType.Textarea" Autosize="true" Rows="2" Placeholder="自适应高度 textarea" />
+        <ElInput TValue="string" @bind-Value="fixedText" Type="InputType.Textarea" Rows="2" Placeholder="固定两行 textarea" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>ElInput · 基础用法 / 一键清空 / 自定义清除图标（clear-icon）</h3>
+    <div class="demo-row" style="align-items:center;">
+        <ElInput TValue="string" @bind-Value="epBase" Placeholder="基础输入框" Style="width:200px;" id="ep-input-base" />
+        <span>值：@epBase</span>
+        <ElInput TValue="string" @bind-Value="epClear" Clearable="true" ClearIcon="el-icon-delete" Placeholder="自定义清除图标" Style="width:200px;" id="ep-input-clearicon" />
+        <ElInput TValue="string" Value="@("禁用状态")" Disabled="true" Style="width:200px;" id="ep-input-disabled" />
+        <ElInput TValue="string" Value="@("只读状态")" Readonly="true" Style="width:200px;" id="ep-input-readonly" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>ElInput · 密码框（show-password）</h3>
+    <p class="demo-note">
+        只要设置 <code>ShowPassword="true"</code> 即为可切换显示 / 隐藏的密码框（原生 type 在 password 与 text 间切换）。
+        默认 <code>PreventPasswordSave="true"</code>：原生 autocomplete 被置为 <code>new-password</code> 并附加密码管理器忽略标记，
+        因此输入密码后浏览器不会弹出「记住 / 保存密码」对话框。
+    </p>
+    <div class="demo-row" style="align-items:center;">
+        <ElInput @ref="pwdInput" TValue="string" @bind-Value="epPwd" ShowPassword="true" Placeholder="默认密码框（防保存）" Style="width:200px;" id="ep-input-pwd"
+                 PasswordVisibleChanged="v => epPwdVisible = v" />
+        <ElButton Size="ButtonSize.Small" OnClick="TogglePwd" id="ep-pwd-toggle">代码切换</ElButton>
+        <span>明文显示：<b id="ep-pwd-state">@(epPwdVisible ? "是" : "否")</b></span>
+        <span>原生 type：<b>@(epPwdVisible ? "text" : "password")</b></span>
+    </div>
+    <div class="demo-row" style="margin-top:12px;align-items:center;">
+        <ElInput TValue="string" @bind-Value="epPwdIcon" ShowPassword="true" Placeholder="自定义密码图标" Style="width:200px;" id="ep-input-pwd-icon">
+            <PasswordIcon Context="visible">
+                <i class="el-input__icon @(visible ? "el-icon-unlock" : "el-icon-lock")"></i>
+            </PasswordIcon>
+        </ElInput>
+        <ElInput TValue="string" @bind-Value="epPwdSave" Type="InputType.Password" ShowPassword="true" PreventPasswordSave="false" Placeholder="对比：允许浏览器记住" Style="width:200px;" id="ep-input-pwd-save" />
+        <span class="demo-note">左：自定义 password-icon 插槽；右：关闭防保存（autocomplete=@("off")）</span>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>ElInput · 图标 / 前后缀插槽 / 复合型输入框</h3>
+    <div class="demo-row" style="align-items:center;">
+        <ElInput TValue="string" @bind-Value="epIcon" PrefixIcon="el-icon-search" SuffixIcon="el-icon-date" Placeholder="前后图标" Style="width:200px;" id="ep-input-icons" />
+        <ElInput TValue="string" @bind-Value="epSlot" Placeholder="插槽前后缀" Style="width:240px;" id="ep-input-slots">
+            <Prefix><span class="demo-input-affix">Http://</span></Prefix>
+            <Suffix><span class="demo-input-affix">.com</span></Suffix>
+        </ElInput>
+        <ElInput TValue="string" @bind-Value="epGroup" Placeholder="请输入地址" Style="width:300px;" id="ep-input-group">
+            <Prepend><span>Http://</span></Prepend>
+            <Append><ElButton Icon="el-icon-search" /></Append>
+        </ElInput>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>ElInput · 尺寸 / 输入长度限制（inside 与 outside）</h3>
+    <div class="demo-row" style="align-items:center;">
+        <ElInput TValue="string" Size="InputSize.Large" @bind-Value="epLarge" Placeholder="大号" Style="width:160px;" id="ep-input-large" />
+        <ElInput TValue="string" @bind-Value="epNormal" Placeholder="默认" Style="width:160px;" id="ep-input-normal" />
+        <ElInput TValue="string" Size="InputSize.Small" @bind-Value="epSmall" Placeholder="小号" Style="width:160px;" id="ep-input-small" />
+    </div>
+    <div class="demo-row" style="margin-top:12px;align-items:center;">
+        <ElInput TValue="string" @bind-Value="epCountIn" Maxlength="10" ShowWordLimit="true" Placeholder="字数统计（内侧）" Style="width:200px;" id="ep-input-count-in" />
+        <ElInput TValue="string" @bind-Value="epCountOut" Maxlength="10" ShowWordLimit="true" WordLimitPosition="outside" Placeholder="字数统计（外侧）" Style="width:200px;margin-right:70px;" id="ep-input-count-out" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>ElInput · 文本域 / 自适应（minRows-maxRows）/ 原生 min-max-step / 鼠标事件 / 输入法组合事件</h3>
+    <div class="demo-row" style="align-items:flex-start;">
+        <ElInput TValue="string" @bind-Value="epArea" Type="InputType.Textarea" Rows="3" Placeholder="固定 3 行" Style="width:240px;" id="ep-input-area" />
+        <ElInput TValue="string" @bind-Value="epAuto" Type="InputType.Textarea" Autosize="true" AutosizeMinRows="2" AutosizeMaxRows="4" Resize="none" Placeholder="自适应 2~4 行（输入多行试试）" Style="width:240px;" id="ep-input-autosize" />
+        <ElInput TValue="decimal?" @bind-Value="epMoney" Formatter="@(v => v.HasValue ? "$ " + v.Value.ToString("N0") : string.Empty)" Parser="@(s => s.Replace("$", string.Empty).Replace(",", string.Empty).Trim())" Placeholder="formatter / parser" Style="width:200px;" id="ep-input-formatter" />
+    </div>
+    <div class="demo-row" style="margin-top:12px;align-items:center;">
+        <ElInput TValue="string" Type="InputType.Number" Min="0" Max="100" Step="5" @bind-Value="epNumber" Placeholder="0-100 步进 5" Style="width:200px;" id="ep-input-number" />
+        <ElInput TValue="string" @bind-Value="epHover" Placeholder="鼠标移入移出计数" Style="width:200px;" id="ep-input-mouse"
+                 OnMouseEnter="OnInputMouseEnter" OnMouseLeave="OnInputMouseLeave" />
+        <span>移入 <b id="ep-mouse-enter">@mouseEnterCount</b> 次 / 移出 <b id="ep-mouse-leave">@mouseLeaveCount</b> 次</span>
+    </div>
+    <div class="demo-row" style="margin-top:12px;align-items:center;">
+        <ElInput TValue="string" @bind-Value="epIme" Placeholder="中文输入法组合事件" Style="width:220px;" id="ep-input-ime"
+                 OnCompositionStart="OnImeStart" OnCompositionEnd="OnImeEnd" />
+        <span id="ep-ime-log">@imeLog</span>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>ElButtonGroup 级联自检（Size / Type / Direction）</h3>
+    <div class="demo-row">
+        <ElButtonGroup Size="groupSize" Type="groupType" Direction="@groupDirection">
+            <ElButton Cls="probe-grp-first">左</ElButton>
+            <ElButton Cls="probe-grp-own" Size="ButtonSize.Small">中(自带small)</ElButton>
+            <ElButton Cls="probe-grp-last">右</ElButton>
+        </ElButtonGroup>
+        <ElButtonGroup Size="ButtonSize.Large" Type="ButtonType.Danger">
+            <ElButton Cls="probe-grp-static">静态组</ElButton>
+        </ElButtonGroup>
+        <ElButton Cls="probe-grp-cycle" Type="ButtonType.Primary" OnClick="CycleGroupSize">切换 Size</ElButton>
+        <ElButton Cls="probe-grp-cycle-type" OnClick="CycleGroupType">切换 Type</ElButton>
+        <ElButton Cls="probe-grp-cycle-dir" OnClick="CycleGroupDirection">切换方向</ElButton>
+        <span class="probe-grp-dirtext">Direction=@groupDirection Size=@groupSize</span>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>ElLink 属性自检（默认色 / Type / Underline / Icon / Disabled / rel）</h3>
+    <div class="demo-row" style="align-items:center;">
+        <ElLink Cls="probe-lnk-default">默认 default</ElLink>
+        <ElLink Type="LinkType.Primary" Cls="probe-lnk-primary">Primary</ElLink>
+        <ElLink Type="LinkType.Danger" Cls="probe-lnk-danger">Danger</ElLink>
+        <ElLink Disabled="true" Cls="probe-lnk-disabled" Href="https://element-plus.org/">Disabled</ElLink>
+        <ElLink Underline="LinkUnderline.Always" Cls="probe-lnk-always">始终下划线</ElLink>
+        <ElLink Underline="LinkUnderline.Never" Cls="probe-lnk-never">从不下划线</ElLink>
+        <ElLink Icon="el-icon-edit" Cls="probe-lnk-icon">带图标（全名）</ElLink>
+        <ElLink Icon="close" Cls="probe-lnk-iconplain">带图标（纯名称）</ElLink>
+        <ElLink Href="https://element-plus.org/" Target="_blank" Cls="probe-lnk-blank">Target=_blank</ElLink>
+        <ElLink Disabled="true" Cls="probe-lnk-disabledclick" OnClick="OnLinkClick">禁用点击</ElLink>
+        <span>点击次数：<b class="probe-lnk-count">@linkClickCount</b></span>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>ElIcon 属性自检（默认无字形 / 兜底别名 / Size / Color / Spin / SVG 槽）</h3>
+    <div class="demo-row" style="align-items:center;">
+        <span class="probe-ico-none"><ElIcon /></span>
+        <ElIcon Icon="Icon.Close" Cls="probe-ico-close" />
+        <ElIcon Icon="Icon.Check" Color="#67c23a" Size="28" Cls="probe-ico-color" />
+        <ElIcon Icon="Icon.Loading" Spin="true" Size="24" Cls="probe-ico-spin" />
+        <ElIcon Name="el-icon-user-filled" Size="24" Cls="probe-ico-alias" />
+        <ElIcon Size="32" Color="#e6a23c" Cls="probe-ico-svg" Title="自定义SVG">
+            <svg viewBox="0 0 1024 1024"><path d="M512 64 L960 512 L512 960 L64 512 Z" /></svg>
+        </ElIcon>
+        <ElIcon Icon="Icon.Close" Size="20" OnClick="OnIconClick" Cls="probe-ico-click" />
+        <span>点击次数：<b class="probe-ico-count">@iconClickCount</b></span>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>ElButton 属性自检（Dark / Href / Tabindex）</h3>
+    <div class="demo-row">
+        <ElButton Cls="probe-btn-color" Color="#626aef">Color 浅底</ElButton>
+        <ElButton Cls="probe-btn-dark" Color="#626aef" Dark="true">Color Dark</ElButton>
+        <ElButton Cls="probe-btn-href" Href="https://element-plus.org" Target="_blank">Href 链接</ElButton>
+        <ElButton Cls="probe-btn-tabindex" Tabindex="3">Tabindex=3</ElButton>
+        <ElButton Cls="probe-btn-plain">普通按钮</ElButton>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>当前绑定值（Mock 模型快照）</h3>
+    <pre class="demo-json">@System.Text.Json.JsonSerializer.Serialize(model, new System.Text.Json.JsonSerializerOptions { WriteIndented = true })</pre>
+</div>
+
+@code {
+    private FormModel model = new FormModel();
+
+    private ElInput<string> pwdInput;
+    private string epBase = string.Empty;
+    private string epClear = "有值";
+    private string epPwd = "123456";
+    private bool epPwdVisible = false;
+    private string epPwdIcon = "abcdef";
+    private string epPwdSave = string.Empty;
+    private string epIcon = string.Empty;
+    private string epSlot = "element-plus";
+    private string epGroup = string.Empty;
+    private string epLarge = string.Empty;
+    private string epNormal = string.Empty;
+    private string epSmall = string.Empty;
+    private string epCountIn = "Element";
+    private string epCountOut = "Element";
+    private string epArea = string.Empty;
+    private string epAuto = "第一行";
+    private decimal? epMoney = 1234;
+    private string epNumber = "20";
+    private string epHover = string.Empty;
+    private string epIme = string.Empty;
+    private int mouseEnterCount = 0;
+    private int mouseLeaveCount = 0;
+    private string imeLog = "等待输入法组合…";
+
+    private async Task TogglePwd()
+    {
+        if (pwdInput != null)
+        {
+            await pwdInput.SetPasswordVisibleAsync(!pwdInput.PasswordVisible);
+        }
+    }
+
+    private void OnInputMouseEnter()
+    {
+        mouseEnterCount++;
+    }
+
+    private void OnInputMouseLeave()
+    {
+        mouseLeaveCount++;
+    }
+
+    private void OnImeStart()
+    {
+        imeLog = "组合开始";
+    }
+
+    private void OnImeEnd(string value)
+    {
+        imeLog = "组合结束：" + value;
+    }
+
+    private string clearFix = "有值";
+    private string clearHover = "有值";
+    private string autoText = "第一行";
+
+    private ButtonSize groupSize = ButtonSize.Default;
+    private ButtonType groupType = ButtonType.Default;
+    private string groupDirection = "horizontal";
+    private int iconClickCount = 0;
+    private int linkClickCount = 0;
+
+    private void OnLinkClick()
+    {
+        linkClickCount++;
+    }
+
+    private void OnIconClick()
+    {
+        iconClickCount++;
+    }
+
+    private void CycleGroupSize()
+    {
+        groupSize = groupSize == ButtonSize.Default ? ButtonSize.Large
+            : groupSize == ButtonSize.Large ? ButtonSize.Small
+            : ButtonSize.Default;
+    }
+
+    private void CycleGroupType()
+    {
+        groupType = groupType == ButtonType.Default ? ButtonType.Primary : ButtonType.Default;
+    }
+
+    private void CycleGroupDirection()
+    {
+        groupDirection = groupDirection == "horizontal" ? "vertical" : "horizontal";
+    }
+    private string fixedText = "第一行";
+
+    private class FormModel
+    {
+        public string Name { get; set; } = "Kevin Carter";
+        public decimal? Age { get; set; } = 45;
+        public string Department { get; set; } = "内科";
+        public string Drug { get; set; } = "amoxicillin";
+        public bool OnSale { get; set; } = true;
+        public bool Enabled { get; set; } = true;
+        public double? Score { get; set; } = 4.5;
+        public double Level { get; set; } = 60;
+    }
+}

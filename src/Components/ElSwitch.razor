@@ -1,0 +1,98 @@
+@inherits ElementFieldComponentBase<TValue>
+@typeparam TValue
+@{
+    var showInactiveText = !string.IsNullOrWhiteSpace(InactiveText);
+    var showActiveText = !string.IsNullOrWhiteSpace(ActiveText);
+    var inlinePrompt = InlinePrompt;
+    var leftIsActive = string.Empty;
+    var rightIsActive = string.Empty;
+    if (!IsActive)
+    {
+        leftIsActive = "is-active";
+    }
+    else
+    {
+        rightIsActive = "is-active";
+    }
+
+    var coreWidth = Width > 0 ? Width : 40;
+    var coreHeight = Height > 0 ? Height : 20;
+    @* 内联文字（InlinePrompt）时核心必须能随文字变宽：EP 2.14.0 switch.scss:151 用的是
+       `min-width`（非固定 width），文字 + 圆钮占不下时把轨道撑开，而不是把文字挤到圆钮底下。
+       固定 width 只在非内联态保留（对齐既有默认 40px 外观与用例）。 *@
+    var coreWidthProp = inlinePrompt ? "min-width" : "width";
+    var coreStyle = $"{coreWidthProp}: {coreWidth}px; height: {coreHeight}px;";
+}
+<div role="switch"
+     class="@wrapperClsBuilder"
+     tabindex="@(TabIndex != 0 ? TabIndex : (EffectiveDisabled ? -1 : 0))"
+     aria-checked="@AriaChecked"
+     aria-disabled="@AriaDisabled"
+     aria-busy="@AriaBusy"
+     aria-invalid="@AriaInvalid"
+     aria-describedby="@AriaDescribedBy"
+     aria-label="@AriaLabel"
+     aria-labelledby="@AriaLabelledBy"
+     aria-valuetext="@CurrentValueText"
+     @onkeydown="OnKeyDownAsync"
+     @onfocus="OnFocusHandler"
+     @onblur="OnBlurHandler">
+    @* 根节点 tabindex="0" 是本控件唯一的 Tab 停靠点（键盘处理挂在它身上）。
+       这个 input 是 0×0 的透明复选框，再进 Tab 序就成了「一个控件两个停靠点」，
+       浏览器还会给它画原生黑色焦点环 —— 按 EP 口径只留根节点可达。 *@
+    <input id="@InputId"
+           @attributes="Attributes"
+           type="checkbox"
+           tabindex="-1"
+           name="@Name"
+           checked="@IsActive"
+           disabled="@EffectiveDisabled"
+           true-value="@EffectiveActiveValue"
+           false-value="@EffectiveInactiveValue"
+           value="@CurrentValueText"
+           class="el-switch__input">
+    @if (showInactiveText && !inlinePrompt)
+    {
+        <span class="el-switch__label el-switch__label--left @leftIsActive">
+            @if (!HideIcon && !string.IsNullOrEmpty(InactiveIcon))
+            {
+                <i class="@InactiveIcon"></i>
+            }
+            else
+            {
+                <span aria-hidden="true">@InactiveText</span>
+            }
+        </span>
+    }
+    <span class="el-switch__core" @onclick="OnInternalSwitchChangedAsync" style="@coreStyle">
+        @if (Loading)
+        {
+            <i class="el-switch__loading @LoadingIcon"></i>
+        }
+        else if (!HideIcon && IsActive && !string.IsNullOrEmpty(ActiveIcon))
+        {
+            <i class="@ActiveIcon"></i>
+        }
+        else if (!HideIcon && !IsActive && !string.IsNullOrEmpty(InactiveIcon))
+        {
+            <i class="@InactiveIcon"></i>
+        }
+        @if (inlinePrompt && (IsActive ? showActiveText : showInactiveText))
+        {
+            <span class="el-switch__inner" aria-hidden="true">@(IsActive ? ActiveText : InactiveText)</span>
+        }
+    </span>
+    @if (showActiveText && !inlinePrompt)
+    {
+        <span class="el-switch__label el-switch__label--right @rightIsActive">
+            @if (!HideIcon && !string.IsNullOrEmpty(ActiveIcon))
+            {
+                <i class="@ActiveIcon"></i>
+            }
+            else
+            {
+                <span aria-hidden="true">@ActiveText</span>
+            }
+        </span>
+    }
+</div>

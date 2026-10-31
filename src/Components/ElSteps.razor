@@ -1,0 +1,11 @@
+@inherits ElementComponentBase
+
+<div class="@StepsClass" style="@StepsStyle" @attributes="Attributes">
+    <CascadingValue Value="this" IsFixed="true">
+        @* 第二层级联：令牌每帧都是新实例 ⇒ 级联值变化 ⇒ 强制子 ElStep 重渲染。
+           子步骤外观由父级 Active 推导而自身参数恒定不变，会被「参数未变即跳过重渲染」冻结在首帧。 *@
+        <CascadingValue Value="CurrentRenderToken" IsFixed="false">
+            @ChildContent
+        </CascadingValue>
+    </CascadingValue>
+</div>

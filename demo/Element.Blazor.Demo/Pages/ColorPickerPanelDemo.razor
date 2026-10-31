@@ -1,0 +1,38 @@
+@page "/colorpickerpanel"
+@using ElementPlus
+
+<h1 class="demo-page-title">颜色面板 / ElColorPickerPanel</h1>
+<p class="demo-page-sub">对齐官方：内嵌式颜色编辑面板，支持 @("@bind-Value")、ShowAlpha（透明度）、ColorFormat（输出格式）、Predefine（预设色板）与 Footer 插槽。</p>
+
+<div class="demo-section">
+    <h3>基础面板</h3>
+    <div class="demo-row" style="align-items:flex-start">
+        <ElColorPickerPanel @bind-Value="color1" />
+        <ElColorPickerPanel @bind-Value="color2" ShowAlpha="true" />
+    </div>
+    <p class="demo-note">color1=@color1　color2=@color2</p>
+</div>
+
+<div class="demo-section">
+    <h3>预设色板 + 自定义底部</h3>
+    <div class="demo-row" style="align-items:flex-start">
+        <ElColorPickerPanel @bind-Value="color3" ColorFormat="hex" Predefine="predefine">
+            <FooterContent>
+                <div style="padding:4px 8px;font-size:12px;color:#909399">自定义底部内容</div>
+            </FooterContent>
+        </ElColorPickerPanel>
+    </div>
+    <p class="demo-note">color3=@color3</p>
+</div>
+
+@code {
+    private string color1 = "#409eff";
+    private string color2 = "rgba(64, 158, 255, 0.5)";
+    private string color3 = "#f56c6c";
+
+    private List<string> predefine = new List<string>
+    {
+        "#ff4500", "#ff8c00", "#ffd700", "#90ee90",
+        "#00ced1", "#1e90ff", "#c71585", "#409eff"
+    };
+}

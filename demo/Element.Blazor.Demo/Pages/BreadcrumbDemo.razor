@@ -1,0 +1,66 @@
+@page "/breadcrumb"
+
+<div class="demo-section">
+    <h3>ElBreadcrumb 面包屑（对齐 Element Plus Breadcrumb）</h3>
+    <p class="demo-page-sub">
+        官方属性：<code>separator</code>（默认 /）、<code>separator-icon</code>（图标形式，优先级高于 separator）。
+        ElBreadcrumbItem 官方属性：<code>to</code>（路由地址）、<code>replace</code>（是否 replace 导航）。
+        本库扩展：<code>SeparatorTemplate</code> 自定义分隔符（优先级最高）、<code>Id</code> / <code>AriaLabel</code>，
+        ElBreadcrumbItem 额外提供 <code>OnClick</code>。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>基础用法（默认分隔符 /）</h3>
+    <ElBreadcrumb>
+        <ElBreadcrumbItem To="/">首页</ElBreadcrumbItem>
+        <ElBreadcrumbItem To="/nav">导航组件</ElBreadcrumbItem>
+        <ElBreadcrumbItem>面包屑</ElBreadcrumbItem>
+    </ElBreadcrumb>
+</div>
+
+<div class="demo-section">
+    <h3>自定义分隔符（separator）</h3>
+    <ElBreadcrumb Separator=">">
+        <ElBreadcrumbItem To="/">首页</ElBreadcrumbItem>
+        <ElBreadcrumbItem>To="/data">数据展示</ElBreadcrumbItem>
+        <ElBreadcrumbItem>详情</ElBreadcrumbItem>
+    </ElBreadcrumb>
+</div>
+
+<div class="demo-section">
+    <h3>图标分隔符（separator-icon）</h3>
+    <ElBreadcrumb SeparatorIcon="el-icon-arrow-right">
+        <ElBreadcrumbItem To="/">首页</ElBreadcrumbItem>
+        <ElBreadcrumbItem To="/form">表单</ElBreadcrumbItem>
+        <ElBreadcrumbItem>填写</ElBreadcrumbItem>
+    </ElBreadcrumb>
+</div>
+
+<div class="demo-section">
+    <h3>分隔符模板（SeparatorTemplate，本库扩展）</h3>
+    <ElBreadcrumb>
+        <SeparatorTemplate>
+            <span style="color:#f56c6c; padding:0 4px;">·</span>
+        </SeparatorTemplate>
+        <ChildContent>
+            <ElBreadcrumbItem To="/">首页</ElBreadcrumbItem>
+            <ElBreadcrumbItem>自定义</ElBreadcrumbItem>
+            <ElBreadcrumbItem>分隔符</ElBreadcrumbItem>
+        </ChildContent>
+    </ElBreadcrumb>
+</div>
+
+<div class="demo-section">
+    <h3>replace 导航 + 点击事件</h3>
+    <ElBreadcrumb AriaLabel="自定义面包屑">
+        <ElBreadcrumbItem To="/" Replace="true" OnClick="@(_ => clickLog = "首页")">首页（replace）</ElBreadcrumbItem>
+        <ElBreadcrumbItem To="/affix" OnClick="@(_ => clickLog = "固钉")">固钉</ElBreadcrumbItem>
+        <ElBreadcrumbItem>当前页</ElBreadcrumbItem>
+    </ElBreadcrumb>
+    <p class="demo-note">最近点击：@(clickLog ?? "(无)")</p>
+</div>
+
+@code {
+    private string clickLog;
+}

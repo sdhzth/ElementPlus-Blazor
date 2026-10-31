@@ -1,0 +1,20 @@
+@inherits ElementComponentBase
+
+@{
+    var shouldShow = !IsHidden;
+}
+
+<div id="@Id" class="@BadgeClass" style="@Style" @attributes="Attributes">
+    <CascadingValue Value="this">
+        @ChildContent
+        @if (shouldShow)
+        {
+            <sup class="@ContentClass" style="@ContentStyle" aria-label="@AriaLabel">
+                @if (!IsDot)
+                {
+                    @DisplayValue
+                }
+            </sup>
+        }
+    </CascadingValue>
+</div>

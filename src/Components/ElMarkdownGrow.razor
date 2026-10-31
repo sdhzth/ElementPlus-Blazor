@@ -1,0 +1,24 @@
+@inherits ElementComponentBase
+@{
+    var wrapperCls = HtmlPropertyBuilder.CreateCssClassBuilder()
+        .Add("el-markdown-grow")
+        .AddIf(!string.IsNullOrWhiteSpace(Cls), Cls);
+    var wrapperStyle = HtmlPropertyBuilder.CreateCssStyleBuilder()
+        .Add(Style);
+}
+<div class="@wrapperCls.ToString()" style="@wrapperStyle.ToString()" @attributes="Attributes">
+    @foreach (var segment in Segments)
+    {
+        if (segment.IsOutlet)
+        {
+            if (TryGetOutlet(segment.OutletId, out var outlet))
+            {
+                @outlet
+            }
+        }
+        else if (!string.IsNullOrEmpty(segment.Html))
+        {
+            @((MarkupString)segment.Html)
+        }
+    }
+</div>

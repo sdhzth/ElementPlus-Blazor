@@ -1,0 +1,23 @@
+@inherits ElementComponentBase
+<span class="el-breadcrumb__item">
+    @if (HasRoute)
+    {
+        <a role="link" class="el-breadcrumb__inner is-link @Cls" href="@To" style="@Style" @onclick="OnClickAsync" @onclick:preventDefault="true" @attributes="Attributes">@ChildContent</a>
+    }
+    else
+    {
+        <span role="link" class="el-breadcrumb__inner @Cls" style="@Style" @attributes="Attributes">@ChildContent</span>
+    }
+    @if (Breadcrumb?.SeparatorTemplate != null)
+    {
+        <span role="presentation" class="el-breadcrumb__separator">@Breadcrumb.SeparatorTemplate</span>
+    }
+    else if (!string.IsNullOrWhiteSpace(Breadcrumb?.SeparatorIcon))
+    {
+        <i role="presentation" class="el-breadcrumb__separator @NormalizeIcon(Breadcrumb.SeparatorIcon)"></i>
+    }
+    else
+    {
+        <span role="presentation" class="el-breadcrumb__separator">@EffectiveSeparator</span>
+    }
+</span>

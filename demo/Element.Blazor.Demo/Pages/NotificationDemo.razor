@@ -1,0 +1,67 @@
+@page "/notification"
+@using ElementPlus
+@inject ElementPlus.NotificationService NotificationService
+
+<h1 class="demo-page-title">ElNotification 通知（对齐 Element Plus Notification）</h1>
+<p class="demo-page-sub">
+    桌面右上角（可配置方位）的非阻塞通知。支持标题、正文、类型、duration、show-close、offset 与分组定位。
+</p>
+
+<div class="demo-section">
+    <h3>五种类型</h3>
+    <div class="demo-row demo-row-wrap">
+        <ElButton OnClick="@(() => NotificationService.Primary("主要通知", "这是 primary 内容"))">primary</ElButton>
+        <ElButton OnClick="@(() => NotificationService.Success("成功通知", "这是成功内容"))">success</ElButton>
+        <ElButton OnClick="@(() => NotificationService.Warning("警告通知", "这是警告内容"))">warning</ElButton>
+        <ElButton OnClick="@(() => NotificationService.Info("消息通知", "这是消息内容"))">info</ElButton>
+        <ElButton OnClick="@(() => NotificationService.Error("错误通知", "这是错误内容"))">error</ElButton>
+    </div>
+    <p class="demo-note">
+        EP 2.14.7 源码 <code>notification.ts</code> 的 <code>notificationTypes</code> 就是
+        <code>["primary","success","info","warning","error"]</code> 五种（primary 是 2.9.11 加的），
+        本库 <code>MessageType.Primary</code> 与 <code>NotificationService.Primary()</code> 已接通。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>自定义标题 / 不自动关闭 / 定位</h3>
+    <div class="demo-row demo-row-wrap">
+        <ElButton OnClick="ShowCustom">自定义标题 + 不自动关闭</ElButton>
+        <ElButton OnClick="@(() => ShowAt(NotificationPosition.BottomRight, "右下"))">弹到右下角</ElButton>
+        <ElButton OnClick="@(() => ShowAt(NotificationPosition.TopRight, "右上"))">弹到右上角</ElButton>
+        <ElButton OnClick="@(() => ShowAt(NotificationPosition.BottomLeft, "左下"))">弹到左下角</ElButton>
+        <ElButton Type="ButtonType.Danger" OnClick="@(() => NotificationService.CloseAll())">close all</ElButton>
+    </div>
+    <p class="demo-note">
+        方位是 <code>NotificationOption.Position</code>，在弹出的那一刻决定（EP 同口径：position 属于每条通知的选项）。
+        <code>NotificationService.UpdateOffsets(position)</code> 不是"换方位"，它只把<strong>已在该方位</strong>的那一摞
+        重新算一遍堆叠偏移 —— 之前这两个按钮调的就是它，而页面上从来没有任何一条通知被弹到右下，
+        所以看起来"点了没效果"。同时最多显示 @NotificationService.Max 条。
+    </p>
+</div>
+
+@code {
+    private void ShowCustom()
+    {
+        NotificationService.Show(new NotificationOption
+        {
+            Title = "自定义通知",
+            Message = "该通知不会自动关闭（duration=0）。",
+            Type = MessageType.Info,
+            Duration = 0,
+            ShowClose = true,
+            Offset = 60
+        });
+    }
+
+    private void ShowAt(NotificationPosition position, string label)
+    {
+        NotificationService.Show(new NotificationOption
+        {
+            Title = label + "通知",
+            Message = "这条通知的 Position = " + position + "。",
+            Type = MessageType.Primary,
+            Position = position
+        });
+    }
+}

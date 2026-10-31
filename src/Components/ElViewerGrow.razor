@@ -1,0 +1,200 @@
+@inherits ElementComponentBase
+@using Microsoft.AspNetCore.Components.Forms
+
+@{
+    var strings = ResolvedStrings;
+    var tools = ResolvedTools;
+    var document = CurrentDocument;
+    var status = Status;
+}
+
+<div @ref="rootElement" class="@RootClass" style="@RootStyle" @attributes="Attributes">
+    @if (ShowToolbar && tools.Length > 0)
+    {
+        <div class="el-viewer-grow__toolbar">
+            @foreach (var tool in tools)
+            {
+                @if (tool.IsSeparator)
+                {
+                    <span class="el-viewer-grow__divider"></span>
+                }
+                else if (tool.Action == ElViewerToolbarAction.OpenFile)
+                {
+                    <label class="@ToolClass(tool)" title="@ResolveToolTitle(tool)">
+                        @((MarkupString)ResolveToolIconMarkup(tool))
+                        <InputFile class="el-viewer-grow__file" accept="@ResolvedAccept" OnChange="OnFileChanged" />
+                    </label>
+                }
+                else if (tool.Action == ElViewerToolbarAction.Download)
+                {
+                    @if (IsToolDisabled(tool))
+                    {
+                        <span class="@ToolClass(tool)" title="@ResolveToolTitle(tool)">@((MarkupString)ResolveToolIconMarkup(tool))</span>
+                    }
+                    else
+                    {
+                        <a class="@ToolClass(tool)" href="@DownloadUrl" download="@DownloadName" title="@ResolveToolTitle(tool)">@((MarkupString)ResolveToolIconMarkup(tool))</a>
+                    }
+                }
+                else if (tool.Action == ElViewerToolbarAction.OpenInNewTab)
+                {
+                    @if (IsToolDisabled(tool))
+                    {
+                        <span class="@ToolClass(tool)" title="@ResolveToolTitle(tool)">@((MarkupString)ResolveToolIconMarkup(tool))</span>
+                    }
+                    else
+                    {
+                        <a class="@ToolClass(tool)" href="@NewTabUrl" target="_blank" rel="noopener noreferrer" title="@ResolveToolTitle(tool)">@((MarkupString)ResolveToolIconMarkup(tool))</a>
+                    }
+                }
+                else
+                {
+                    <button type="button"
+                            class="@ToolClass(tool)"
+                            title="@ResolveToolTitle(tool)"
+                            disabled="@IsToolDisabled(tool)"
+                            @onclick="() => ExecuteAsync(tool.Action)">
+                        @((MarkupString)ResolveToolIconMarkup(tool))
+                    </button>
+                }
+            }
+        </div>
+    }
+
+    @if (UrlBarVisible)
+    {
+        <div class="el-viewer-grow__urlbar">
+            <input type="text"
+                   class="el-viewer-grow__url-input"
+                   placeholder="@strings.UrlPlaceholderText"
+                   @bind="UrlInput"
+                   @onkeyup="OnUrlKeyUp" />
+            <button type="button" class="el-viewer-grow__url-submit" @onclick="SubmitUrlAsync">@strings.UrlSubmitText</button>
+        </div>
+    }
+
+    <div class="el-viewer-grow__viewport">
+        @if (status == ElViewerStatus.Empty)
+        {
+            <div class="el-viewer-grow__placeholder">
+                <span class="el-viewer-grow__placeholder-icon">@((MarkupString)ElViewerGrowIcons.Svg(ElViewerGrowIcons.Document))</span>
+                @if (EmptyTemplate != null)
+                {
+                    @EmptyTemplate
+                }
+                else
+                {
+                    <p class="el-viewer-grow__placeholder-text">@strings.EmptyText</p>
+                    <p class="el-viewer-grow__placeholder-hint">@strings.EmptyHintText</p>
+                }
+            </div>
+        }
+        else if (status == ElViewerStatus.Error || status == ElViewerStatus.Unsupported)
+        {
+            <div class="el-viewer-grow__placeholder is-warning">
+                <span class="el-viewer-grow__placeholder-icon">@((MarkupString)ElViewerGrowIcons.Svg(ElViewerGrowIcons.Warning))</span>
+                <p class="el-viewer-grow__placeholder-text">@MessageText</p>
+                @if (status == ElViewerStatus.Unsupported)
+                {
+                    @if (UnsupportedTemplate != null)
+                    {
+                        @UnsupportedTemplate(document)
+                    }
+                    else
+                    {
+                        <p class="el-viewer-grow__placeholder-hint">@strings.UnsupportedHintText</p>
+                    }
+                }
+            </div>
+        }
+        else
+        {
+            <div class="@CanvasClass" style="@CanvasStyle">
+                @if (ContentTemplate != null)
+                {
+                    @ContentTemplate(document)
+                }
+                else if (UseBuiltInOfd)
+                {
+                    @* OFD 的页面盒子由 dom.js 的 elementOfdViewer* 通道在挂载后填进来；
+                       这里只提供挂载点，滚动 / 缩放 / 旋转 / 打印全部沿用外层画布的 CSS。
+                       角标的点击靠事件冒泡回到这里：Blazor 的事件委托挂在文档根上，
+                       通道后画进来的 button 一样能命中（批次101）。 *@
+                    <div class="el-viewer-grow__ofd" @ref="ofdHost" @onclick="OnOfdHostClickAsync"></div>
+                }
+                else if (UsesEmbed)
+                {
+                    @((MarkupString)EmbedMarkup)
+                }
+                else
+                {
+                    @((MarkupString)ContentHtml)
+                }
+            </div>
+        }
+
+        @if (status == ElViewerStatus.Loading)
+        {
+            <div class="el-viewer-grow__loading">
+                <span class="el-viewer-grow__spinner"></span>
+                <span class="el-viewer-grow__loading-text">@strings.LoadingText</span>
+            </div>
+        }
+    </div>
+
+    @if (ShowStatusBar)
+    {
+        <div class="el-viewer-grow__status">
+            <span class="el-viewer-grow__status-name">@DocumentTitle</span>
+            @if (document != null)
+            {
+                <span class="el-viewer-grow__status-meta">@MetaText</span>
+            }
+            @if (!string.IsNullOrEmpty(MessageText))
+            {
+                <span class="el-viewer-grow__status-message">@MessageText</span>
+            }
+            <span class="el-viewer-grow__status-spacer"></span>
+            @if (EffectivePageCount > 0)
+            {
+                <span class="el-viewer-grow__status-page">@PageLabel</span>
+            }
+            <span class="el-viewer-grow__status-zoom">@ZoomText</span>
+        </div>
+    }
+
+    @if (annotationVisible && annotation != null)
+    {
+        @* 注释卡片（批次101）：点 OFD 角标后在 viewer 作用域内自绘，不借全局对话框 ——
+           遮罩与卡片的取舍沿用 ElDialog：遮罩点击关闭，卡片上 stopPropagation 拦住冒泡。
+           必须挂在根盒子下、不能挂在 __viewport 里：viewport 是滚动容器，absolute 的
+           inset:0 会按它的**内容**高度铺开（三页 OFD 实测 scrollHeight 4409 / clientHeight 558），
+           卡片于是被居中到滚动内容正中、落在可视区之外（实测 top:-488，用户只看到变暗看不到卡片）。
+           根盒子是 position:relative + overflow:hidden 且高度固定，inset:0 恰好等于可视框。 *@
+        <div class="el-viewer-grow__annot" @onclick="CloseAnnotation">
+            <div class="el-viewer-grow__annot-card" role="dialog" aria-modal="true" @onclick:stopPropagation>
+                @if (!string.IsNullOrEmpty(annotation.Content))
+                {
+                    <p class="el-viewer-grow__annot-content">@annotation.Content</p>
+                }
+                @if (!string.IsNullOrEmpty(annotation.Author))
+                {
+                    <div class="el-viewer-grow__annot-row">
+                        <span class="el-viewer-grow__annot-label">@strings.AnnotationAuthorLabel</span>
+                        <span class="el-viewer-grow__annot-value">@annotation.Author</span>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(annotation.Time))
+                {
+                    <div class="el-viewer-grow__annot-row">
+                        <span class="el-viewer-grow__annot-label">@strings.AnnotationTimeLabel</span>
+                        <span class="el-viewer-grow__annot-value">@annotation.Time</span>
+                    </div>
+                }
+                <div class="el-viewer-grow__annot-actions">
+                    <button type="button" class="el-viewer-grow__annot-close" @onclick="CloseAnnotation">@strings.CloseText</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>

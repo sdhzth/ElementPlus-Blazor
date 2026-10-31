@@ -1,0 +1,6 @@
+@inherits ElementComponentBase
+
+<div class="@ItemClass" style="@ItemStyle" @attributes="Attributes" @onclick="ItemClickHandler"
+     @ondblclick:stopPropagation>
+    @ChildContent
+</div>

@@ -1,0 +1,44 @@
+@inherits ElementComponentBase
+@{
+    var isActiveTab = TabContainer.ActiveTab?.Name == this.Name;
+    if (TabContainer.DataSource != null)
+    {
+        isActiveTab = TabContainer.DataSource.Any(x => x.Name == this.Name && x.IsActive);
+    }
+
+    var name = Name;
+    var position = TabContainer.GetPosition();
+    var headerPosition = position.headerPosition;
+    var tabPosition = position.tabPosition;
+    var classBuilder = HtmlPropertyBuilder.CreateCssClassBuilder()
+        .Add("el-tabs__item", headerPosition, Cls)
+        .AddIf(EffectiveClosable, "is-closable")
+        .AddIf(isActiveTab, "is-active")
+        .AddIf(Disabled, "is-disabled")
+        .AddIf(!string.IsNullOrEmpty(TabContainer?.TabClass), TabContainer.TabClass);
+    // 页签项是 display:inline-flex（实测 computed 为 flex），所以对齐只能用 justify-content，
+    // text-align 对它无效。放在 Style 前面，使用方自己的 Style 仍能覆盖。
+    var align = TabContainer?.TextAlignJustify;
+    var itemStyle = align == null ? Style : $"justify-content:{align};{Style}";
+    var closed = TabContainer?.IsTabClosed(Name) == true;
+}
+@* Visible=false ⇒ 这个页签此刻不存在：页签头不渲染，注册、激活与表头测量一并跳过（见 ElTabPane.razor.cs）。
+   与 closed（用户点 X 关掉的硬编码页签，名字被记住、不再回来）是两件事；与 Disabled 更是两件事
+   （禁用还在条上，只是点不动）。 *@
+@if (Visible && !closed)
+{
+    <div @ref="Element" id="tab-@name" style="@itemStyle" aria-controls="pane-@name" role="tab" tabindex="@(isActiveTab && !Disabled ? 0 :-1)" @onclick="Activate" @onclick:stopPropagation class="@classBuilder.ToString()" aria-selected="@(isActiveTab ? "true" : "false")" aria-disabled="@Disabled" @attributes="Attributes">
+        @if (TitleTemplate != null)
+        {
+            @TitleTemplate
+        }
+        else
+        {
+            @Title
+        }
+        @if (EffectiveClosable && !Disabled)
+        {
+            <span class="el-icon-close" @onclick="OnInternalTabCloseAsync" @onclick:stopPropagation></span>
+        }
+    </div>
+}

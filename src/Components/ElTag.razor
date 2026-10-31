@@ -1,0 +1,23 @@
+@inherits ElementComponentBase
+
+@if (isClosed)
+{
+    return;
+}
+<span id="@Id"
+      class="@tagCssBuilder.ToString() @FeatureClass"
+      @onclick="OnTagClick"
+      style="@tagStyleBuilder.ToString()"
+      role="tag"
+      aria-label="@AriaLabel"
+      @attributes="Attributes">
+    @if (!string.IsNullOrEmpty(Icon))
+    {
+        <i class="@Icon"></i>
+    }
+    @ChildContent
+    @if (Closable)
+    {
+        <i class="@iconCssBuilder.ToString()" @onclick:stopPropagation="true" @onclick="OnCloseClick"></i>
+    }
+</span>

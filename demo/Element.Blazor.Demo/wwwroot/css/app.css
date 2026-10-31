@@ -1,0 +1,1552 @@
+﻿:root {
+    --demo-bg: #f5f7fa;
+    --demo-side: #1f2d3d;
+    --demo-side-hover: #2d3f52;
+    --demo-accent: #409eff;
+    /* 外壳（浅色，对齐参考站） */
+    --demo-aside-w: 256px;
+    --demo-aside-bg: #ffffff;
+    --demo-aside-active: #395ae3;
+    --demo-header-h: 56px;
+    --demo-border: #e2e8f0;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+    background: var(--demo-bg);
+    color: #303133;
+}
+
+/* ===== Layout（外壳：浅色侧栏 ElMenu + 页头 + 多标签页 + 内容区） =====
+   滚动模型对齐参考站：外壳固定 100vh，页头与多标签页都是一次性行（不参与滚动），
+   只有 .demo-main 内容区自己滚 —— 所以内容再长，标签栏也不会跟着滚走。 */
+.demo-shell {
+    display: flex;
+    height: 100vh;
+    background: var(--demo-bg);
+}
+
+/* ---------- 侧栏 ---------- */
+.demo-aside {
+    flex: 0 0 var(--demo-aside-w);
+    width: var(--demo-aside-w);
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    /* sticky 自带层叠上下文：不给 z-index 时，侧栏里浮出来的 fixed 浮层（截断项的 tooltip）
+       会被正文卡片整块压住——实测浮层矩形完整（243..406）却命中不到，中心命中的是正文的
+       .el-menu-item-group__title。取 25：高于正文、低于顶栏 30（两者与侧栏不横向重叠）。 */
+    z-index: 25;
+    display: flex;
+    flex-direction: column;
+    background: var(--demo-aside-bg);
+    border-right: 1px solid var(--demo-border);
+    overflow: hidden;
+    transition: width 0.24s ease, flex-basis 0.24s ease;
+}
+
+.demo-shell.is-collapsed {
+    --demo-aside-w: 64px;
+}
+
+.demo-brand {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    height: var(--demo-header-h);
+    padding: 0 16px;
+    border-bottom: 1px solid var(--demo-border);
+    overflow: hidden;
+}
+
+.demo-brand-logo {
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    text-align: center;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #6d8cf5, #395ae3);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.demo-brand-text {
+    margin-left: 10px;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+    .demo-brand-text b {
+        display: block;
+        font-size: 15px;
+        line-height: 1.25;
+        color: #1f2430;
+    }
+
+    .demo-brand-text small {
+        display: block;
+        font-size: 11px;
+        font-weight: 400;
+        color: #8a93a6;
+    }
+
+.demo-shell.is-collapsed .demo-brand-text {
+    display: none;
+}
+
+.demo-aside-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 8px 8px 24px;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* 侧栏菜单的 demo 级微调：胶囊圆角 + 激活加粗（配色仍走 ElMenu 的参数） */
+.demo-aside .el-menu-item,
+.demo-aside .el-sub-menu__title {
+    border-radius: 8px;
+}
+
+.demo-aside .el-menu-item.is-active {
+    font-weight: 600;
+}
+
+/* ---------- 右侧主体 ---------- */
+.demo-body {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    --eptg-bg: var(--demo-bg);
+    --eptg-line: 1px solid var(--demo-border);
+    --eptg-text-color: #4a5265;
+}
+
+/* 多标签页固定为一行（不随内容滚动，也不被内容压扁） */
+.demo-body > .el-pro-tabs-grow {
+    flex: 0 0 auto;
+    z-index: 20;
+}
+
+/* 内容区一旦滚动，就给标签栏补一道淡投影，强化「固定层 / 滚动层」的关系 */
+.demo-shell.is-content-scrolled .demo-body > .el-pro-tabs-grow {
+    box-shadow: 0 3px 10px rgba(31, 45, 61, 0.08);
+}
+
+.demo-header {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    height: var(--demo-header-h);
+    padding: 0 12px;
+    background: #fff;
+    border-bottom: 1px solid var(--demo-border);
+    position: relative;
+    z-index: 30;
+}
+
+.demo-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #4a5265;
+    font-size: 17px;
+    cursor: pointer;
+    transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+    .demo-icon-btn:hover {
+        background: #eef2fb;
+        color: var(--demo-aside-active);
+    }
+
+.demo-header-spacer {
+    flex: 1 1 auto;
+}
+
+.demo-crumb {
+    margin-left: 10px;
+    margin-right: 12px;
+    white-space: nowrap;
+}
+
+    .demo-crumb .el-breadcrumb__inner {
+        font-size: 13px;
+    }
+
+    .demo-crumb .el-breadcrumb__inner.is-current {
+        color: #1f2430;
+        font-weight: 600;
+    }
+
+.demo-header-search {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    height: 32px;
+    padding: 0 10px;
+    margin-right: 8px;
+    background: #f7f9fd;
+    border: 1px solid var(--demo-border);
+    border-radius: 8px;
+}
+
+.demo-header-search-icon {
+    margin-right: 6px;
+    color: #9aa3b5;
+    font-size: 14px;
+}
+
+.demo-header-search-input {
+    width: 150px;
+    border: 0;
+    background: transparent;
+    outline: none;
+    font-size: 13px;
+    color: #1f2430;
+}
+
+.demo-kbd {
+    margin-left: 8px;
+    padding: 1px 5px;
+    background: #fff;
+    border: 1px solid var(--demo-border);
+    border-radius: 4px;
+    color: #9aa3b5;
+    font-size: 11px;
+    line-height: 16px;
+    white-space: nowrap;
+}
+
+.demo-bell {
+    position: relative;
+}
+
+.demo-bell-dot {
+    position: absolute;
+    top: 6px;
+    right: 7px;
+    width: 7px;
+    height: 7px;
+    background: #f56c6c;
+    border: 1px solid #fff;
+    border-radius: 50%;
+}
+
+.demo-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    margin-left: 4px;
+    background: linear-gradient(135deg, #7c8ee8, #395ae3);
+    border-radius: 50%;
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+/* 唯一滚动容器：页头 + 多标签页固定在它上方，只有这里滚 */
+.demo-main {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    overflow-x: auto;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 24px 32px 60px;
+}
+
+    .demo-main .demo-page-title {
+        font-size: 22px;
+        font-weight: 600;
+        margin: 0 0 4px;
+    }
+
+    .demo-main .demo-page-sub {
+        color: #909399;
+        margin: 0 0 20px;
+        font-size: 13px;
+    }
+
+/* ===== Demo blocks ===== */
+.demo-section {
+    background: #fff;
+    border: 1px solid #ebeef5;
+    border-radius: 8px;
+    padding: 20px 22px;
+    margin-bottom: 22px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+
+    .demo-section > h3 {
+        margin: 0 0 14px;
+        font-size: 15px;
+        color: #303133;
+        border-left: 4px solid var(--demo-accent);
+        padding-left: 10px;
+    }
+
+.demo-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+
+.demo-light-item {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border: 1px solid #ebeef5;
+    border-radius: 6px;
+    background: #fafafa;
+}
+
+.demo-col {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* ===== All-components gallery ===== */
+.demo-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+.demo-gallery-card {
+    border: 1px solid #ebeef5;
+    border-radius: 8px;
+    background: #fff;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+    .demo-gallery-card .demo-gallery-head {
+        padding: 8px 12px;
+        background: #fafafa;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 13px;
+        font-weight: 600;
+        color: #303133;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+        .demo-gallery-card .demo-gallery-head .demo-tag {
+            font-size: 10px;
+            font-weight: 400;
+            color: #909399;
+            background: #ecf5ff;
+            border-radius: 4px;
+            padding: 1px 6px;
+        }
+
+    .demo-gallery-card .demo-gallery-body {
+        padding: 16px 14px;
+        min-height: 56px;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .demo-gallery-card .demo-gallery-err {
+        padding: 10px 12px;
+        color: #f56c6c;
+        font-size: 12px;
+        background: #fef0f0;
+    }
+
+.demo-empty {
+    padding: 40px;
+    text-align: center;
+    color: #909399;
+}
+
+.demo-note {
+    font-size: 12px;
+    color: #909399;
+    margin-top: 8px;
+}
+
+/* ElInput 前后缀插槽内的文本：不带外边距（插槽内容需与输入框垂直居中） */
+.demo-input-affix {
+    color: #909399;
+    margin: 0;
+}
+
+/* ElResult 基础用法：5 种结果横向排列 */
+.demo-result-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+/* 栅格 / 容器布局演示单元格 */
+.demo-grid-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 10px 12px;
+    color: #606266;
+    font-size: 13px;
+    background: #f5f7fa;
+    border-radius: 6px;
+}
+
+/* Mock 模型快照输出 */
+.demo-json {
+    margin: 0;
+    padding: 14px 16px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: #303133;
+    background: #f5f7fa;
+    border-radius: 6px;
+    overflow: auto;
+}
+
+/* APP 页脚说明 */
+.demo-footer-note {
+    padding: 16px 0 8px;
+    color: #909399;
+    font-size: 12px;
+}
+
+/* 走马灯内容卡片 */
+.demo-carousel-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #fff;
+}
+
+    .demo-carousel-card strong {
+        margin-top: 6px;
+        font-size: 18px;
+    }
+
+/* 分割面板占位内容 */
+.demo-panel-fill {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #fff;
+    background: #409eff;
+    font-size: 13px;
+}
+
+/* 无限滚动列表行 */
+.demo-list-row {
+    padding: 10px 14px;
+    color: #606266;
+    font-size: 13px;
+    border-bottom: 1px solid #ebeef5;
+}
+
+
+/* ===== 细滚动条：4px、拇指默认透明、指针移入容器才若隐若现（2026-09-28） ===== */
+/* 背景：Chromium ≥121 起，元素上只要有非 initial 的 scrollbar-width / scrollbar-color，
+   就**忽略 ::-webkit-scrollbar**、回落平台滚动条（也就是改不动宽度）。
+   故外壳滚动区与弹层一律把标准属性复位成 auto（= initial，不再污染），
+   改由 ::-webkit-scrollbar 精确控制 4px；Firefox 等无该伪元素的引擎走末尾 @supports 回落。 */
+/* 页面级默认（继承给内容区：表格滚动体 / 文本域 / 代码块等）：保持原浅灰薄条外观 */
+/* ⚠️ 两个标准属性都必须关进 @supports，不能裸写在 html/body/#app 上：
+   ① scrollbar-color 是**继承属性**，一设就一路继承给所有后代滚动容器（ElTreeV2 就是这样
+      被污染的）——实测祖先设 color → 后代 15px，组件里写的 4px 全部失效。
+   ② scrollbar-width 虽**不继承**，但写在 html 上会作用于 html 自己，同样令 Chromium
+      忽略它自己的 ::-webkit-scrollbar ——实测页面根滚条因此变成 10px 而非 4px。
+   ③ 而且 thin 在 Chromium 下实测根本不够细（15px）；精确 4px 只能靠 ::-webkit-scrollbar。
+   故两者都只留给「不支持 ::-webkit-scrollbar」的引擎（Firefox）作回落：
+   Chromium/Safari 下本块被跳过 → 不设 → 不继承 → 4px 规则照常生效。
+   取证脚本：demo/diag-scrollbar-pollution.cjs（headful，headless 是 overlay 恒 0 测不出）。 */
+@supports not selector(::-webkit-scrollbar) {
+    html, body, #app {
+        scrollbar-width: thin;
+        scrollbar-color: transparent transparent;
+    }
+    html:hover, body:hover, #app:hover {
+        scrollbar-color: rgba(0, 0, 0, .18) transparent;
+    }
+}
+html::-webkit-scrollbar, body::-webkit-scrollbar, #app::-webkit-scrollbar {
+    width: 4px !important; height: 4px !important;
+}
+/* 静默铁律（用户长期要求）：滚动条 4px、静止**完全透明**（不绘制任何条纹）、
+   指针移入滚动容器才若隐若现（.16），指针压在拇指上再加深（.32），移出即消失。
+   故基色必须是 transparent —— 任何 .10/.12 之类的淡灰都会让条纹**静止时常显**，
+   被 probe-scrollbar-final.cjs 的「静止态很淡/透明」断言判 FAIL。 */
+html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb, #app::-webkit-scrollbar-thumb {
+    background: transparent !important; border-radius: 2px !important;
+    /* 覆盖 index.css 全局 *::-webkit-scrollbar-thumb 的深色内阴影（否则拇指恒为深灰） */
+    box-shadow: none !important;
+    transition: background .2s ease;
+}
+html:hover::-webkit-scrollbar-thumb, body:hover::-webkit-scrollbar-thumb, #app:hover::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,.16) !important;
+}
+html::-webkit-scrollbar-thumb:hover, body::-webkit-scrollbar-thumb:hover, #app::-webkit-scrollbar-thumb:hover {
+    background: rgba(0,0,0,.32) !important;
+}
+html::-webkit-scrollbar-track, body::-webkit-scrollbar-track, #app::-webkit-scrollbar-track { background: transparent !important; }
+
+/* 应用外壳滚动区（侧栏 / 主内容）：4px、拇指静止 transparent、悬停才显形、移出即消失 */
+.demo-aside-scroll, .demo-main {
+    scrollbar-width: auto;
+    scrollbar-color: auto;
+}
+.demo-aside-scroll::-webkit-scrollbar, .demo-main::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+.demo-aside-scroll::-webkit-scrollbar-thumb, .demo-main::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 2px;
+    /* 覆盖 index.css 全局 *::-webkit-scrollbar-thumb 的深色内阴影（否则条纹常显、悬停无效） */
+    box-shadow: none;
+    transition: background .2s ease;
+}
+.demo-aside-scroll:hover::-webkit-scrollbar-thumb, .demo-main:hover::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,.16);
+}
+.demo-aside-scroll::-webkit-scrollbar-thumb:hover, .demo-main::-webkit-scrollbar-thumb:hover {
+    background: rgba(0,0,0,.32);
+}
+.demo-aside-scroll::-webkit-scrollbar-track, .demo-main::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* 折叠态菜单弹层：内容多时高度封顶、自身可滚，滚动条 4px、静止透明、悬停才显形 */
+.el-menu--popup-container {
+    scrollbar-width: auto;
+    scrollbar-color: auto;
+}
+.el-menu--popup-container::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+.el-menu--popup-container::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 2px;
+    box-shadow: none;
+    transition: background .2s ease;
+}
+.el-menu--popup-container:hover::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,.16);
+}
+.el-menu--popup-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(0,0,0,.32);
+}
+.el-menu--popup-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* 无 ::-webkit-scrollbar 的引擎（Firefox 等）：回落 thin + 悬停显形 */
+@supports not selector(::-webkit-scrollbar) {
+    .demo-aside-scroll,
+    .demo-main,
+    .el-menu--popup-container {
+        scrollbar-width: thin;
+        scrollbar-color: transparent transparent;
+    }
+    .demo-aside-scroll:hover,
+    .demo-main:hover,
+    .el-menu--popup-container:hover {
+        scrollbar-color: rgba(0,0,0,.18) transparent;
+    }
+}
+
+/* ===== 登录页面 ===== */
+.el-login-wrapper {
+    display: flex;
+    height: 100vh;
+    min-height: 560px;
+    overflow: hidden;
+}
+
+.el-login-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #409eff 0%, #1d6fd6 55%, #0f4aa8 100%);
+    color: #fff;
+    padding: 48px;
+    position: relative;
+    overflow: hidden;
+}
+
+.el-login-left::before {
+    content: '';
+    position: absolute;
+    width: 520px; height: 520px;
+    right: -260px; bottom: -260px;
+    background: radial-gradient(circle, rgba(255,255,255,.15), transparent 60%);
+    border-radius: 50%;
+}
+.el-login-left::after {
+    content: '';
+    position: absolute;
+    width: 320px; height: 320px;
+    left: -120px; top: -120px;
+    background: radial-gradient(circle, rgba(255,255,255,.10), transparent 60%);
+    border-radius: 50%;
+}
+
+.el-login-brand {
+    position: relative;
+    text-align: center;
+    z-index: 1;
+}
+
+.el-login-logo {
+    width: 72px; height: 72px;
+    margin: 0 auto 20px;
+    background: rgba(255,255,255,.20);
+    border: 2px solid rgba(255,255,255,.45);
+    border-radius: 18px;
+    font-size: 40px; font-weight: 700;
+    line-height: 68px;
+    box-shadow: 0 8px 28px rgba(0,0,0,.18);
+    backdrop-filter: blur(6px);
+}
+
+.el-login-title {
+    font-size: 34px; font-weight: 600; letter-spacing: 1px;
+    text-shadow: 0 2px 12px rgba(0,0,0,.12);
+}
+
+.el-login-sub {
+    margin-top: 10px;
+    font-size: 14px;
+    opacity: .85;
+    letter-spacing: .5px;
+}
+
+.el-login-footer {
+    position: absolute;
+    bottom: 24px; left: 0; right: 0;
+    text-align: center;
+    font-size: 12px;
+    opacity: .70;
+    z-index: 1;
+}
+
+.el-login-right {
+    flex: 0 0 520px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    padding: 48px;
+}
+
+.el-login-form-wrap {
+    width: 100%;
+    max-width: 360px;
+}
+
+.el-login-heading {
+    margin: 0 0 6px;
+    font-size: 26px;
+    color: #303133;
+    font-weight: 600;
+}
+
+.el-login-desc {
+    margin: 0 0 32px;
+    color: #909399;
+    font-size: 13px;
+}
+
+.el-login-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.el-login-link {
+    color: #409eff;
+    font-size: 13px;
+    text-decoration: none;
+}
+.el-login-link:hover { text-decoration: underline; }
+
+.el-login-footer-right {
+    margin-top: 18px;
+    text-align: center;
+    font-size: 13px;
+    color: #909399;
+}
+
+.el-login-divider {
+    margin: 28px 0 18px;
+    position: relative;
+    text-align: center;
+    color: #c0c4cc;
+    font-size: 12px;
+}
+.el-login-divider::before,
+.el-login-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 44%; height: 1px;
+    background: #ebeef5;
+}
+.el-login-divider::before { left: 0; }
+.el-login-divider::after  { right: 0; }
+.el-login-divider span { background: #fff; padding: 0 10px; }
+
+.el-login-social {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+/* 登录页：隐藏侧边栏 */
+:root {
+    --login-hide-sidebar: 1;
+}
+
+/* 当路由是 /login 时通过 JS 切换 body 类；这里用 CSS 兜底：
+   登录页面自己有独立布局，所以 demo-sidebar 在 login 页并不存在，无需特殊处理。 */
+
+.demo-drawer-page-body {
+  padding: 0 20px 20px;
+  overflow: auto;
+}
+
+/* ===== Watermark demo (MainLayout 整页水印) ===== */
+.demo-row-wrap { flex-wrap: wrap; }
+
+.demo-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    color: #606266;
+    min-width: 190px;
+}
+
+    .demo-field > span { font-weight: 500; }
+
+    .demo-field input[type="range"] { width: 200px; }
+
+    .demo-field select {
+        width: 200px;
+        height: 32px;
+        border: 1px solid #dcdfe6;
+        border-radius: 4px;
+        padding: 0 8px;
+    }
+
+.demo-app {
+    border: 1px solid #ebeef5;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+}
+
+    .demo-app-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 18px;
+        background: #409eff;
+        color: #fff;
+        font-size: 14px;
+    }
+
+        .demo-app-header .demo-app-user { font-size: 12px; opacity: .9; }
+
+    .demo-app-body { display: flex; min-height: 360px; }
+
+    .demo-app-aside {
+        width: 160px;
+        background: #f5f7fa;
+        border-right: 1px solid #ebeef5;
+        padding: 10px 0;
+    }
+
+        .demo-app-nav {
+            padding: 10px 18px;
+            font-size: 13px;
+            color: #606266;
+            cursor: default;
+        }
+
+            .demo-app-nav.active { background: #ecf5ff; color: #409eff; font-weight: 600; }
+
+    .demo-app-main { flex: 1; padding: 16px; }
+
+    .demo-app-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 14px;
+    }
+
+    .demo-app-card {
+        border: 1px solid #ebeef5;
+        border-radius: 6px;
+        padding: 14px 16px;
+    }
+
+        .demo-app-card h4 { margin: 0 0 8px; font-size: 13px; color: #909399; font-weight: 500; }
+
+        .demo-app-num { font-size: 30px; font-weight: 700; color: #303133; line-height: 1.1; }
+
+        .demo-app-num.danger { color: #f56c6c; }
+
+        .demo-app-card p { margin: 6px 0 0; font-size: 12px; color: #909399; }
+
+    .demo-app-block {
+        margin-top: 16px;
+        border: 1px solid #ebeef5;
+        border-radius: 6px;
+        padding: 14px 16px;
+    }
+
+        .demo-app-block h4 { margin: 0 0 8px; font-size: 14px; color: #303133; }
+
+        .demo-app-block p { margin: 4px 0; font-size: 13px; color: #606266; }
+
+    .demo-app-footer {
+        padding: 10px 18px;
+        background: #f5f7fa;
+        border-top: 1px solid #ebeef5;
+        font-size: 12px;
+        color: #909399;
+    }
+
+.demo-wm-box {
+    flex: 1;
+    min-width: 280px;
+    min-height: 160px;
+    padding: 16px;
+    border: 1px dashed #dcdfe6;
+    border-radius: 6px;
+    color: #606266;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+}
+
+    .demo-wm-box.demo-wm-naked { border-style: solid; background: #fafafa; }
+
+/* ===== Button demo ===== */
+.demo-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    font-size: 13px;
+    color: #409eff;
+    background: #ecf5ff;
+    border: 1px solid #d9ecff;
+    border-radius: 12px;
+    white-space: nowrap;
+}
+
+.demo-debounce-wrap {
+    display: inline-flex;
+    cursor: pointer;
+}
+
+    .demo-row h4 {
+        width: 100%;
+        margin: 14px 0 6px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #909399;
+    }
+
+/* ElCard 自定义 header/body/footer class 演示（EP header-class / body-class / footer-class） */
+.demo-card-accent-header {
+    background: #ecf5ff;
+    color: #409eff;
+    font-weight: 600;
+}
+
+.demo-card-accent-body {
+    background: #f0f9eb;
+    color: #67c23a;
+}
+
+.demo-card-accent-footer {
+    background: #fef0f0;
+    color: #f56c6c;
+    text-align: right;
+}
+
+/* Affix / Anchor / Backtop 演示页的滚动容器 */
+.affix-scroll-box,
+.anchor-scroll-box,
+.anchor-scroll-box2,
+.anchor-scroll-box3,
+.anchor-scroll-box4,
+.backtop-scroll-box,
+.backtop-scroll-box2 {
+    position: relative;
+    height: 300px;
+    overflow: auto;
+    border: 1px solid #ebeef5;
+    border-radius: 4px;
+    padding: 12px;
+    background: #fff;
+}
+
+.demo-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border: 1px solid #dcdfe6;
+    border-radius: 3px;
+    font-size: 12px;
+    color: #606266;
+    background: #f5f7fa;
+}
+
+/* ===== 示例块操作条：复制代码 / 查看源代码（对齐官方文档每个示例块右下角的那两个按钮）
+   由 wwwroot/js/demo-code.js 注入到每个 .demo-section 末尾；
+   左右负外边距在 JS 里按容器实际 padding 计算，所以这里只给视觉样式。 ===== */
+.demo-code-bar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 7px 12px;
+    border-top: 1px solid #f0f2f5;
+    background: #fcfcfd;
+}
+
+.demo-code-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 26px;
+    padding: 0 9px;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    background: transparent;
+    color: #909399;
+    font-family: inherit;
+    font-size: 12px;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    opacity: .82;
+    transition: color .15s, background-color .15s, border-color .15s, opacity .15s;
+}
+
+.demo-code-bar:hover .demo-code-btn,
+.demo-code-btn:focus-visible {
+    opacity: 1;
+}
+
+.demo-code-btn:hover {
+    color: var(--el-color-primary, #409eff);
+    background: #ecf5ff;
+    border-color: #d9ecff;
+}
+
+.demo-code-btn:focus-visible {
+    outline: 2px solid var(--el-color-primary, #409eff);
+    outline-offset: 1px;
+}
+
+.demo-code-btn.is-copied,
+.demo-code-btn.is-copied:hover {
+    color: var(--el-color-success, #67c23a);
+    background: #f0f9eb;
+    border-color: #e1f3d8;
+}
+
+.demo-code-btn.is-primary {
+    color: var(--el-color-primary, #409eff);
+    background: #ecf5ff;
+    border-color: #c6e2ff;
+    opacity: 1;
+}
+
+.demo-code-btn.is-primary:hover {
+    color: #fff;
+    background: var(--el-color-primary, #409eff);
+    border-color: var(--el-color-primary, #409eff);
+}
+
+.demo-code-icon {
+    flex: none;
+    width: 14px;
+    height: 14px;
+}
+
+/* ----- 复制失败的小提示 ----- */
+.demo-code-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 46px;
+    z-index: 5200;
+    padding: 9px 16px;
+    border-radius: 6px;
+    background: rgba(48, 49, 51, .92);
+    color: #fff;
+    font-size: 13px;
+    opacity: 0;
+    transform: translate(-50%, 10px);
+    transition: opacity .22s ease, transform .22s ease;
+    pointer-events: none;
+}
+
+.demo-code-toast.is-show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+.demo-code-btn.is-active,
+.demo-code-btn.is-active:hover {
+    color: var(--el-color-primary, #409eff);
+    background: #ecf5ff;
+    border-color: #d9ecff;
+    opacity: 1;
+}
+
+/* ----- 源代码面板：在示例块内就地展开（对齐官方文档「查看源代码」不弹窗，代码直接铺在块的底部） ----- */
+.demo-code-panel {
+    display: none;
+    overflow: hidden;
+    border-top: 1px solid #e8ebf0;
+    background: #f8f9fb;
+}
+
+.demo-code-panel.is-open {
+    display: block;
+    animation: demo-code-reveal .18s ease;
+}
+
+@keyframes demo-code-reveal {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .demo-code-panel.is-open {
+        animation: none;
+    }
+}
+
+.demo-code-panel-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    border-bottom: 1px solid #e8ebf0;
+    background: #f1f3f7;
+}
+
+/* 分段控件（官方是 TS / JS，这里对应「本段示例 / 整页源码」） */
+.demo-code-tabs {
+    display: inline-flex;
+    flex: none;
+    gap: 2px;
+    padding: 2px;
+    border-radius: 7px;
+    background: #e2e6ed;
+}
+
+.demo-code-tab {
+    padding: 3px 11px;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: #606266;
+    font-family: inherit;
+    font-size: 12px;
+    line-height: 18px;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.demo-code-tab.is-active {
+    background: #fff;
+    color: var(--el-color-primary, #409eff);
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .06);
+}
+
+.demo-code-tab:focus-visible {
+    outline: 2px solid var(--el-color-primary, #409eff);
+    outline-offset: 1px;
+}
+
+.demo-code-file {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    color: #909399;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.demo-code-tools {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 2px;
+}
+
+.demo-code-tool {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: #7d838c;
+    cursor: pointer;
+    transition: color .15s, background-color .15s;
+}
+
+.demo-code-tool:hover {
+    color: var(--el-color-primary, #409eff);
+    background: #e6f0fd;
+}
+
+.demo-code-tool:focus-visible {
+    outline: 2px solid var(--el-color-primary, #409eff);
+    outline-offset: 1px;
+}
+
+.demo-code-tool.is-copied,
+.demo-code-tool.is-copied:hover {
+    color: var(--el-color-success, #67c23a);
+    background: #e8f7dd;
+}
+
+/* 代码区：两个页签各自一个滚动容器，长行横向滚动 */
+.demo-code-code {
+    display: none;
+    max-height: 440px;
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding: 8px 0 10px;
+    font-family: Consolas, "Cascadia Mono", Menlo, Monaco, "Courier New", monospace;
+    font-size: 12.5px;
+    line-height: 20px;
+}
+
+.demo-code-code.is-active {
+    display: block;
+}
+
+/* 每一行：折叠箭头 + 代码（width:max-content 让长行撑开、由外层滚动） */
+.dcl {
+    display: flex;
+    align-items: flex-start;
+    box-sizing: border-box;
+    width: max-content;
+    min-width: 100%;
+}
+
+.dcl.is-hidden {
+    display: none;
+}
+
+.dcl-gutter {
+    display: flex;
+    flex: none;
+    justify-content: center;
+    width: 24px;
+}
+
+.dcl-fold {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 20px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #b1b6bf;
+    cursor: pointer;
+}
+
+.dcl-fold:hover {
+    color: var(--el-color-primary, #409eff);
+}
+
+.dcl-fold:focus-visible {
+    outline: 2px solid var(--el-color-primary, #409eff);
+    outline-offset: -2px;
+    border-radius: 3px;
+}
+
+.dcl-chevron {
+    width: 12px;
+    height: 12px;
+    transition: transform .14s ease;
+}
+
+.dcl.is-collapsed .dcl-chevron {
+    transform: rotate(-90deg);
+}
+
+.dcl-more {
+    display: none;
+    flex: none;
+    padding: 0 8px 0 4px;
+    color: #a8abb2;
+    letter-spacing: 1px;
+    user-select: none;
+}
+
+.dcl.is-collapsed .dcl-more {
+    display: inline;
+}
+
+.dcl-code {
+    flex: none;
+    padding-right: 16px;
+    color: #303133;
+    white-space: pre;
+}
+
+/* ----- 代码高亮配色 ----- */
+.dc-comment {
+    color: #b0b3b8;
+    font-style: italic;
+}
+
+.dc-razor {
+    color: #a259d9;
+}
+
+.dc-tag {
+    color: #2f7ed8;
+}
+
+.dc-attr {
+    color: #c1731b;
+}
+
+.dc-str {
+    color: #3f9a54;
+}
+
+/* ===== ElTable 列头点击弹出的操作菜单（demo 专用，不进组件库 index.css） =====
+   这里没有 .demo-colmenu-backdrop：全屏 fixed 遮罩会把滚轮的滚动链从 .demo-main 拐到「视口」，
+   菜单开着时整页滚不动（实测 scrollTop 5642 → 5642）。「点外面收起」改由 document 捕获阶段的
+   mousedown 监听（组件库的 elementPickerOutsideAttach）实现，菜单节点常驻、收起时只隐藏。 */
+.demo-colmenu--hidden {
+    display: none;
+}
+
+.demo-colmenu {
+    position: fixed;
+    z-index: 4001;
+    min-width: 168px;
+    padding: 6px;
+    background: #fff;
+    border: 1px solid #ebeef5;
+    border-radius: 8px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, .16);
+    font-size: 13px;
+    font-family: inherit;
+}
+
+.demo-colmenu__title {
+    padding: 6px 10px;
+    margin-bottom: 4px;
+    color: #909399;
+    font-size: 12px;
+    border-bottom: 1px solid #f2f6fc;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.demo-colmenu__item {
+    display: block;
+    width: 100%;
+    padding: 8px 10px;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: #303133;
+    font-family: inherit;
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.demo-colmenu__item:hover {
+    background: #f5f7fa;
+}
+
+.demo-colmenu__item--danger {
+    color: #f56c6c;
+}
+
+.demo-colmenu__item--danger:hover {
+    background: #fef0f0;
+}
+
+/* ==== ElRibbon 演示用弹出菜单（Menu 参数内容） ==== */
+.demo-ribbon-menu {
+    min-width: 180px;
+    padding: 6px 0;
+    background: #fff;
+    border: 1px solid #ebeef5;
+    border-radius: 6px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+}
+
+.demo-ribbon-menu__title {
+    padding: 4px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #909399;
+}
+
+.demo-ribbon-menu__item {
+    display: block;
+    width: 100%;
+    padding: 8px 14px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #303133;
+    font-family: inherit;
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.demo-ribbon-menu__item:hover {
+    background: #f5f7fa;
+}
+
+.demo-ribbon-menu__sep {
+    height: 1px;
+    margin: 6px 0;
+    background: #ebeef5;
+}
+
+/* ===== EP 接线演示（⑫ 节 ElTable 表头行类名） ===== */
+tr.ep-demo-header-row > th {
+    background: #f0f9ff !important;
+    color: #0369a1 !important;
+}
+
+/* ===== EP 接线演示（TabsDemo TabClass 级联到页签按钮） ===== */
+.el-tabs .custom-tab[role="tab"] {
+    border-radius: 8px 8px 0 0;
+    background: #f0f9ff;
+    transition: background .15s, color .15s;
+}
+.el-tabs .custom-tab[role="tab"][aria-selected="true"] {
+    background: #409eff;
+    color: #fff;
+}
+
+/* ===== EP 接线演示（⑫ 节 FilterChange 命中回显 / ExpandChange 展开内容区） ===== */
+.ep-wire-filter-result {
+    margin-top: 10px;
+    padding: 8px 12px;
+    border: 1px dashed #c0c4cc;
+    border-radius: 6px;
+    font-size: 13px;
+    line-height: 1.8;
+    background: #fafafa;
+}
+.ep-wire-names {
+    color: #0369a1;
+    font-weight: 600;
+}
+.ep-wire-hint {
+    color: #909399;
+    font-size: 12px;
+    margin-left: 6px;
+}
+
+.ep-wire-expand-zone {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border: 1px solid #ebeef5;
+    border-radius: 8px;
+    background: #f7fbff;
+    font-size: 13px;
+}
+.ep-wire-expand-empty {
+    color: #909399;
+    padding: 8px 0;
+}
+.ep-wire-expand-card {
+    margin-top: 8px;
+    padding: 8px 12px;
+    border-left: 3px solid #409eff;
+    border-radius: 4px;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+.ep-wire-expand-card__title {
+    font-weight: 600;
+    color: #303133;
+}
+.ep-wire-expand-card__body {
+    color: #606266;
+    margin-top: 4px;
+}
+
+/* ==== ElDialogGrow 服务化对话框示例（表单内容组件） ==== */
+.demo-dialog-form .el-form-item{margin-bottom:18px}
+.demo-dialog-form__footer{display:flex;justify-content:flex-end;gap:10px;margin-top:4px}
+.el-dialog-grow .no-title-body{padding-top:12px}
+
+/* ==== /icon 全量图标目录 ==== */
+.demo-icon-cat {
+    margin: 14px 0 8px;
+    color: #303133;
+    font-size: 14px;
+}
+.demo-icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+    gap: 8px;
+}
+.demo-icon-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 4px 8px;
+    border: 1px solid var(--el-border-color-lighter, #ebeef5);
+    border-radius: 6px;
+    color: #606266;
+    cursor: default;
+    transition: border-color .15s, color .15s, box-shadow .15s;
+}
+.demo-icon-cell:hover {
+    border-color: #409eff;
+    color: #409eff;
+    box-shadow: 0 1px 4px rgba(64, 158, 255, .18);
+}
+.demo-icon-cell span {
+    max-width: 108px;
+    font-size: 12px;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ==== /carousel 演示图片 ==== */
+.demo-carousel-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ==== /carousel 演示图片 ==== */
+.demo-carousel-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ==== /statistic 演示页（批次㉕ #125：对应官方 statistic/{basic,countdown,card} 三段） ==== */
+.demo-stat-cell {
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.demo-stat-cell.is-top {
+    text-align: left;
+}
+
+.demo-stat-inline-title {
+    display: inline-flex;
+    align-items: center;
+}
+
+.demo-stat-countdown-footer {
+    margin-top: 8px;
+}
+
+.demo-stat-card {
+    height: 100%;
+    padding: 20px;
+    border-radius: 4px;
+    background-color: var(--el-bg-color-overlay, #fff);
+}
+
+.demo-stat-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 16px;
+    font-size: 12px;
+    color: var(--el-text-color-regular, #606266);
+}
+
+.demo-stat-footer .demo-stat-footer-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.demo-stat-footer .demo-stat-footer-item span:last-child {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 4px;
+}
+
+.demo-stat-is-up {
+    color: var(--el-color-success, #67c23a);
+}
+
+.demo-stat-is-down {
+    color: var(--el-color-error, #f56c6c);
+}
+
+/* 官方卡片段就是靠覆盖根节点上的这个 CSS 变量把数值字号调到 28px */
+.demo-stat-large {
+    --el-statistic-content-font-size: 28px;
+}

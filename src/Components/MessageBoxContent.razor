@@ -1,0 +1,37 @@
+<div class="el-message-box__message">
+    @if (Option.MessageContent != null)
+    {
+        @Option.MessageContent
+    }
+    else if (!string.IsNullOrEmpty(Option.Message))
+    {
+        <p>
+            @if (Option.DangerouslyUseHTMLString)
+            {
+                @((MarkupString)Option.Message)
+            }
+            else
+            {
+                @Option.Message
+            }
+        </p>
+    }
+</div>
+@if (Option.ShowInput)
+{
+    <div class="el-message-box__input">
+        <div class="el-input">
+            <input
+                type="@Option.InputType"
+                autocomplete="off"
+                placeholder="@Option.InputPlaceholder"
+                class="el-input__inner"
+                pattern="@Option.InputPattern"
+                maxlength="@Option.InputMaxlength"
+                @bind="Option.InputValue" />
+        </div>
+        <div class="el-message-box__errormsg" style="@(string.IsNullOrEmpty(Option.InputErrorMessage) ? "visibility: hidden;" : "")">
+            @Option.InputErrorMessage
+        </div>
+    </div>
+}

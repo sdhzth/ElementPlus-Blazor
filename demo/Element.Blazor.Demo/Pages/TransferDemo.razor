@@ -1,0 +1,95 @@
+@page "/transfer"
+@using ElementPlus
+
+<h1 class="demo-page-title">穿梭框 / ElTransfer</h1>
+<p class="demo-page-sub">对齐官方：支持 @("@bind-Value")（已选 key 集合）、List1 / List2 数据源、EnableSearch（筛选）、LeftTitle / RightTitle、Disabled、ButtonTexts、EmptyText、Format（计数文案）、OnLeftCheckChange / OnRightCheckChange（勾选变化事件）。</p>
+
+<div class="demo-section">
+    <h3>基础用法</h3>
+    <div class="demo-row">
+        <ElTransfer @bind-Value="value1" List1="list1" List2="list2" LeftTitle="候选" RightTitle="已选" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>带搜索</h3>
+    <div class="demo-row">
+        <ElTransfer @bind-Value="value2" List1="list1" List2="list2" EnableSearch="true" LeftTitle="候选" RightTitle="已选" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>自定义计数文案与勾选事件</h3>
+    <div class="demo-row">
+        <ElTransfer @bind-Value="value3" List1="list1" List2="list2"
+                    Format="@((total, checkedLength) => $"已选 {checkedLength} / 共 {total}")"
+                    OnLeftCheckChange="OnLeftChecked"
+                    OnRightCheckChange="OnRightChecked" />
+    </div>
+    <p class="demo-remark">左侧勾选: @leftChecked</p>
+    <p class="demo-remark">右侧勾选: @rightChecked</p>
+</div>
+
+<div class="demo-section">
+    <h3>PanelHeight（面板高度）</h3>
+    <div class="demo-row">
+        <ElTransfer @bind-Value="value4" List1="list2" List2="list1"
+                    LeftTitle="矮面板 180px" RightTitle="右侧"
+                    PanelHeight="180" />
+        <ElTransfer @bind-Value="value4" List1="list2" List2="list1"
+                    LeftTitle="高面板 360px" RightTitle="右侧"
+                    PanelHeight="360" />
+    </div>
+    <p class="demo-note">两侧列表体高度随 PanelHeight 变化，内部出现滚动条。</p>
+</div>
+
+<div class="demo-section">
+    <h3>ShowAll（全选复选框）</h3>
+    <div class="demo-row">
+        <ElTransfer @bind-Value="value5" List1="list3" List2="list2"
+                    LeftTitle="ShowAll=true" RightTitle="已选"
+                    ShowAll="true" PanelHeight="220" />
+        <ElTransfer @bind-Value="value5" List1="list3" List2="list2"
+                    LeftTitle="ShowAll=false（默认）" RightTitle="已选"
+                    ShowAll="false" PanelHeight="220" />
+    </div>
+    <p class="demo-note">左侧标题栏的「全选」复选框仅在 ShowAll=true 时出现。</p>
+</div>
+
+@code {
+    private List<string> value1 = new List<string> { "3", "4" };
+    private List<string> value2 = new List<string>();
+    private List<string> value3 = new List<string>();
+    private List<string> value4 = new List<string>();
+    private List<string> value5 = new List<string>();
+
+    private string leftChecked = "";
+    private string rightChecked = "";
+
+    // Id 就是穿梭框的 key（EP 的 TransferItem key）。留 null 会让「移动勾选项」
+    // 退化成「移动全部」：SyncFieldValue 用 x.Id 组值，回传后 ResetList2 用
+    // valueList.Contains(x.Id) 反查，null 与 null 相等 → 所有 null-Id 项一起被扫过去。
+    private List<TransferItem> list1 = new List<TransferItem>
+    {
+        new TransferItem { Id = "1", Label = "选项 1" },
+        new TransferItem { Id = "2", Label = "选项 2" },
+        new TransferItem { Id = "3", Label = "选项 3" },
+        new TransferItem { Id = "4", Label = "选项 4" },
+        new TransferItem { Id = "5", Label = "选项 5", IsDisabled = true }
+    };
+
+    private List<TransferItem> list2 = new List<TransferItem>();
+
+    private List<TransferItem> list3 = new List<TransferItem>
+    {
+        new TransferItem { Id = "A", Label = "项目 A" },
+        new TransferItem { Id = "B", Label = "项目 B" },
+        new TransferItem { Id = "C", Label = "项目 C" },
+        new TransferItem { Id = "D", Label = "项目 D" },
+        new TransferItem { Id = "E", Label = "项目 E" },
+        new TransferItem { Id = "F", Label = "项目 F" }
+    };
+
+    private void OnLeftChecked(List<string> ids) => leftChecked = string.Join(", ", ids ?? new List<string>());
+    private void OnRightChecked(List<string> ids) => rightChecked = string.Join(", ", ids ?? new List<string>());
+}

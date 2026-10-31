@@ -1,0 +1,674 @@
+@using System.Globalization;
+@{
+    foreach (var item in PopupOptions)
+    {
+        <div @key="item.ZIndex" style="position:absolute;left:@(item.Position.X)px;top:@(item.Position.Y)px;z-index:@item.ZIndex;">
+            @item.Content
+        </div>
+    }
+    for (int i = 0; i < Messages.Count; i++)
+    {
+        var message = Messages[i];
+        var index = message.ZIndex;
+        var clsBuilder = HtmlPropertyBuilder.CreateCssClassBuilder()
+           .Add("el-message", $"el-message--{message.Type.ToString().ToLower()}")
+           .AddIf(message.Plain, "is-plain")
+           .AddIf(message.Center, "is-center")
+           .AddIf(message.ShowClose, "is-closable")
+           .Add(message.CustomClass);
+        // 垂直定位完全交给外层 .el-message-anchor（position:fixed + transition:top .4s）。
+        // 这样任意一条被移除后，只需重算其余条的 EndTop，CSS 即可平滑上移收拢，
+        // 不再依赖 ElTransition 缓存的 top（其内联样式在重渲染时不会更新）。
+        var anchorStyle = HtmlPropertyBuilder.CreateCssStyleBuilder()
+            .Add($"top:{message.EndTop}px", $"z-index:{index}")
+            .Add(message.CustomStyle);
+        var styleBuilder = HtmlPropertyBuilder.CreateCssStyleBuilder()
+            .Add("opacity:0")
+            .Add(message.CustomStyle);
+        var firstStyleBuilder = HtmlPropertyBuilder.CreateCssStyleBuilder()
+            .Add("opacity:1");
+        var secondStyleBuilder = HtmlPropertyBuilder.CreateCssStyleBuilder()
+            .Add("opacity:0");
+        <div class="el-message-anchor" style="@anchorStyle.ToString()" data-msg-id="@message.InternalId" @key="message.InternalId"
+             @onmouseenter="() => PauseMessageTiming(message)" @onmouseleave="() => ResumeMessageTiming(message)">
+            <ElTransition @ref="message.TransitionRef" role="alert" Cls="@clsBuilder.ToString()" OnAllEnd="e=>OnMessageTransitionEnd(message)" InitialStyle="@styleBuilder.ToString()">
+                <Path>
+                    <ElTransitionPath Style="@firstStyleBuilder.ToString()" Delay="200" Duration="300"></ElTransitionPath>
+                    @if (message.Duration > 0)
+                    {
+                        <ElTransitionPath Style="@secondStyleBuilder.ToString()" Delay="@message.Duration" Duration="300"></ElTransitionPath>
+                    }
+                </Path>
+                <Content>
+                    @* Icon 传了就覆盖类型默认图标（对应官方 icon-class）；primary 复用 info 实心图标（EP 同款行为） *@
+                    <i class="@(string.IsNullOrWhiteSpace(message.Icon) ? (message.Type == MessageType.Primary ? "el-message__icon el-icon-info" : $"el-message__icon el-icon-{message.Type.ToString().ToLower()}") : $"el-message__icon {message.Icon}")"></i>
+                    <p class="el-message__content">
+                        @if (message.DangerouslyUseHTMLString)
+                        {
+                            @((MarkupString)message.Message)
+                        }
+                        else
+                        {
+                            @message.Message
+                        }
+                        @if (message.RepeatCount > 1)
+                        {
+                            <span class="el-message__badge">@message.RepeatCount</span>
+                        }
+                    </p>
+                    @if (message.ShowClose)
+                    {
+                        <i class="el-message__closeBtn el-icon-close" @onclick:stopPropagation="true" @onclick="async () => await CloseMessageAsync(message)"></i>
+                    }
+                </Content>
+            </ElTransition>
+        </div>
+    }
+    for (int i = 0; i < Notifications.Count; i++)
+    {
+        var notification = Notifications[i];
+        var position = notification.Position.ToString();
+        var horizontal = position.EndsWith("Left", StringComparison.Ordinal) ? "left" : "right";
+        var verticalStyle = position.StartsWith("Top", StringComparison.Ordinal)
+            ? $"top:{notification.Top}px"
+            : $"bottom:{notification.Bottom}px";
+        // EP：类型修饰类加在**图标元素**上（ns.e('icon') + typeClass），不是根节点；
+        //     type 为空（默认）时不渲染图标、也不带类型色 —— 这里用可空 Type 表达。
+        var typeName = notification.Type?.ToString().ToLowerInvariant();
+        var typeClass = string.IsNullOrEmpty(typeName) ? null : $"el-notification--{typeName}";
+        var iconClass = !string.IsNullOrWhiteSpace(notification.Icon)
+            ? notification.Icon
+            : notification.Type == MessageType.Error ? "el-icon-error"
+            : notification.Type == MessageType.Primary ? "el-icon-info"
+            : string.IsNullOrEmpty(typeName) ? null : $"el-icon-{typeName}";
+        var hasTitle = !string.IsNullOrWhiteSpace(notification.Title);
+        var notificationClass = HtmlPropertyBuilder.CreateCssClassBuilder()
+            .Add("el-notification", horizontal)
+            .Add(notification.CustomClass);
+        var notificationStyle = HtmlPropertyBuilder.CreateCssStyleBuilder()
+            .Add(verticalStyle)
+            .AddIf(notification.ResolvedZIndex > 0, $"z-index:{notification.ResolvedZIndex}")
+            .Add(notification.CustomStyle);
+        var progressColor = !string.IsNullOrWhiteSpace(notification.ProgressColor)
+            ? notification.ProgressColor
+            : notification.Type == MessageType.Success ? "#67C23A"
+            : notification.Type == MessageType.Warning ? "#E6A23C"
+            : notification.Type == MessageType.Error ? "#F56C6C"
+            : "var(--el-color-primary, #409EFF)";
+        <div class="@notificationClass.ToString()" style="@notificationStyle.ToString()" role="alert"
+             @onclick="async () => await OnNotificationClickAsync(notification)"
+             @onmouseenter="() => OnNotificationMouseEnter(notification)"
+             @onmouseleave="() => OnNotificationMouseLeave(notification)">
+            @if (!string.IsNullOrEmpty(iconClass))
+            {
+                <i class="el-notification__icon @typeClass @iconClass"></i>
+            }
+            <div class="el-notification__group">
+                @if (hasTitle)
+                {
+                    <h2 class="el-notification__title">@notification.Title</h2>
+                }
+                <div class="el-notification__content" style="@(hasTitle ? null : "margin:0")">
+                    @if (notification.MessageContent != null)
+                    {
+                        @notification.MessageContent
+                    }
+                    else if (notification.DangerouslyUseHTMLString && !string.IsNullOrWhiteSpace(notification.Message))
+                    {
+                        @((MarkupString)notification.Message)
+                    }
+                    else if (!string.IsNullOrWhiteSpace(notification.Message))
+                    {
+                        <p>@notification.Message</p>
+                    }
+                </div>
+                @if (notification.ShowClose)
+                {
+                    <i class="el-notification__closeBtn @notification.CloseIcon" @onclick:stopPropagation="true" @onclick="async () => await CloseNotificationAsync(notification)"></i>
+                }
+            </div>
+            @if (notification.ShowProgress)
+            {
+                <div class="el-notification__progress" aria-hidden="true">
+                    <div class="el-notification__progress-bar" style="width:@(notification.ProgressPercent.ToString("0.##", CultureInfo.InvariantCulture))%;background:@progressColor"></div>
+                </div>
+            }
+        </div>
+    }
+    for (int i = 0; i < LoadingOptions.Count; i++)
+    {
+        var option = LoadingOptions[i];
+        <div class='@HtmlPropertyBuilder.CreateCssClassBuilder().Add("el-loading-mask", option.CustomClass).ToString()' style='background-color: @(option.Background ?? "var(--el-mask-color)");display:none;z-index:@(option.ZIndex)' @ref="option.Element">
+            <div class="el-loading-spinner">
+                @if (string.IsNullOrWhiteSpace(option.IconClass))
+                {
+                    <svg viewBox="25 25 50 50" class="circular">
+                        <circle cx="50" cy="50" r="20" fill="none" class="path"></circle>
+                    </svg><!---->
+                }
+                else
+                {
+                    <i class="@option.IconClass"></i>
+                    <p class="el-loading-text">@option.Text</p>
+                }
+            </div>
+        </div>
+    }
+
+    for (int i = 0; i < DialogOptions.Count; i++)
+    {
+        var option = DialogOptions[i];
+        var shadowIndex = option.ShadowZIndex;
+        var index = option.ZIndex;
+
+        if (option.IsDialog)
+        {
+            var width = string.Empty;
+
+            if (option.Width > 0)
+            {
+                width = $"width:{option.Width}px;";
+            }
+            var clsBuilder = HtmlPropertyBuilder.CreateCssClassBuilder()
+                .Add("el-dialog")
+                .Add(option.CustomClass)
+                .AddIf(option.FullScreen, "is-fullscreen")
+                .AddIf(option.Draggable, "is-draggable");
+            var styleBuilder = HtmlPropertyBuilder.CreateCssStyleBuilder()
+                .Add("opacity:0", "top:10px")
+                .Add(width);
+            <div @key="option" class="el-overlay-dialog el-dialog__wrapper" style="z-index: @index;" @onclick="async e => await CloseDialogOnModalClickAsync(option)" @onkeydown="async e => await OnDialogKeyDownAsync(option, e)" tabindex="-1" role="presentation">
+                <ElTransition role="dialog" @onclick:stopPropagation OnAllEnd="()=> DialogAnimationEndAsync(option)" OnPause="e=>OnPauseAsync(option)" @ref="option.Element" AutoAdjustPosition="true" aria-modal="true" aria-label="@option.Title" Cls="@clsBuilder.ToString()" InitialStyle="@styleBuilder.ToString()">
+                    <Path>
+                        <ElTransitionPath top="@option.Top" opacity="1" Delay="200" Duration="300"></ElTransitionPath>
+                        <ElTransitionPath top="10px" opacity="0" Duration="300" Pause="true"></ElTransitionPath>
+                    </Path>
+                    <Content>
+                        <div class="el-dialog__header">
+                            <span class="el-dialog__title">@option.Title</span>
+                            @if (option.ShowClose)
+                            {
+                                <ElButton Icon="el-dialog__close el-icon el-icon-close" Cls="el-dialog__headerbtn" AppendCustomCls="false" OnClick="(e => CloseDialogAsync(option,
+                                            new DialogResult()
+                                            {
+                                            }))">
+                                </ElButton>
+                            }
+                        </div>
+                        <div class="el-dialog__body">
+                            <ElDynamicComponent Component="option.Content" Parameters="option.Parameters"></ElDynamicComponent>
+                        </div>
+                        @if (option.Buttons.Any())
+                        {
+                            <div class="el-dialog__footer">
+                                <span class="dialog-footer">
+                                    @foreach (var button in option.Buttons)
+                                    {
+                                        @button
+                                    }
+                                </span>
+                            </div>
+                        }
+                    </Content>
+                </ElTransition>
+            </div>
+            @if (option.IsModal)
+            {
+                var shadowStyle = HtmlPropertyBuilder.CreateCssStyleBuilder()
+                    .Add("opacity:0", "position:fixed")
+                    .Add($"z-index:{shadowIndex}");
+                var firstStyle = HtmlPropertyBuilder.CreateCssStyleBuilder()
+                    .Add("opacity:0.5");
+                <ElTransition InitialStyle="@shadowStyle.ToString()" @ref="option.ShadowElement" Cls="v-modal el-overlay">
+                    <Path>
+                        <ElTransitionPath Style="@firstStyle.ToString()" Delay="300" Duration="200"></ElTransitionPath>
+                        <ElTransitionPath opacity="0" Duration="300" Pause="true"></ElTransitionPath>
+                    </Path>
+                    <Content></Content>
+                </ElTransition>
+            }
+        }
+        else
+        {
+            var layerSyleBuilder = HtmlPropertyBuilder.CreateCssStyleBuilder()
+   .AddIf(option.Point != System.Drawing.Point.Empty, $"position:fixed;left:{option.Point.X}px;top:{option.Point.Y}px;");
+            var messageBoxStyleBuilder = HtmlPropertyBuilder.CreateCssClassBuilder()
+                .AddIf(option.Point == System.Drawing.Point.Empty, "el-message-box");
+
+            // el-message-box__wrapper 是铺满整屏的那一层（遮罩 v-modal 在它下面，点不到），
+            // 所以「点遮罩关闭」必须挂在 wrapper 上，再由内层盒子阻断冒泡。
+            <div tabindex="-1" role="dialog" aria-modal="true" aria-label="@ResolveTitle(option)" class="el-message-box__wrapper" style="z-index: @index" @onclick="async e => await CloseDialogOnModalClickAsync(option)">
+                <div class="@messageBoxStyleBuilder.ToString()" style="@layerSyleBuilder.ToString()" @onclick="StopBoxClickBubble" @onclick:stopPropagation="true">
+                    @if (!string.IsNullOrWhiteSpace(ResolveTitle(option)))
+                    {
+                        <div class="el-message-box__header @(option.MessageBoxOption?.Center == true ? "is-center" : "")">
+                            <div class="el-message-box__title">
+                                <!---->
+                                <span>@ResolveTitle(option)</span>
+                            </div>
+                            @if (option.ShowClose)
+                            {
+                                <ElButton Icon="el-message-box__close el-icon-close" Cls="el-message-box__headerbtn" AppendCustomCls="false" aria-label="@MessageBoxCloseAriaLabel" OnClick="async e => await CloseMessageBoxAsync(option, MessageBoxResult.Close, MessageBoxAction.Close)">
+                                </ElButton>
+                            }
+                        </div>
+                    }
+                    @if (option.Point == System.Drawing.Point.Empty)
+                    {
+                        <div class="el-message-box__content">
+                            <ElDynamicComponent Component="option.Content" Parameters="option.Parameters"></ElDynamicComponent>
+                        </div>
+                        <div class="el-message-box__btns @(option.MessageBoxOption?.Center == true ? "is-center" : "") @(option.MessageBoxOption?.RoundButton == true ? "is-round" : "")">
+                            @foreach (var button in option.Buttons)
+                            {
+                                @button
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <ElDynamicComponent Component="option.Content"></ElDynamicComponent>
+                    }
+                </div>
+            </div>
+            @if (option.IsModal)
+            {
+                <div class="v-modal el-overlay" tabindex="0" style="z-index: @shadowIndex;transition:opacity 0.3s;opacity:0.5;position:fixed;"></div>
+            }
+        }
+    }
+
+    for (int i = 0; i < DateTimePickerOptions.Count; i++)
+    {
+        var option = DateTimePickerOptions[i];
+        var shadowIndex = option.ShadowZIndex;
+        var index = option.ZIndex;
+        var year = option.CurrentMonth.Year;
+        var month = option.CurrentMonth.Month;
+        var calendar = CultureInfo.InvariantCulture.Calendar;
+        var dayOfThisMonthStart = new DateTime(year, month, 1);
+        var dayOfThisMonthEnd = dayOfThisMonthStart.AddMonths(1).AddDays(-1);
+        var dayOfWeekOfThisMonthStart = calendar.GetDayOfWeek(dayOfThisMonthStart);
+        var dayOfWeekOfThisMonthEnd = calendar.GetDayOfWeek(dayOfThisMonthEnd);
+        var days = calendar.GetDaysInMonth(year, month);
+        var currentRenderingDay = 0;
+        var dayIndexOfMonthStart = 0;
+        var left = option.Left > 0 ? $"{option.Left}px" : string.Empty;
+        var top = option.Top > 0 ? $"{option.Top}px" : string.Empty;
+        var opacity = 0;
+        var display = "none";
+        if (option.Left > 0)
+        {
+            opacity = 1;
+            display = "";
+        }
+        var prefix = string.Empty;
+        var beginYear = 0;
+        var endYear = 0;
+        if (option.ShowYear > 0)
+        {
+            prefix = option.ShowYear.ToString().Substring(0, 3);
+            beginYear = Convert.ToInt32(prefix + "0");
+            endYear = Convert.ToInt32(prefix + "9");
+        }
+        <div class="el-picker-panel el-date-picker el-popper" style="left:@left;top:@top; z-index: @index; position: absolute;transition:top 0.3s,opacity 0.3s;display:@display;opacity:@opacity;" x-placement="bottom-start" @ref="option.Element">
+            <div class="el-picker-panel__body-wrapper">
+                <div class="el-picker-panel__body">
+                    <div class="el-date-picker__header">
+                        <ElButton Cls="el-picker-panel__icon-btn el-date-picker__prev-btn el-icon-d-arrow-left" AppendCustomCls="false" OnClick="e=>GoPrevYear(option)"></ElButton>
+                        @if (option.ShowYear == 0 && option.ShowMonth == 0)
+                        {
+                            <ElButton Cls="el-picker-panel__icon-btn el-date-picker__prev-btn el-icon-arrow-left" AppendCustomCls="false" OnClick="e => option.CurrentMonth = option.CurrentMonth.AddMonths(-1)"></ElButton>
+                        }
+                        @if (option.ShowYear == 0 && option.ShowMonth == 0)
+                        {
+                            <span role="button" class="el-date-picker__header-label" @onclick="e => { option.ShowYear = year; option.ShowMonth = 0; }">@year 、</span>
+                            <span role="button" class="el-date-picker__header-label" @onclick="e => { option.ShowMonth = month; option.ShowYear = 0; }">@month 、</span>
+                        }
+                        else if (option.ShowYear == 0)
+                        {
+                            <span role="button" class="el-date-picker__header-label" @onclick="e => { option.ShowYear = year; option.ShowMonth = 0; }">@year 、</span>
+                        }
+                        else
+                        {
+                            <span role="button" class="el-date-picker__header-label">@beginYear - @endYear 、</span>
+                        }
+                        @if (option.ShowYear == 0 && option.ShowMonth == 0)
+                        {
+                            <ElButton Cls="el-picker-panel__icon-btn el-date-picker__next-btn el-icon-arrow-right" AppendCustomCls="false" OnClick="e => option.CurrentMonth = option.CurrentMonth.AddMonths(1)"></ElButton>
+                        }
+                        <ElButton Cls="el-picker-panel__icon-btn el-date-picker__next-btn el-icon-d-arrow-right" AppendCustomCls="false" OnClick="e=>GoNextYear(option)"></ElButton>
+                    </div>
+                    <div class="el-picker-panel__content">
+                        @if (option.ShowMonth > 0)
+                        {
+                            <table class="el-month-table">
+                                <tbody>
+                                    <tr>
+                                        <td class="@(option.ShowMonth==1 ? "today":string.Empty)" @onclick="e=>OpenMonth(option,1)">
+                                            <div>
+                                                <a class="cell">一月</a>
+                                            </div>
+                                        </td>
+                                        <td class="@(option.ShowMonth==2 ? "today":string.Empty)" @onclick="e=>OpenMonth(option,2)"><div><a class="cell">包：</a></div></td>
+                                        <td class="@(option.ShowMonth==3 ? "today":string.Empty)" @onclick="e=>OpenMonth(option,3)"><div><a class="cell">包：</a></div></td>
+                                        <td class="@(option.ShowMonth==4 ? "today":string.Empty)" @onclick="e=>OpenMonth(option,4)"><div><a class="cell">包：</a></div></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="@(option.ShowMonth==5 ? "today":string.Empty)" @onclick="e=>OpenMonth(option,5)"><div><a class="cell">包：</a></div></td>
+                                        <td class="@(option.ShowMonth==6 ? "today":string.Empty)" @onclick="e=>OpenMonth(option,6)"><div><a class="cell">包：</a></div></td>
+                                        <td class="@(option.ShowMonth==7 ? "today":string.Empty)" @onclick="e=>OpenMonth(option,7)"><div><a class="cell">包：</a></div></td>
+                                        <td class="@(option.ShowMonth==8 ? "today":string.Empty)" @onclick="e=>OpenMonth(option,8)"><div><a class="cell">包：</a></div></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="@(option.ShowMonth==9 ? "today":string.Empty)" @onclick="e=>OpenMonth(option,9)"><div><a class="cell">包：</a></div></td>
+                                        <td class="@(option.ShowMonth==10 ? "today":string.Empty)" @onclick="e=>OpenMonth(option,10)"><div><a class="cell">十月</a></div></td>
+                                        <td class="@(option.ShowMonth==11 ? "today":string.Empty)" @onclick="e=>OpenMonth(option,11)"><div><a class="cell">十一月</a></div></td>
+                                        <td class="@(option.ShowMonth==12 ? "today":string.Empty)" @onclick="e=>OpenMonth(option,12)"><div><a class="cell">十二月</a></div></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        }
+                        else if (option.ShowYear > 0)
+                        {
+                            var yearIndex = 0;
+                            <table class="el-year-table">
+                                <tbody>
+                                    @((MarkupString)"<tr>")
+                                    @for (; beginYear <= endYear; beginYear++)
+                                    {
+                                        var currentYear = beginYear;
+                                        var today = beginYear == option.ShowYear ? "today" : string.Empty;
+                                    <td class="available @today" @onclick="@(e => { option.ShowYear = 0;option.CurrentMonth = new DateTime(currentYear, 1, 1); option.ShowMonth = 1; })">
+                                        <a class="cell">@beginYear</a>
+                                    </td>
+                                    if (++yearIndex % 4 == 0 || beginYear == endYear)
+                                    {
+                                        @((MarkupString)"</tr>")
+                                        if (beginYear != endYear)
+                                        {
+                                            @((MarkupString)"<tr>")
+                                        }
+                                    }
+                                }
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                <table cellspacing="0" cellpadding="0" class="el-date-table">
+                                    <tbody>
+                                        <tr>
+                                            <th>、</th>
+                                            <th>һ</th>
+                                            <th>、</th>
+                                            <th>、</th>
+                                            <th>、</th>
+                                            <th>、</th>
+                                            <th>、</th>
+                                        </tr>
+
+                                        @for (int weekIndex = 1; weekIndex <= 6; weekIndex++)
+                                        {
+                                            <tr class="el-date-table__row">
+                                                @for (int dayOfWeek = 0; dayOfWeek <= 6; dayOfWeek++)
+                                                {
+                                                    currentRenderingDay++;
+                                                    var dayCls = string.Empty;
+                                                    var currentDay = default(DateTime);
+                                                    if (weekIndex == 1)
+                                                    {
+                                                        var diffDays = dayOfWeek - dayOfWeekOfThisMonthStart.GetHashCode();
+                                                        currentDay = dayOfThisMonthStart.AddDays(diffDays);
+                                                        if (diffDays < 0)
+                                                        {
+                                                            dayCls += "prev-month";
+                                                        }
+                                                        else
+                                                        {
+                                                            dayCls += "available";
+                                                            if (dayIndexOfMonthStart == 0)
+                                                            {
+                                                                dayIndexOfMonthStart = currentRenderingDay;
+                                                            }
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        currentDay = dayOfThisMonthStart.AddDays(currentRenderingDay - dayIndexOfMonthStart);
+                                                        if (currentDay.Month == month)
+                                                        {
+                                                            dayCls += "available";
+                                                        }
+                                                        else
+                                                        {
+                                                            dayCls += "available next-month";
+                                                        }
+                                                    }
+                                                    if (currentDay == DateTime.Today)
+                                                    {
+                                                        dayCls += " today";
+                                                    }
+                                                    <td class="@dayCls" @onclick="e=>SelectDay(option, currentDay)">
+                                                        <div>
+                                                            <span>
+                                                                @currentDay.Day
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                }
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                    </div>
+                </div>
+            </div>
+            <div class="el-picker-panel__footer" style="display: none;">
+                <button type="button" class="el-button el-picker-panel__link-btn is-text el-button--small">
+                    <span>
+                        此刻
+                    </span>
+                </button><button type="button" class="el-button el-picker-panel__link-btn el-button--small is-plain">
+                    <span>
+                        确定
+                    </span>
+                </button>
+            </div>
+            <div x-arrow="" class="popper__arrow" style="left: 35px;"></div>
+        </div>
+        <div class="v-modal" tabindex="0" style="z-index: @shadowIndex;opacity:0;position:fixed;" @ref="@option.ShadowElement" @onclick="e=>CloseDateTimePicker(option)"></div>
+    }
+
+    for (int i = 0; i < SelectDropDownOptions.Count; i++)
+    {
+        var option = SelectDropDownOptions[i];
+        var shadowIndex = option.ShadowZIndex;
+        var index = option.ZIndex;
+        var transform = "scaleY(0)";
+        if (option.IsShow)
+        {
+            if (option.ShowStatus == AnimationStatus.Begin && !GlobalElementSettings.DisableAnimation)
+            {
+                transform = "scaleY(0)";
+            }
+            else
+            {
+                transform = "scaleY(1)";
+            }
+        }
+        var style = "display:none";
+        if (option.IsShow || GlobalElementSettings.DisableAnimation)
+        {
+            style = "";
+        }
+        var dropdownClsBuilder = HtmlPropertyBuilder.CreateCssClassBuilder()
+            .Add("el-select-dropdown", "el-popper")
+            .Add(option.PopperClass);
+        var popperStyleBuilder = HtmlPropertyBuilder.CreateCssStyleBuilder()
+            .AddIf(option.WidthPx > 0, $"width:{option.WidthPx}px")
+            .AddIf(option.MinWidth > 0, $"min-width:{option.MinWidth}px")
+            .Add($"left:{option.Left}px")
+            .Add($"top:{option.Top}px")
+            .Add("transition:transform 0.2s linear 0s")
+            .Add($"transform:{transform}")
+            .Add("position:absolute")
+            .Add($"transform-origin:{option.TransformOrigin}")
+            .Add($"z-index:{index}")
+            .Add(option.PopperStyle);
+        var wrapperStyleBuilder = HtmlPropertyBuilder.CreateCssStyleBuilder()
+            .Add($"max-height:{(option.MaxHeight > 0 ? option.MaxHeight : 274)}px");
+        var context = option.Select as ISelectDropDownContext;
+        var listClsBuilder = HtmlPropertyBuilder.CreateCssClassBuilder()
+            .Add("el-scrollbar__view", "el-select-dropdown__list")
+            .AddIf(option.IsTree, "blazor-dropdown-tree");
+        <div class="v-modal el-select-dropdown__outside" style="position:fixed;opacity:0;@style;z-index:@shadowIndex" @ref="option.ShadowElement" @onclick="async e => { if (!option.Persistent) { await CloseDropDownAsync(option); } }"></div>
+        <div class="@dropdownClsBuilder.ToString()" id="@option.DropDownId" @ref="option.Element" data-append-to="@option.AppendTo" style="@popperStyleBuilder.ToString()" x-placement="@option.Placement">
+            @* header / footer 插槽（对齐 EP 2.5.2+）：固定在滚动区之外，因此必须放在 .el-scrollbar 的
+               兄弟位置；若塞进 __wrap 里会跟着选项一起滚走。 *@
+            @if (option.HeaderContent != null)
+            {
+                <div class="el-select-dropdown__header">@option.HeaderContent</div>
+            }
+            <div class="el-scrollbar" style="">
+                <div class="el-select-dropdown__wrap el-scrollbar__wrap" style="@wrapperStyleBuilder.ToString()" @ref="option.ScrollElement" @onscroll="async e => { if (context != null && await option.ScrollElement.Dom(JSRuntime).IsScrollAtEndAsync()) await context.OnEndReachedAsync(); }">
+                    @if (context != null && context.Loading)
+                    {
+                        <p class="el-select-dropdown__empty">
+                            <i class="el-icon-loading"></i>
+                            @context.LoadingText
+                        </p>
+                    }
+                    else if (context != null && context.ShouldShowEmpty)
+                    {
+                        <p class="el-select-dropdown__empty">@context.EmptyText</p>
+                    }
+                    else
+                    {
+                        <ul class="@listClsBuilder.ToString()" role="listbox">
+                            @if (option.IsTree)
+                            {
+                                <CascadingValue Value="(ElTreeSelect)option.Select">
+                                    @option.OptionContent
+                                </CascadingValue>
+                            }
+                            else
+                            {
+                                <CascadingValue Value="option">
+                                    @option.OptionContent
+                                </CascadingValue>
+                            }
+                        </ul>
+                    }
+                </div>
+                <div class="el-scrollbar__bar is-horizontal">
+                    <div class="el-scrollbar__thumb" style="transform: translateX(0%);"></div>
+                </div>
+                <div class="el-scrollbar__bar is-vertical">
+                    <div class="el-scrollbar__thumb" style="transform: translateY(0%);"></div>
+                </div>
+            </div>
+            @if (option.FooterContent != null)
+            {
+                <div class="el-select-dropdown__footer">@option.FooterContent</div>
+            }
+            <div x-arrow="" class="popper__arrow" style="left: 35px;"></div>
+        </div>
+    }
+    for (int i = 0; i < DropDownMenuOptions.Count; i++)
+    {
+        var option = DropDownMenuOptions[i];
+        var shadowIndex = option.ShadowZIndex;
+        var index = option.ZIndex;
+        var transform = "scaleY(0)";
+        if (option.IsShow)
+        {
+            if (option.ShowStatus == AnimationStatus.Begin && !GlobalElementSettings.DisableAnimation)
+            {
+                transform = "scaleY(0)";
+            }
+            else
+            {
+                transform = "scaleY(1)";
+            }
+        }
+        var style = "display:none";
+        if (option.IsShow || GlobalElementSettings.DisableAnimation)
+        {
+            style = "";
+        }
+        var dropDownStyles = new List<string>();
+        dropDownStyles.Add($"left:{option.Left}px");
+        dropDownStyles.Add($"top:{option.Top}px");
+        dropDownStyles.Add("transition:transform 0.2s linear 0s");
+        dropDownStyles.Add($"transform:{transform}");
+        dropDownStyles.Add("position:absolute");
+        dropDownStyles.Add("transform-origin: center top 0px");
+        dropDownStyles.Add($"z-index:{index}");
+        @if (option.ShowShadow)
+        {
+            <div class="v-modal" style="position:fixed;opacity:0;@style;z-index:@shadowIndex" @ref="option.ShadowElement" @onclick="async e => { if (!option.Persistent) { await CloseDropDownAsync(option); } }"></div>
+        }
+        <ul class="@HtmlPropertyBuilder.CreateCssClassBuilder().Add("el-dropdown-menu", "el-popper", option.PopperClass).ToString()"
+            @ref="option.Element"
+            id="@option.DropDownId"
+            role="@option.AriaRole"
+            aria-label="@option.AriaLabel"
+            data-append-to="@option.AppendTo"
+            style="@HtmlPropertyBuilder.CreateCssStyleBuilder().Add(string.Join(";", dropDownStyles), option.PopperStyle).ToString()"
+            x-placement="@option.Placement"
+            @onkeydown="option.OnKeyDown"
+            @onkeydown:preventDefault="@option.PreventKeyDown"
+            @onkeydown:stopPropagation="@option.StopKeyDownPropagation"
+            @onmouseenter="@(() => { (option.Select as ElDropdown)?.KeepOpen(); })"
+            @onmouseleave="@(() => (option.Select as ElDropdown)?.CloseAfterHoverDelayAsync() ?? Task.CompletedTask)">
+            <CascadingValue Value="option">
+                @option.OptionContent
+            </CascadingValue>
+            <div x-arrow="" class="popper__arrow" style="left: 35px;"></div>
+        </ul>
+    }
+    for (int i = 0; i < SubMenuOptions.Count; i++)
+    {
+        var option = SubMenuOptions[i];
+        var shadowIndex = option.ShadowZIndex;
+        var index = option.ZIndex;
+        var transform = "transform:scaleY(1);";
+        var opacity = "1";
+        if (option.IsShow)
+        {
+            if (option.ShowStatus == AnimationStatus.Begin)
+            {
+                transform = "transform:scaleY(0);";
+                opacity = "0";
+            }
+            else
+            {
+                transform = "transform:scaleY(1);";
+                opacity = "1";
+            }
+        }
+        else
+        {
+            transform = "transform:scaleY(0);";
+            opacity = "0";
+        }
+        // 鼠标进入弹层：保持自身与全部祖先弹层不被关闭。
+        // 弹层由本组件渲染成 body 级兄弟节点，嵌套弹层不在父弹层的 DOM 内部，
+        // 鼠标从父弹层移入子弹层时会离开父弹层容器并触发其延迟关闭（EP 用 mouseInChild 解决）。
+        // 移出用 mouseleave（不冒泡）：避免鼠标在弹层内部跨子元素时反复重置关闭计时。
+        var transformOrigin = option.Placement == "left-start" ? "top right" : "top left";
+        <div class="@HtmlPropertyBuilder.CreateCssClassBuilder().Add("el-menu--popup-container", "el-menu--horizontal", "el-popper", option.PopperClass).AddIf(!string.IsNullOrWhiteSpace(option.PopperEffect), $"is-{option.PopperEffect}").ToString()" @ref="option.Element" @onmouseover="e=>KeepSelfAndAncestorsOpen(option)" @onmouseleave="async e=>await ReadyCloseSubMenuAsync(option)" style="position: absolute; top: @(option.Top)px; left: @(option.Left)px; z-index:@index;@transform transition:transform 0.2s,opacity 0.2s;opacity:@opacity; transform-origin:@transformOrigin;max-height:calc(100vh - 16px);overflow-y:auto;overscroll-behavior:contain;-ms-overflow-style:auto;@option.PopperStyle" x-placement="@option.Placement">
+            <ul role="menu" class="@HtmlPropertyBuilder.CreateCssClassBuilder().Add("el-menu", "el-menu--popup", $"el-menu--popup-{option.Placement}").ToString()" style="--el-menu-level:@option.Level">
+                <CascadingValue Value="option.SubMenu">
+                    <CascadingValue Value="option.Options">
+                        <CascadingValue Value="option.SubMenu.TopMenu">
+                            @option.Content
+                        </CascadingValue>
+                    </CascadingValue>
+                </CascadingValue>
+            </ul>
+        </div>
+    }
+}

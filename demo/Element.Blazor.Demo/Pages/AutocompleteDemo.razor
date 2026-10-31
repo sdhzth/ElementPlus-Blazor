@@ -1,0 +1,80 @@
+@page "/autocomplete"
+@using ElementPlus
+
+<h1 class="demo-page-title">自动补全 / ElAutocomplete</h1>
+<p class="demo-page-sub">对齐官方：支持 @("@bind-Value")、Suggestions / FetchSuggestionsAsync、Clearable、Disabled、Size、Placeholder、OnClear 清空事件，以及远程异步搜索。</p>
+
+<div class="demo-section">
+    <h3>基础用法（静态候选）</h3>
+    <div class="demo-row">
+        <ElAutocomplete @bind-Value="value1" Suggestions="suggestions" Placeholder="请输入水果" Clearable="true" />
+    </div>
+    <p class="demo-note">当前值：@value1</p>
+</div>
+
+<div class="demo-section">
+    <h3>异步远程搜索</h3>
+    <div class="demo-row">
+        <ElAutocomplete @bind-Value="value2" FetchSuggestionsAsync="SearchAsync" Placeholder="输入 a/b/c 试试" Clearable="true" />
+    </div>
+    <p class="demo-note">当前值：@value2</p>
+</div>
+
+<div class="demo-section">
+    <h3>禁用与尺寸</h3>
+    <div class="demo-row">
+        <ElAutocomplete @bind-Value="value1" Suggestions="suggestions" Disabled="true" />
+        <ElAutocomplete @bind-Value="value1" Suggestions="suggestions" Size="InputSize.Large" />
+        <ElAutocomplete @bind-Value="value1" Suggestions="suggestions" Size="InputSize.Small" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>清空事件 (OnClear)</h3>
+    <div class="demo-row">
+        <ElAutocomplete @bind-Value="value3" Suggestions="suggestions" Clearable="true" OnClear="OnAutoClear" />
+    </div>
+    <p class="demo-note">清空触发次数：@autoClearCount</p>
+</div>
+
+<div class="demo-section">
+    <h3>编程式展开 / 收起（ShowAsync / CloseAsync · EP open() / close()）</h3>
+    <p class="demo-note">可点击按钮调用 ShowAsync() 展开建议列表、CloseAsync() 收起（对齐官方 open() / close() 实例方法）。</p>
+    <div class="demo-row">
+        @* 这里必须给宽度：.demo-row 是 flex，ElAutocomplete 根节点（EP 口径 display:inline-block，
+           没有自带宽度）会被拉成一整行 1134px。建议面板用 FitInputWidth 取锚点宽度，于是面板也跟着
+           变成 1130px 宽，正好把折到第二行的两个按钮整片压住 —— 点「收起」实际点到了面板里的 li，
+           变成「选中一条建议」而不是收起。限宽后按钮与输入框回到同一行，面板落在它们下方。 *@
+        <ElAutocomplete @ref="ac1" @bind-Value="value4" Suggestions="suggestions" Clearable="true" Style="width:220px" />
+        <ElButton Type="ButtonType.Primary" OnClick="OpenAuto">展开建议列表</ElButton>
+        <ElButton OnClick="CloseAuto">收起建议列表</ElButton>
+    </div>
+</div>
+
+@code {
+    private string value1 = "";
+    private string value2 = "";
+    private string value3 = "";
+    private string value4 = "";
+    private int autoClearCount;
+    private ElAutocomplete ac1;
+    private void OnAutoClear() => autoClearCount++;
+    private Task OpenAuto() => ac1.ShowAsync();
+    private Task CloseAuto() => ac1.CloseAsync();
+
+    private List<AutocompleteOption> suggestions = new List<AutocompleteOption>
+    {
+        new AutocompleteOption { Value = "apple", Label = "苹果 Apple" },
+        new AutocompleteOption { Value = "banana", Label = "香蕉 Banana" },
+        new AutocompleteOption { Value = "orange", Label = "橘子 Orange" },
+        new AutocompleteOption { Value = "pear", Label = "梨 Pear" }
+    };
+
+    private Task<IEnumerable<AutocompleteOption>> SearchAsync(string key)
+    {
+        var all = new[] { "alpha", "beta", "gamma", "delta", "sigma" };
+        var filtered = all.Where(x => string.IsNullOrEmpty(key) || x.Contains(key, StringComparison.OrdinalIgnoreCase))
+                         .Select(x => new AutocompleteOption { Value = x, Label = x });
+        return Task.FromResult<IEnumerable<AutocompleteOption>>(filtered);
+    }
+}

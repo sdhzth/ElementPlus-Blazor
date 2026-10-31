@@ -1,0 +1,50 @@
+@inherits ElementComponentBase
+
+@if (ShouldRenderDrawer)
+{
+    @if (Modal)
+    {
+        <div class="v-modal el-overlay @ModalClass" style="@ModalStyle" @onclick="CloseOnModalClickAsync"></div>
+    }
+    <div class="@WrapperClass" style="@WrapperStyle" @ref="drawerElement" tabindex="-1" role="presentation" @onclick="CloseOnModalClickAsync" @onkeydown="OnKeyDownAsync" @attributes="Attributes">
+        <div class="el-drawer__container">
+            <div class="@DrawerClass" style="@DrawerStyle" role="dialog" aria-modal="@Modal" aria-label="@EffectiveTitle" aria-labelledby="@(WithHeader && Header == null ? titleElementId : null)" @onclick:stopPropagation>
+                @if (Resizable)
+                {
+                    <div class="el-drawer__resizer" @ref="resizerElement"></div>
+                }
+                @if (WithHeader)
+                {
+                    <header class="el-drawer__header @HeaderClass">
+                        @if (Header != null)
+                        {
+                            @Header
+                        }
+                        else
+                        {
+                            <span class="el-drawer__title" id="@titleElementId" role="heading" aria-level="@HeaderAriaLevel">@EffectiveTitle</span>
+                        }
+                        @if (ShowClose)
+                        {
+                            <button type="button" class="el-drawer__close-btn" aria-label="@CloseButtonAriaLabel" @onclick="CloseAsync">
+                                <i class="el-icon-close"></i>
+                            </button>
+                        }
+                    </header>
+                }
+                <section class="el-drawer__body @BodyClass">
+                    @* 级联 ElDrawerRef：抽屉正文里的任意组件（典型：表单）都能动态改标题 / 关闭抽屉。 *@
+                    <CascadingValue Value="ActiveDrawerRef" IsFixed="false">
+                        @ChildContent
+                    </CascadingValue>
+                </section>
+                @if (Footer != null)
+                {
+                    <footer class="el-drawer__footer @FooterClass">
+                        @Footer
+                    </footer>
+                }
+            </div>
+        </div>
+    </div>
+}

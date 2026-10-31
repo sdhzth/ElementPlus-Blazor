@@ -1,0 +1,155 @@
+@page "/x"
+
+<h1 class="demo-page-title">AI / X 组件（带 Mock 数据）</h1>
+<p class="demo-page-sub">欢迎区、提示词、会话列表、气泡列表、输入框、@@ 提及、思考中、思维链、文件卡片、附件、打字机 —— 全部由 Element.X 自渲染，数据为本地 Mock。</p>
+
+<div class="demo-section">
+    <h3>ElXWelcome 欢迎区</h3>
+    <ElXWelcome Title="临床 AI 助理" Description="基于本地病历知识库，可辅助生成诊断建议与用药提醒。"
+                Icon="magic-stick" Avatar="医">
+        <Actions>
+            <ElButton Type="ButtonType.Primary" OnClick="@CreateSession">新建会话</ElButton>
+            <ElButton>查看示例</ElButton>
+        </Actions>
+    </ElXWelcome>
+    @if (!string.IsNullOrEmpty(welcomeTip))
+    {
+        <p class="demo-note">已点击：@welcomeTip</p>
+    }
+</div>
+
+<div class="demo-section">
+    <h3>ElXPrompts 提示词</h3>
+    <ElXPrompts Items="prompts" OnSelect="@((XPromptItem p) => promptTip = p.Title)" />
+    @if (!string.IsNullOrEmpty(promptTip))
+    {
+        <p class="demo-note">已选择提示词：@promptTip</p>
+    }
+    <div style="margin-top:12px;">
+        <ElXPrompts Items="prompts" Vertical="true" OnSelect="@((XPromptItem p) => promptTip = p.Title)" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>ElXConversations 会话列表</h3>
+    <div style="max-width:320px;">
+        <ElXConversations Items="conversations" @bind-ActiveId="activeConversationId"
+                          ShowCreate="true" ShowActions="true" CreateInline="true" RenameInline="true"
+                          ItemsChanged="@((IEnumerable<XConversationItem> items) => conversations = items.ToList())" />
+    </div>
+    <p class="demo-note">当前会话：@(conversations.FirstOrDefault(c => c.Id == activeConversationId)?.Title ?? "—")</p>
+</div>
+
+<div class="demo-section">
+    <h3>ElXBubbleList / ElXBubble 气泡列表</h3>
+    <p class="demo-page-sub">标题行显示「作者 + <code>Time</code> 时间」；气泡已按紧凑排版（内容内边距 8/12、行高 1.5、头像 32px、行间距 12px，并修掉了 Razor 缩进导致的多余空行）。第 4 条消息正文含换行符，用于确认 <code>pre-wrap</code> 换行仍生效。</p>
+    <ElXBubbleList Items="messages">
+        <ItemTemplate>
+            <ElXBubble Content="@context.Content" Header="@context.Header" Time="@context.Time" Role="@context.Role" />
+        </ItemTemplate>
+    </ElXBubbleList>
+</div>
+
+<div class="demo-section">
+    <h3>ElXThinking 思考中 / ElXThoughtChain 思维链</h3>
+    <ElXThinking Title="正在分析病历" Duration="1.2s" Loading="true" DefaultExpanded="true"
+                 Content="正在比对既往史、检验结果与用药记录…" />
+    <div style="margin-top:12px;">
+        <ElXThoughtChain Items="thoughts" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>ElXTypewriter 打字机</h3>
+    <ElXTypewriter Content="AI 助理已就绪，请输入您的问题，我将基于本地知识库给出诊断建议。" />
+</div>
+
+<div class="demo-section">
+    <h3>ElXSender 对话输入 / ElXMentionSender @@ 提及输入</h3>
+    <ElXSender @bind-Value="input" Loading="sending" OnSubmit="@Submit" Placeholder="请输入问题…" />
+    <div style="margin-top:12px;">
+        <ElXMentionSender @bind-Value="mentionInput" Options="mentionOptions" Prefix="/"
+                          Placeholder="输入 / 唤起指令，例如 /检查" OnMentionSelect="@((MentionOption o) => mentionTip = o.Label)" />
+    </div>
+    @if (!string.IsNullOrEmpty(mentionTip))
+    {
+        <p class="demo-note">已选择指令：@mentionTip</p>
+    }
+</div>
+
+<div class="demo-section">
+    <h3>ElXAttachments 附件上传区 / ElXFilesCard 文件卡片</h3>
+    <ElXAttachments Items="attachments" />
+    <div class="demo-row" style="margin-top:12px;align-items:flex-start;">
+        <ElXFilesCard File="attachments[0]" Compact="true" />
+        <ElXFilesCard File="attachments[1]" Compact="true" />
+        <ElXFilesCard File="attachments[2]" Compact="true" />
+    </div>
+</div>
+
+@code {
+    private string input = string.Empty;
+    private string mentionInput = string.Empty;
+    private bool sending;
+    private string welcomeTip = string.Empty;
+    private string promptTip = string.Empty;
+    private string mentionTip = string.Empty;
+    private string activeConversationId = "c1";
+
+    private List<XMessageItem> messages = new List<XMessageItem>
+    {
+        new XMessageItem { Id = "1", Role = XMessageRole.User, Header = "张医生", Time = "09:12", Content = "患者血压 160/100，应如何处置？" },
+        new XMessageItem { Id = "2", Role = XMessageRole.Assistant, Header = "AI 助理", Time = "09:12", Content = "建议启动降压治疗，首选钙通道阻滞剂，并注意生活方式干预。" },
+        new XMessageItem { Id = "3", Role = XMessageRole.User, Header = "张医生", Time = "09:15", Content = "需要复查哪些项目？" },
+        new XMessageItem { Id = "4", Role = XMessageRole.Assistant, Header = "AI 助理", Time = "09:15", Content = "建议 2 周后复查：\n血压、电解质与肾功能（血肌酐、血钾）。" },
+    };
+
+    private List<XConversationItem> conversations = new List<XConversationItem>
+    {
+        new XConversationItem { Id = "c1", Title = "高血压用药咨询", Group = "今天", Pinned = true },
+        new XConversationItem { Id = "c2", Title = "糖尿病随访要点", Group = "今天" },
+        new XConversationItem { Id = "c3", Title = "抗生素配伍禁忌", Group = "昨天" },
+    };
+
+    private List<XPromptItem> prompts = new List<XPromptItem>
+    {
+        new XPromptItem { Id = "p1", Title = "生成诊断建议", Description = "依据主诉与检验结果", Icon = "magic-stick", Tag = "常用" },
+        new XPromptItem { Id = "p2", Title = "核对用药禁忌", Description = "检查配伍与过敏史", Icon = "warn" },
+        new XPromptItem { Id = "p3", Title = "规范病历书写", Description = "按病历书写规范润色", Icon = "edit" },
+    };
+
+    private List<XThoughtItem> thoughts = new List<XThoughtItem>
+    {
+        new XThoughtItem { Title = "读取主诉与既往史", Description = "已解析 3 段文本", Duration = "0.3s", Status = "success" },
+        new XThoughtItem { Title = "检索用药知识库", Description = "命中 12 条相关药品说明", Duration = "0.6s", Status = "success" },
+        new XThoughtItem { Title = "生成处置建议", Description = "输出 2 条建议", Duration = "0.9s", Status = "success" },
+    };
+
+    private List<MentionOption> mentionOptions = new List<MentionOption>
+    {
+        new MentionOption { Label = "检查检验", Value = "检查" },
+        new MentionOption { Label = "用药建议", Value = "用药" },
+        new MentionOption { Label = "出院小结", Value = "出院" },
+    };
+
+    private List<XAttachmentItem> attachments = new List<XAttachmentItem>
+    {
+        new XAttachmentItem { Id = "a1", FileName = "入院记录.pdf", Size = "248 KB", Type = "pdf", Status = XAttachmentStatus.Success },
+        new XAttachmentItem { Id = "a2", FileName = "胸部CT.png", Size = "1.2 MB", Type = "image", Status = XAttachmentStatus.Uploading, Progress = 62 },
+        new XAttachmentItem { Id = "a3", FileName = "检验报告.xlsx", Size = "36 KB", Type = "excel", Status = XAttachmentStatus.Ready },
+    };
+
+    private void CreateSession() => welcomeTip = "开始新建会话";
+
+    private async Task Submit(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return;
+        var now = DateTime.Now.ToString("HH:mm");
+        messages.Add(new XMessageItem { Id = Guid.NewGuid().ToString(), Role = XMessageRole.User, Header = "张医生", Time = now, Content = text });
+        input = string.Empty;
+        sending = true;
+        await Task.Delay(600);
+        messages.Add(new XMessageItem { Id = Guid.NewGuid().ToString(), Role = XMessageRole.Assistant, Header = "AI 助理", Time = DateTime.Now.ToString("HH:mm"), Content = "已收到，正在结合病历进行分析（Mock 回复）。" });
+        sending = false;
+    }
+}

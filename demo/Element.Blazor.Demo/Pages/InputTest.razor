@@ -1,0 +1,18 @@
+﻿@page "/test-input"
+
+<h3>ElInput 双向绑定测试</h3>
+
+<div style="margin-bottom:16px;">
+    <ElInput TValue="string" @bind-Value="name1" Placeholder="输入试试..." />
+    <p>绑定值：<b>@name1</b></p>
+</div>
+
+<div style="margin-bottom:16px;">
+    <ElInput TValue="string" Value="@name2" ValueChanged="@((v) => { name2 = v; })" Placeholder="手动回调..." />
+    <p>手动值：<b>@name2</b></p>
+</div>
+
+@code {
+    private string name1 = "";
+    private string name2 = "";
+}

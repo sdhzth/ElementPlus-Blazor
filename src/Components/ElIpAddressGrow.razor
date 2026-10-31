@@ -1,0 +1,20 @@
+@inherits ElementFieldComponentBase<string>
+@using Microsoft.AspNetCore.Components.Web
+
+<div class="@WrapperClass" style="@WrapperStyle" @ref="_wrapper" @attributes="Attributes">
+    @foreach (var index in CellIndexes)
+    {
+        @if (index > 0)
+        {
+            <span class="el-ip-address-grow__dot" aria-hidden="true">.</span>
+        }
+        <input class="el-ip-address-grow__cell" type="text" inputmode="numeric"
+               autocomplete="off" spellcheck="false" maxlength="3"
+               aria-label="@CellLabel(index)"
+               disabled="@Disabled" readonly="@Readonly"
+               value="@SegmentText(index)"
+               @oninput="e => OnCellInputAsync(index, e)"
+               @onfocus="OnCellFocus"
+               @onblur="OnCellBlur" />
+    }
+</div>

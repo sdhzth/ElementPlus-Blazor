@@ -1,0 +1,239 @@
+@page "/form2"
+
+<h1 class="demo-page-title">表单进阶组件（带 Mock 数据）</h1>
+<p class="demo-page-sub">单选、多选、标签输入、验证码、日期时间、级联、自动补全、取色、@@ 提及、虚拟下拉等进阶表单控件。</p>
+
+<div class="demo-section">
+    <h3>ElRadioGroup / ElRadio / ElRadioButton 单选</h3>
+    <ElRadioGroup TValue="string" @bind-SelectedValue="visitType">
+        @foreach (var item in visitTypes)
+        {
+            <ElRadio TValue="string" Value="@item"><text>@item</text></ElRadio>
+        }
+    </ElRadioGroup>
+    <p class="demo-note">当前就诊类型：@visitType</p>
+
+    <ElRadioGroup TValue="string" @bind-SelectedValue="payType" Style="margin-top:12px;">
+        @foreach (var item in payTypes)
+        {
+            <ElRadioButton TValue="string" Value="@item"><text>@item</text></ElRadioButton>
+        }
+    </ElRadioGroup>
+    <p class="demo-note">当前结算方式：@payType</p>
+</div>
+
+<div class="demo-section">
+    <h3>ElCheckboxGroup / ElCheckbox 多选</h3>
+    <ElCheckboxGroup TValue="string" @bind-Value="departments">
+        @foreach (var item in departmentOptions)
+        {
+            <ElCheckbox TValue="string" Value="@item"><text>@item</text></ElCheckbox>
+        }
+    </ElCheckboxGroup>
+    <p class="demo-note">已选科室：@string.Join("、", departments)</p>
+</div>
+
+<div class="demo-section">
+    <h3>ElInputTag 标签输入 / ElInputOtp 验证码</h3>
+    <div class="demo-row" style="align-items:center;">
+        <ElInputTag @bind-Value="tags" Placeholder="输入后回车添加诊断" />
+    </div>
+    <p class="demo-note">诊断标签：@string.Join("、", tags)</p>
+    <div class="demo-row" style="margin-top:12px;align-items:center;">
+        <ElInputOtp @bind-Value="otp" Length="6" />
+        <span class="demo-note">已输入验证码：@otp</span>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>ElDatePicker / ElTimePicker / ElDateTimePicker</h3>
+    <div class="demo-row">
+        <ElDatePicker @bind-Value="admitDate" Placeholder="入院日期" />
+        <ElTimePicker @bind-Value="roundTime" Placeholder="查房时间" />
+        <ElDateTimePicker @bind-Value="operateAt" Placeholder="手术时间" />
+    </div>
+    <p class="demo-note">
+        入院：@(admitDate?.ToString("yyyy-MM-dd") ?? "—")　
+        查房：@(roundTime == null ? "—" : roundTime.Value.ToString(@"hh\:mm"))　
+        手术：@(operateAt?.ToString("yyyy-MM-dd HH:mm") ?? "—")
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>ElDateTimePicker 时间区域 / 多语言</h3>
+    <div class="demo-row">
+        <ElDateTimePicker @bind-Value="localeZhValue" Placeholder="默认中文" />
+        <ElConfigProvider Locale="en-US">
+            <ElDateTimePicker @bind-Value="localeEnValue" Placeholder="English (Locale=en-US)" />
+        </ElConfigProvider>
+    </div>
+    <p class="demo-note">
+        面板底部「时间」区域直接显示 HH:mm:ss，点击展开时分秒滚轮面板（取消 / 确认）。
+        文案默认中文，可由 <code>ElConfigProvider Locale</code> 切换（en-US → Time / Cancel / OK），
+        也可用 <code>ConfirmText</code> / <code>CancelText</code> / <code>TimeLabelText</code> 直接覆盖。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>ElDatePicker 日期范围（双面板并排）</h3>
+    <div class="demo-row" style="align-items:flex-start;">
+        <div>
+            <ElDatePicker Type="DatePickerType.DateRange"
+                          @bind-RangeValue="stayRange"
+                          StartPlaceholder="开始日期"
+                          EndPlaceholder="结束日期" />
+        </div>
+        <div>
+            <ElConfigProvider Locale="en-US">
+                <ElDatePicker Type="DatePickerType.DateRange"
+                              @bind-RangeValue="stayRangeEn"
+                              StartPlaceholder="Start date"
+                              EndPlaceholder="End date" />
+            </ElConfigProvider>
+        </div>
+    </div>
+    <p class="demo-note">
+        住院区间：@FormatRange(stayRange)　｜　右侧 <code>Locale=en-US</code>：@FormatRange(stayRangeEn)
+        <br />
+        左右各管一个月并联动翻页（<code>« ‹</code> 在左、<code>› »</code> 在右），
+        已选区间用 <code>in-range</code> / <code>start-date</code> / <code>end-date</code> 高亮。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>日期面板紧凑模式（Compact）</h3>
+    <div class="demo-row" style="align-items:flex-start;">
+        <ElDatePicker @bind-Value="compactDate" Placeholder="紧凑日期" Compact="true" />
+        <ElDateTimePicker @bind-Value="compactAt" Placeholder="紧凑日期时间" Compact="true" />
+        <ElDatePicker Type="DatePickerType.DateRange"
+                      @bind-RangeValue="compactRange"
+                      StartPlaceholder="紧凑开始"
+                      EndPlaceholder="紧凑结束"
+                      Compact="true" />
+    </div>
+    <p class="demo-note">
+        与上面常规面板同源，只是加 <code>Compact="true"</code>：单元格 41.7px → 32px、行高 38 → 30、
+        弹层宽 322 → 256（日期范围 646 → 514）。默认 <code>false</code>，不写就是常规尺寸。
+        <br />
+        紧凑选择：@(compactDate?.ToString("yyyy-MM-dd") ?? "—")　
+        @(compactAt?.ToString("yyyy-MM-dd HH:mm") ?? "—")　
+        @FormatRange(compactRange)
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>ElSelectV2 虚拟下拉 / ElAutocomplete 自动补全</h3>
+    <div class="demo-row">
+        <ElSelectV2 TValue="string" @bind-Value="drugValue" Options="drugOptions" Placeholder="选择药品" />
+        <ElAutocomplete @bind-Value="diagnosisValue" Suggestions="diagnosisOptions" Placeholder="输入诊断关键字" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>ElCascader 级联选择</h3>
+    <ElCascader @bind-Value="regionValue" Options="regionOptions" Placeholder="请选择科室层级" />
+    <p class="demo-note">已选路径：@string.Join(" / ", regionValue)</p>
+</div>
+
+<div class="demo-section">
+    <h3>ElMention @@ 提及 / ElColorPicker 取色</h3>
+    <div class="demo-row" style="align-items:flex-start;">
+        <div style="flex:1;min-width:280px;">
+            <ElMention @bind-Value="remarkValue" Options="mentionOptions" Rows="3" Placeholder="@("输入 @ 提及医生，例如 @张")" />
+        </div>
+        <ElColorPicker @bind-Value="themeColor" />
+    </div>
+    <p class="demo-note">备注：@remarkValue　　主题色：@themeColor</p>
+</div>
+
+@code {
+    private string visitType = "门诊";
+    private string payType = "医保";
+    private IEnumerable<string> departments = new List<string> { "内科", "外科" };
+    private IList<string> tags = new List<string> { "高血压", "2 型糖尿病" };
+    private string otp = string.Empty;
+
+    private DateTime? admitDate = new DateTime(2026, 9, 18);
+    private TimeSpan? roundTime = new TimeSpan(8, 30, 0);
+    private DateTime? operateAt = new DateTime(2026, 9, 20, 14, 0, 0);
+    private DateTime? localeZhValue = new DateTime(2026, 9, 20, 14, 0, 0);
+    private DateTime? localeEnValue = new DateTime(2026, 9, 20, 9, 15, 30);
+
+    // 日期范围：中文示例带已选区间（展示 in-range 高亮），英文示例留空（展示双面板空态）
+    private IList<DateTime?> stayRange = new List<DateTime?> { new DateTime(2026, 9, 12), new DateTime(2026, 9, 25) };
+
+    // 紧凑面板（Compact="true"）示例
+    private DateTime? compactDate = new DateTime(2026, 9, 22);
+    private DateTime? compactAt = new DateTime(2026, 9, 22, 10, 30, 0);
+    private IList<DateTime?> compactRange = new List<DateTime?> { new DateTime(2026, 9, 15), new DateTime(2026, 9, 28) };
+
+    private IList<DateTime?> stayRangeEn = new List<DateTime?>();
+    private static string FormatRange(IList<DateTime?> range)
+    {
+        var start = range?.ElementAtOrDefault(0);
+        var end = range?.ElementAtOrDefault(1);
+        if (!start.HasValue && !end.HasValue)
+        {
+            return "—";
+        }
+        return $"{(start.HasValue ? start.Value.ToString("yyyy-MM-dd") : "—")} ~ {(end.HasValue ? end.Value.ToString("yyyy-MM-dd") : "—")}";
+    }
+
+    private string drugValue = "amoxicillin";
+    private string diagnosisValue = string.Empty;
+
+    private IList<string> regionValue = new List<string> { "内科", "心血管" };
+
+    private string remarkValue = string.Empty;
+    private string themeColor = "#409eff";
+
+    private readonly string[] visitTypes = { "门诊", "急诊", "住院" };
+    private readonly string[] payTypes = { "自费", "医保", "商保" };
+    private readonly string[] departmentOptions = { "内科", "外科", "妇产科", "儿科" };
+
+    private List<SelectV2Option> drugOptions = new List<SelectV2Option>
+    {
+        new SelectV2Option { Value = "amoxicillin", Label = "阿莫西林胶囊" },
+        new SelectV2Option { Value = "ibuprofen", Label = "布洛芬缓释片" },
+        new SelectV2Option { Value = "cefixime", Label = "头孢克肟分散片" },
+        new SelectV2Option { Value = "vitc", Label = "维生素C片" },
+        new SelectV2Option { Value = "saline", Label = "生理盐水" },
+        new SelectV2Option { Value = "metformin", Label = "二甲双胍片" },
+    };
+
+    private List<AutocompleteOption> diagnosisOptions = new List<AutocompleteOption>
+    {
+        new AutocompleteOption { Value = "hypertension", Label = "原发性高血压" },
+        new AutocompleteOption { Value = "diabetes", Label = "2 型糖尿病" },
+        new AutocompleteOption { Value = "chd", Label = "冠心病" },
+        new AutocompleteOption { Value = "pneumonia", Label = "社区获得性肺炎" },
+    };
+
+    private List<CascaderOption> regionOptions = new List<CascaderOption>
+    {
+        new CascaderOption
+        {
+            Value = "内科", Label = "内科", Children = new List<CascaderOption>
+            {
+                new CascaderOption { Value = "心血管", Label = "心血管", Leaf = true },
+                new CascaderOption { Value = "呼吸", Label = "呼吸", Leaf = true },
+                new CascaderOption { Value = "消化", Label = "消化", Leaf = true },
+            }
+        },
+        new CascaderOption
+        {
+            Value = "外科", Label = "外科", Children = new List<CascaderOption>
+            {
+                new CascaderOption { Value = "骨科", Label = "骨科", Leaf = true },
+                new CascaderOption { Value = "普外", Label = "普外", Leaf = true },
+            }
+        },
+    };
+
+    private List<MentionOption> mentionOptions = new List<MentionOption>
+    {
+        new MentionOption { Label = "Kevin Carter（内科）", Value = "Kevin Carter" },
+        new MentionOption { Label = "Laura Bennett（妇科）", Value = "Laura Bennett" },
+        new MentionOption { Label = "Fiona Hayes（心内科）", Value = "Fiona Hayes" },
+    };
+}

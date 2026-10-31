@@ -1,0 +1,15 @@
+@inherits ElementComponentBase
+
+@* 截断悬停看全文（本库扩展，默认开）：包装与测算都在 ElOverflowTooltip 里，
+   浮层必须待在 .el-text 这个裁剪盒外面（.is-truncated / .is-line-clamp 都有 overflow:hidden）。
+   EllipsisTooltip="false" 时退回 EP 的原生 title 口径。
+   TriggerStyle 里的 max-width:100% 不是可选的：EP 的 .el-text.is-truncated 靠自己的
+   max-width:100% 才被宿主宽度钳住（index.css），插入一层 auto 宽的触发 span 后，这层的
+   shrink-to-fit 下限＝不换行文字的 min-content，会把 180px 容器撑到 378px 且整条截断失效
+   （浏览器实测见 docs/text-ellipsis-tooltip.md）。 *@
+<ElOverflowTooltip Enabled="@ShowEllipsisTooltip" BindTitle="@BindEllipsisTitle" Tag="@EffectiveTag"
+                   Class="@TextClass" ClipStyle="@TextStyle" HostAttributes="@Attributes"
+                   Vertical="@MeasuresVertical" TriggerStyle="min-width:0;max-width:100%"
+                   Placement="top" Effect="dark">
+    @ChildContent
+</ElOverflowTooltip>

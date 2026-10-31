@@ -1,0 +1,133 @@
+@inherits ElementFieldComponentBase<string>
+
+<div class="@PanelClass"
+     style="@PanelStyle"
+     role="group"
+     aria-disabled="@IsColorPickerPanelDisabled"
+     @attributes="Attributes">
+    <div class="el-color-dropdown__main-wrapper">
+        <div class="el-color-svpanel"
+             style="@SvPanelStyle"
+             aria-label="@SvPanelAriaLabel"
+             aria-valuetext="@SvPanelAriaValueText"
+             @ref="svPanelRef"
+             @onpointerdown="e => OnRegionPointerDownAsync(e, SvRegion, svPanelRef)"
+             @onpointermove="e => OnRegionPointerMoveAsync(e, SvRegion)"
+             @onpointerup="e => OnRegionPointerUpAsync(e, SvRegion)"
+             @onpointercancel="e => OnRegionPointerUpAsync(e, SvRegion)"
+             @onclick="OnSvPanelClickAsync">
+            <div class="el-color-svpanel__white"></div>
+            <div class="el-color-svpanel__black"></div>
+            <div class="el-color-svpanel__cursor" style="@SvCursorStyle">
+                <div></div>
+            </div>
+            <input class="el-color-picker-panel__saturation-input"
+                   style="@SvRangeInputStyle"
+                   type="range"
+                   min="0"
+                   max="100"
+                   step="1"
+                   value="@SaturationValue"
+                   disabled="@IsColorPickerPanelDisabled"
+                   aria-label="saturation"
+                   @ref="saturationInputRef"
+                   @oninput="OnSaturationInputAsync" />
+            <input class="el-color-picker-panel__value-input"
+                   style="@SvRangeInputStyle"
+                   type="range"
+                   min="0"
+                   max="100"
+                   step="1"
+                   value="@BrightnessValue"
+                   disabled="@IsColorPickerPanelDisabled"
+                   aria-label="value"
+                   @oninput="OnValueInputAsync" />
+        </div>
+        <div class="el-color-hue-slider @HueSliderClass"
+             style="@HueSliderMergedStyle"
+             aria-label="@HueAriaLabel"
+             aria-valuetext="@HueAriaValueText"
+             @ref="hueSliderRef"
+             @onpointerdown="e => OnRegionPointerDownAsync(e, HueRegion, hueSliderRef)"
+             @onpointermove="e => OnRegionPointerMoveAsync(e, HueRegion)"
+             @onpointerup="e => OnRegionPointerUpAsync(e, HueRegion)"
+             @onpointercancel="e => OnRegionPointerUpAsync(e, HueRegion)"
+             @onclick="OnHueSliderClickAsync">
+            <div class="el-color-hue-slider__bar"></div>
+            <div class="el-color-hue-slider__thumb" style="@HueThumbStyle"></div>
+            <input class="el-color-picker-panel__hue-input"
+                   style="@SliderRangeInputStyle"
+                   type="range"
+                   min="0"
+                   max="360"
+                   step="1"
+                   value="@HueValue"
+                   disabled="@IsColorPickerPanelDisabled"
+                   aria-label="@HueAriaLabel"
+                   aria-valuetext="@HueAriaValueText"
+                   @ref="hueInputRef"
+                   @oninput="OnHueInputAsync" />
+        </div>
+        @if (ShowAlpha)
+        {
+            <div class="el-color-alpha-slider"
+                 aria-label="@AlphaAriaLabel"
+                 aria-valuetext="@AlphaAriaValueText"
+                 @ref="alphaSliderRef"
+                 @onpointerdown="e => OnRegionPointerDownAsync(e, AlphaRegion, alphaSliderRef)"
+                 @onpointermove="e => OnRegionPointerMoveAsync(e, AlphaRegion)"
+                 @onpointerup="e => OnRegionPointerUpAsync(e, AlphaRegion)"
+                 @onpointercancel="e => OnRegionPointerUpAsync(e, AlphaRegion)"
+                 @onclick="OnAlphaSliderClickAsync">
+                <div class="el-color-alpha-slider__bar" style="@AlphaBarStyle"></div>
+                <div class="el-color-alpha-slider__thumb" style="@AlphaThumbStyle"></div>
+                <input class="el-color-picker-panel__alpha-input"
+                       style="@SliderRangeInputStyle"
+                       type="range"
+                       min="0"
+                       max="100"
+                       step="1"
+                       value="@AlphaValue"
+                       disabled="@IsColorPickerPanelDisabled"
+                       aria-label="alpha"
+                       @ref="alphaInputRef"
+                       @oninput="OnAlphaInputAsync" />
+            </div>
+        }
+    </div>
+    @if (PredefinedColors.Count > 0)
+    {
+        <div class="el-color-predefine">
+            <div class="el-color-predefine__colors">
+                @foreach (var item in PredefinedColors)
+                {
+                    <div class="@GetPredefineClass(item)"
+                         role="button"
+                         tabindex="@(IsColorPickerPanelDisabled ? -1 : 0)"
+                         aria-label="@GetPredefineAriaLabel(item)"
+                         aria-disabled="@IsColorPickerPanelDisabled"
+                         @onclick="() => SelectPredefineAsync(item)">
+                        <div style="@GetPredefineStyle(item)"></div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    <div class="el-color-dropdown__btns">
+        <input class="el-color-dropdown__value"
+               @ref="InputRef"
+               value="@InputValue"
+               disabled="@IsColorPickerPanelDisabled"
+               aria-label="color value"
+               @oninput="OnColorTextInputAsync"
+               @onchange="OnColorTextChangeAsync" />
+        @if (FooterContent != null)
+        {
+            @FooterContent
+        }
+        else if (Footer != null)
+        {
+            @Footer
+        }
+    </div>
+</div>

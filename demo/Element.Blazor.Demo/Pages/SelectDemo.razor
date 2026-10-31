@@ -1,0 +1,118 @@
+@page "/select"
+@using ElementPlus
+
+<h1 class="demo-page-title">选择器 / ElSelect</h1>
+<p class="demo-page-sub">对齐官方：支持 @("@bind-Value")、ElOption 子项、Multiple、Filterable、Clearable、CollapseTags、Disabled、Size，以及扩展的 AllowCreate；并支持官方 2.5.2+ 的 <code>#header</code> / <code>#footer</code> 下拉插槽（面板内搜索框、底部统计等）。</p>
+
+<div class="demo-section">
+    <h3>基础用法</h3>
+    <div class="demo-row">
+        <ElSelect TValue="string" @bind-Value="value1" Placeholder="请选择">
+            <ElOption TValue="string" Value="@("opt1")" Text="苹果" />
+            <ElOption TValue="string" Value="@("opt2")" Text="香蕉" />
+            <ElOption TValue="string" Value="@("opt3")" Text="橘子" Disabled="true" />
+        </ElSelect>
+    </div>
+    <p class="demo-note">value1=@value1</p>
+</div>
+
+<div class="demo-section">
+    <h3>多选 + 可筛选 + 折叠标签</h3>
+    <div class="demo-row">
+        <ElSelect TValue="string" @bind-Value="value2" Multiple="true" Filterable="true" CollapseTags="true" Placeholder="多选">
+            <ElOption TValue="string" Value="@("a")" Text="选项 A" />
+            <ElOption TValue="string" Value="@("b")" Text="选项 B" />
+            <ElOption TValue="string" Value="@("c")" Text="选项 C" />
+            <ElOption TValue="string" Value="@("d")" Text="选项 D" />
+        </ElSelect>
+    </div>
+    <p class="demo-note">value2=@value2</p>
+</div>
+
+<div class="demo-section">
+    <h3>多选上限（multiple-limit 对齐）</h3>
+    <div class="demo-row">
+        <ElSelect TValue="string" Multiple="true" MultipleLimit="2" Values="value3" ValuesChanged="OnSelValuesChanged">
+            <ElOption TValue="string" Value="@("a")" Text="选项 A" />
+            <ElOption TValue="string" Value="@("b")" Text="选项 B" />
+            <ElOption TValue="string" Value="@("c")" Text="选项 C" />
+        </ElSelect>
+    </div>
+    <p class="demo-note">已选（最多 2 项）：@string.Join(",", value3)</p>
+</div>
+
+<div class="demo-section">
+    <h3>禁用与尺寸</h3>
+    <div class="demo-row">
+        <ElSelect TValue="string" @bind-Value="value1" Disabled="true" Placeholder="禁用">
+            <ElOption TValue="string" Value="@("opt1")" Text="苹果" />
+        </ElSelect>
+        <ElSelect TValue="string" @bind-Value="value1" Size="InputSize.Large" Placeholder="大">
+            <ElOption TValue="string" Value="@("opt1")" Text="苹果" />
+        </ElSelect>
+        <ElSelect TValue="string" @bind-Value="value1" Size="InputSize.Small" Placeholder="小">
+            <ElOption TValue="string" Value="@("opt1")" Text="苹果" />
+        </ElSelect>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>可搜索（Filterable）</h3>
+    <p class="demo-note">
+        <code>Filterable="true"</code> 会让<b>触发器里的那个输入框本身</b>变成搜索框：点开后直接打字就能过滤选项。
+        这是官方 el-select <b>唯一的「搜索」属性</b> —— 下拉面板内部并没有内建搜索框，
+        要在面板里再放一个搜索框得用回下面的 <code>HeaderContent</code> 插槽。
+    </p>
+    <div class="demo-row">
+        <ElSelect TValue="string" @bind-Value="value4" Filterable="true" Clearable="true" Placeholder="可搜索">
+            <ElOption TValue="string" Value="@("opt1")" Text="苹果" />
+            <ElOption TValue="string" Value="@("opt2")" Text="香蕉" />
+            <ElOption TValue="string" Value="@("opt3")" Text="橘子" />
+            <ElOption TValue="string" Value="@("opt4")" Text="西瓜" />
+            <ElOption TValue="string" Value="@("opt5")" Text="芒果" />
+        </ElSelect>
+    </div>
+    <p class="demo-note">value4=@value4</p>
+</div>
+
+<div class="demo-section">
+    <h3>下拉面板头尾插槽（HeaderContent / FooterContent）</h3>
+    <p class="demo-note">
+        对齐官方 2.5.2+ 的 <code>#header</code> / <code>#footer</code> 插槽：内容固定在面板的上下两端，<b>不随选项列表滚动</b>。
+        下面在 header 放了一行说明、footer 显示选项总数。要「下拉里带搜索框」，官方与本项目都用
+        <code>Filterable="true"</code>（见上节）——它把<b>触发器输入框</b>变成搜索框，打开即可打字过滤，
+        比在面板内另放一个搜索框更顺手。HeaderContent 适合放面板级的自定义工具条（如全选/清空按钮）。
+    </p>
+    <div class="demo-row">
+        <ElSelect TValue="string" @bind-Value="value5" Clearable="true" Placeholder="点开看看头尾插槽">
+            <HeaderContent>
+                <div class="demo-note" style="margin:0;padding:2px 0;">城市列表（自定义面板头部）</div>
+            </HeaderContent>
+            <ChildContent>
+                @foreach (var city in _cities)
+                {
+                    <ElOption TValue="string" Value="@city" Text="@city" @key="city" />
+                }
+            </ChildContent>
+            <FooterContent>
+                <span class="demo-note" style="margin:0;display:block;">共 @_cities.Count 项</span>
+            </FooterContent>
+        </ElSelect>
+    </div>
+    <p class="demo-note">value5=@value5</p>
+</div>
+
+@code {
+    private string value1 = "opt1";
+    private string value2;
+    private IList<string> value3 = new List<string>();
+    private string value4;
+    private string value5;
+
+    private readonly List<string> _cities = new()
+    {
+        "云州", "岚川", "星澜", "青梧", "澜溪", "沐野", "栖迟", "海若", "望舒", "榕溪"
+    };
+
+    private void OnSelValuesChanged(ICollection<string> vals) => value3 = vals?.ToList() ?? new List<string>();
+}

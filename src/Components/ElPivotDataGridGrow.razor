@@ -1,0 +1,543 @@
+@inherits ElementComponentBase
+@typeparam TItem
+@using System.Globalization
+
+@{
+    var activeRows = BuildActiveRows();
+    var activeColumns = BuildActiveColumns();
+    var activeAggregates = BuildActiveAggregates();
+    var layout = GetLayout();
+    var strings = ResolvedStrings;
+    var renderRows = GetRenderRows();
+
+    var hasFields = activeRows.Count > 0 || activeColumns.Count > 0;
+    var hasAggregates = activeAggregates.Count > 0;
+
+    // 没有列字段时，引擎不产出任何表头行；这里补一行空的占位行，好让左上角行头单元格仍有落点。
+    var headerRows = layout.HeaderRows.Count > 0
+        ? layout.HeaderRows
+        : new List<ElPivotHeaderRow> { new ElPivotHeaderRow { Index = 0 } };
+
+    var rootCls = HtmlPropertyBuilder.CreateCssClassBuilder()
+        .Add("el-pivot-grow")
+        .AddIf(!string.IsNullOrWhiteSpace(Cls), Cls);
+
+    var rootStyle = HtmlPropertyBuilder.CreateCssStyleBuilder()
+        .Add(Style);
+
+    var tableCls = HtmlPropertyBuilder.CreateCssClassBuilder()
+        .Add("el-pivot-grow__table")
+        .Add(GridLinesClass)
+        .AddIf(AllowAlternatingRows, "is-striped");
+
+    var contentStyle = HtmlPropertyBuilder.CreateCssStyleBuilder()
+        .AddIf(!string.IsNullOrWhiteSpace(MaxHeight), $"max-height:{MaxHeight}");
+
+    // 分页器在「上 / 下」两处复用同一个模板，因此抽成一个局部 RenderFragment。
+    RenderFragment pager = @<div class="el-pivot-grow__pager">
+        @if (ShowPagerSummary)
+        {
+            <span class="el-pivot-grow__pager-summary">@GetPagerSummary()</span>
+        }
+        <div class="el-pivot-grow__pager-buttons">
+            <button type="button" class="el-pivot-grow__pager-btn" disabled="@(CurrentPage <= 1)" @onclick="() => GoToPageAsync(CurrentPage - 1)">@strings.PreviousPageText</button>
+            @foreach (var pageNumber in GetPageNumbers())
+            {
+                var page = pageNumber;
+                <button type="button" class="el-pivot-grow__pager-btn @(page == CurrentPage ? "is-active" : string.Empty)" @onclick="() => GoToPageAsync(page)">@(page)</button>
+            }
+            <button type="button" class="el-pivot-grow__pager-btn" disabled="@(CurrentPage >= PageCount)" @onclick="() => GoToPageAsync(CurrentPage + 1)">@strings.NextPageText</button>
+        </div>
+        @if (PageSizeOptions != null && PageSizeOptions.Length > 0)
+        {
+            <select class="el-pivot-grow__pager-size" aria-label="@strings.PageSizeText" value="@EffectivePageSize" @onchange="args => ChangePageSizeAsync(ToInt(args.Value))">
+                @foreach (var size in PageSizeOptions)
+                {
+                    <option value="@size">@size</option>
+                }
+            </select>
+        }
+    </div>;
+}
+
+<div class="@rootCls.ToString()" style="@rootStyle.ToString()" @attributes="Attributes">
+
+    @* 字段注册必须发生在表格取布局之前：把它们渲染在表格前面。 *@
+    <CascadingValue Value="this" IsFixed="false">
+        @if (Columns != null)
+        {
+            @Columns
+        }
+        @if (Rows != null)
+        {
+            @Rows
+        }
+        @if (Aggregates != null)
+        {
+            @Aggregates
+        }
+    </CascadingValue>
+
+    @if (AllowFieldsPicking)
+    {
+        <div class="el-pivot-grow__picker">
+            <button type="button" class="el-pivot-grow__picker-toggle" aria-expanded="@(IsFieldsPickerExpanded ? "true" : "false")" @onclick="ToggleFieldsPickerAsync">
+                @((MarkupString)ElPivotDataGridGrowIcons.Get("fields"))
+                <span>@(string.IsNullOrEmpty(FieldsPickerHeaderText) ? strings.FieldsPickerText : FieldsPickerHeaderText)</span>
+                @((MarkupString)ElPivotDataGridGrowIcons.Get("chevron-down"))
+            </button>
+            <div class="el-pivot-grow__picker-body" style="@(IsFieldsPickerExpanded ? null : "display:none")">
+                @if (FieldsPickerHeaderTemplate != null)
+                {
+                    @FieldsPickerHeaderTemplate
+                }
+                <div class="el-pivot-grow__picker-grid">
+                    <div class="el-pivot-grow__picker-section">
+                        <div class="el-pivot-grow__picker-title">@strings.RowsText</div>
+                        @foreach (var candidate in CandidateFields)
+                        {
+                            var candidateField = candidate;
+                            <label class="el-pivot-grow__picker-item">
+                                <input type="checkbox" checked="@IsRowSelected(candidateField)" @onchange="args => OnRowFieldSelectedAsync(candidateField, args)" />
+                                <span class="el-pivot-grow__picker-label">@candidateField.GetTitle()</span>
+                            </label>
+                        }
+                    </div>
+                    <div class="el-pivot-grow__picker-section">
+                        <div class="el-pivot-grow__picker-title">@strings.ColumnsText</div>
+                        @foreach (var candidate in CandidateFields)
+                        {
+                            var candidateField = candidate;
+                            <label class="el-pivot-grow__picker-item">
+                                <input type="checkbox" checked="@IsColumnSelected(candidateField)" @onchange="args => OnColumnFieldSelectedAsync(candidateField, args)" />
+                                <span class="el-pivot-grow__picker-label">@candidateField.GetTitle()</span>
+                            </label>
+                        }
+                    </div>
+                    <div class="el-pivot-grow__picker-section el-pivot-grow__picker-section--values">
+                        <div class="el-pivot-grow__picker-title">@strings.AggregatesText</div>
+                        @foreach (var candidate in CandidateFields)
+                        {
+                            var candidateField = candidate;
+                            <div class="el-pivot-grow__picker-item el-pivot-grow__picker-item--value">
+                                <label class="el-pivot-grow__picker-check">
+                                    <input type="checkbox" checked="@IsAggregateSelected(candidateField)" @onchange="args => OnAggregateFieldSelectedAsync(candidateField, args)" />
+                                    <span class="el-pivot-grow__picker-label">@candidateField.GetTitle()</span>
+                                </label>
+                                @if (IsAggregateSelected(candidateField))
+                                {
+                                    <select class="el-pivot-grow__picker-function" aria-label="@strings.AggregatesText" value="@GetAggregateFunction(candidateField.Property)" @onchange="args => ChangeAggregateFunctionAsync(candidateField, ParseAggregateFunction(args.Value))">
+                                        @foreach (var function in GetAvailableAggregates(candidateField))
+                                        {
+                                            <option value="@function">@ElPivotAggregateFunctions.DisplayName(function)</option>
+                                        }
+                                    </select>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (filterPanelOpen && FilterContext != null)
+    {
+        var context = FilterContext;
+        var contextField = filterField;
+        <div class="el-pivot-grow__filter-panel" role="dialog" aria-label="@strings.FilterText">
+            <div class="el-pivot-grow__filter-head">
+                <span class="el-pivot-grow__filter-title">@strings.FilterText · @context.Title</span>
+                <button type="button" class="el-pivot-grow__filter-close" title="@strings.CloseText" @onclick="CloseFilterPanelAsync">
+                    @((MarkupString)ElPivotDataGridGrowIcons.Get("close"))
+                </button>
+            </div>
+            @if (contextField != null && contextField.FilterTemplate != null)
+            {
+                @contextField.FilterTemplate(context)
+            }
+            else
+            {
+                <div class="el-pivot-grow__filter-body">
+                    <div class="el-pivot-grow__filter-row">
+                        <select class="el-pivot-grow__filter-select" aria-label="@strings.FilterText" value="@context.Operator" @onchange="args => SetFilterOperatorAsync(ParseFilterOperator(args.Value))">
+                            @foreach (var op in context.Operators)
+                            {
+                                <option value="@op">@ElPivotFilterOperators.DisplayName(op)</option>
+                            }
+                        </select>
+                        @if (ElPivotFilterOperators.RequiresValue(context.Operator))
+                        {
+                            @if (contextField != null && contextField.FilterValueTemplate != null)
+                            {
+                                @contextField.FilterValueTemplate(context)
+                            }
+                            else if (IsEnumType(context.Type))
+                            {
+                                <select class="el-pivot-grow__filter-value" aria-label="@strings.FilterValuePlaceholder" value="@Convert.ToString(context.Value, CultureInfo.InvariantCulture)" @onchange="args => SetFilterValueAsync(args.Value)">
+                                    <option value="">@strings.FilterValuePlaceholder</option>
+                                    @foreach (var name in GetEnumOptions(context.Type))
+                                    {
+                                        <option value="@name">@name</option>
+                                    }
+                                </select>
+                            }
+                            else
+                            {
+                                <input class="el-pivot-grow__filter-value" type="text" placeholder="@strings.FilterValuePlaceholder"
+                                       value="@Convert.ToString(context.Value, CultureInfo.InvariantCulture)"
+                                       @onchange="args => SetFilterValueAsync(args.Value)" />
+                            }
+                        }
+                    </div>
+                    <div class="el-pivot-grow__filter-row">
+                        <select class="el-pivot-grow__filter-select el-pivot-grow__filter-select--logical" aria-label="@strings.FilterText" value="@context.LogicalOperator" @onchange="args => SetLogicalFilterOperatorAsync(ParseLogicalOperator(args.Value))">
+                            @foreach (var logical in context.LogicalOperators)
+                            {
+                                <option value="@logical">@ElPivotFilterOperators.DisplayName(logical)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="el-pivot-grow__filter-row">
+                        <select class="el-pivot-grow__filter-select" aria-label="@strings.SecondFilterValuePlaceholder" value="@context.SecondOperator" @onchange="args => SetSecondFilterOperatorAsync(ParseFilterOperator(args.Value))">
+                            @foreach (var op in context.Operators)
+                            {
+                                <option value="@op">@ElPivotFilterOperators.DisplayName(op)</option>
+                            }
+                        </select>
+                        @if (ElPivotFilterOperators.RequiresValue(context.SecondOperator))
+                        {
+                            @if (contextField != null && contextField.SecondFilterValueTemplate != null)
+                            {
+                                @contextField.SecondFilterValueTemplate(context)
+                            }
+                            else if (IsEnumType(context.Type))
+                            {
+                                <select class="el-pivot-grow__filter-value" aria-label="@strings.SecondFilterValuePlaceholder" value="@Convert.ToString(context.SecondValue, CultureInfo.InvariantCulture)" @onchange="args => SetSecondFilterValueAsync(args.Value)">
+                                    <option value="">@strings.SecondFilterValuePlaceholder</option>
+                                    @foreach (var name in GetEnumOptions(context.Type))
+                                    {
+                                        <option value="@name">@name</option>
+                                    }
+                                </select>
+                            }
+                            else
+                            {
+                                <input class="el-pivot-grow__filter-value" type="text" placeholder="@strings.SecondFilterValuePlaceholder"
+                                       value="@Convert.ToString(context.SecondValue, CultureInfo.InvariantCulture)"
+                                       @onchange="args => SetSecondFilterValueAsync(args.Value)" />
+                            }
+                        }
+                    </div>
+                    <div class="el-pivot-grow__filter-actions">
+                        <button type="button" class="el-pivot-grow__button el-pivot-grow__button--primary" @onclick="ApplyFilterAsync">@strings.ApplyText</button>
+                        <button type="button" class="el-pivot-grow__button" @onclick="ClearFilterAsync">@strings.ClearText</button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @if (AllowPaging && (PagerPosition & ElPivotPagerPosition.Top) == ElPivotPagerPosition.Top)
+    {
+        @pager
+    }
+
+    <div class="el-pivot-grow__content" style="@contentStyle.ToString()">
+        @if (IsLoading)
+        {
+            <div class="el-pivot-grow__loading">
+                @if (LoadingTemplate != null)
+                {
+                    @LoadingTemplate
+                }
+                else
+                {
+                    <span class="el-pivot-grow__loading-text">@strings.LoadingText</span>
+                }
+            </div>
+        }
+
+        @if (!hasAggregates)
+        {
+            <div class="el-pivot-grow__empty">@strings.NoAggregatesText</div>
+        }
+        else if (!hasFields)
+        {
+            <div class="el-pivot-grow__empty">@strings.NoFieldsText</div>
+        }
+        else if (layout.IsEmpty)
+        {
+            @if (EmptyTemplate != null)
+            {
+                @EmptyTemplate
+            }
+            else
+            {
+                <div class="el-pivot-grow__empty">@ResolvedEmptyText</div>
+            }
+        }
+        else
+        {
+            <table class="@tableCls.ToString()">
+                <thead class="el-pivot-grow__head">
+                    @foreach (var headerRow in headerRows)
+                    {
+                        var isFirstHeaderRow = headerRow.Index == 0;
+                        <tr class="el-pivot-grow__head-row">
+                            @if (isFirstHeaderRow)
+                            {
+                                @for (var cornerIndex = 0; cornerIndex < FrozenRowHeaderCount; cornerIndex++)
+                                {
+                                    var index = cornerIndex;
+                                    <th class="el-pivot-grow__corner" scope="col" rowspan="@HeaderRowSpan">@GetRowHeaderTitle(index)</th>
+                                }
+                            }
+                            @foreach (var cell in headerRow.Cells)
+                            {
+                                var headerCell = cell;
+                                var columnField = headerCell.Level >= 0 && headerCell.Level < activeColumns.Count ? activeColumns[headerCell.Level] : null;
+                                var columnFilterable = IsFieldFilterable(columnField);
+                                <th class="el-pivot-grow__column-header @(headerCell.HasChildren ? "is-group" : string.Empty) @(headerCell.IsOthers ? "is-others" : string.Empty)"
+                                    scope="col"
+                                    colspan="@headerCell.ColSpan"
+                                    rowspan="@headerCell.RowSpan"
+                                    style="@(string.IsNullOrEmpty(headerCell.Width) ? null : $"width:{headerCell.Width}")">
+                                    <div class="el-pivot-grow__header-content">
+                                        @if (AllowDrillDown && headerCell.HasChildren && !string.IsNullOrEmpty(headerCell.PathKey))
+                                        {
+                                            <button type="button" class="el-pivot-grow__expander"
+                                                    aria-expanded="@(headerCell.IsCollapsed ? "false" : "true")"
+                                                    title="@(headerCell.IsCollapsed ? strings.ExpandText : strings.CollapseText)"
+                                                    @onclick="() => ToggleColumnDrillDownAsync(headerCell.PathKey)">
+                                                @((MarkupString)ElPivotDataGridGrowIcons.Get(headerCell.IsCollapsed ? "caret-right" : "caret-down"))
+                                            </button>
+                                        }
+                                        <span class="el-pivot-grow__header-text">
+                                            @if (columnField != null && columnField.HeaderTemplate != null && headerCell.Context != null)
+                                            {
+                                                @columnField.HeaderTemplate(headerCell.Context)
+                                            }
+                                            else
+                                            {
+                                                @headerCell.Title
+                                            }
+                                        </span>
+                                        @if (IsFieldSortable(columnField))
+                                        {
+                                            <button type="button" class="el-pivot-grow__sort" title="@GetSortTitle(headerCell.Level >= 0 && headerCell.Level < activeColumns.Count ? activeColumns[headerCell.Level].Property : null)"
+                                                    @onclick="() => ToggleSortAsync(columnField)">
+                                                @((MarkupString)ElPivotDataGridGrowIcons.Get(GetSortIcon(headerCell.Level >= 0 && headerCell.Level < activeColumns.Count ? activeColumns[headerCell.Level].Property : null)))
+                                            </button>
+                                        }
+                                        @if (columnFilterable)
+                                        {
+                                            <button type="button" class="el-pivot-grow__filter @(HasActiveFilter(columnField.Property) ? "is-active" : string.Empty)" title="@strings.FilterText"
+                                                    @onclick="() => OpenFilterAsync(columnField)">
+                                                @((MarkupString)ElPivotDataGridGrowIcons.Get("filter"))
+                                            </button>
+                                        }
+                                    </div>
+                                </th>
+                            }
+                            @if (isFirstHeaderRow && ShowRowsTotals)
+                            {
+                                @foreach (var aggregate in activeAggregates)
+                                {
+                                    var totalAggregate = aggregate;
+                                    <th class="el-pivot-grow__total-header" scope="col" rowspan="@HeaderRowSpan">
+                                        @if (totalAggregate.HeaderTemplate != null)
+                                        {
+                                            @totalAggregate.HeaderTemplate
+                                        }
+                                        else
+                                        {
+                                            @totalAggregate.GetAggregateTitle()
+                                        }
+                                    </th>
+                                }
+                            }
+                        </tr>
+                    }
+                    @if (ShowAggregateHeaderRowEffective)
+                    {
+                        <tr class="el-pivot-grow__head-row el-pivot-grow__head-row--values">
+                            @foreach (var leaf in layout.ColumnLeaves)
+                            {
+                                @foreach (var aggregate in activeAggregates)
+                                {
+                                    var valueAggregate = aggregate;
+                                    <th class="el-pivot-grow__value-header" scope="col">
+                                        @if (valueAggregate.HeaderTemplate != null)
+                                        {
+                                            @valueAggregate.HeaderTemplate
+                                        }
+                                        else
+                                        {
+                                            @valueAggregate.GetAggregateTitle()
+                                        }
+                                    </th>
+                                }
+                            }
+                        </tr>
+                    }
+                </thead>
+                <tbody class="el-pivot-grow__body">
+                    @foreach (var renderRow in renderRows)
+                    {
+                        var bodyRow = renderRow.Row;
+                        var rowIndex = renderRow.Index;
+                        <tr class="el-pivot-grow__row @(bodyRow.IsCollapsedGroup ? "is-collapsed-group" : string.Empty) @(AllowAlternatingRows && rowIndex % 2 == 1 ? "is-odd" : string.Empty)">
+                            @foreach (var renderCell in renderRow.Cells)
+                            {
+                                var currentCell = renderCell;
+                                if (currentCell.Skip)
+                                {
+                                    continue;
+                                }
+                                var headerCell = currentCell.Source;
+                                var rowField = headerCell.Level >= 0 && headerCell.Level < activeRows.Count ? activeRows[headerCell.Level] : null;
+                                <td class="el-pivot-grow__row-header @(headerCell.IsOthers ? "is-others" : string.Empty)" scope="row" rowspan="@currentCell.RowSpan" colspan="@currentCell.ColSpan">
+                                    <div class="el-pivot-grow__header-content">
+                                        @if (AllowDrillDown && headerCell.HasChildren && !string.IsNullOrEmpty(headerCell.PathKey))
+                                        {
+                                            <button type="button" class="el-pivot-grow__expander"
+                                                    aria-expanded="@(headerCell.IsCollapsed ? "false" : "true")"
+                                                    title="@(headerCell.IsCollapsed ? strings.ExpandText : strings.CollapseText)"
+                                                    @onclick="() => ToggleRowDrillDownAsync(headerCell.PathKey)">
+                                                @((MarkupString)ElPivotDataGridGrowIcons.Get(headerCell.IsCollapsed ? "caret-right" : "caret-down"))
+                                            </button>
+                                        }
+                                        <span class="el-pivot-grow__header-text">
+                                            @if (rowField != null && rowField is ElPivotColumnGrow<TItem> rowHeaderTemplateSource && rowHeaderTemplateSource.HeaderTemplate != null && headerCell.Context != null)
+                                            {
+                                                @rowHeaderTemplateSource.HeaderTemplate(headerCell.Context)
+                                            }
+                                            else
+                                            {
+                                                @headerCell.Title
+                                            }
+                                        </span>
+                                        @if (IsFieldSortable(rowField))
+                                        {
+                                            <button type="button" class="el-pivot-grow__sort" title="@GetSortTitle(rowField.Property)"
+                                                    @onclick="() => ToggleSortAsync(rowField)">
+                                                @((MarkupString)ElPivotDataGridGrowIcons.Get(GetSortIcon(rowField.Property)))
+                                            </button>
+                                        }
+                                        @if (IsFieldFilterable(rowField))
+                                        {
+                                            <button type="button" class="el-pivot-grow__filter @(HasActiveFilter(rowField.Property) ? "is-active" : string.Empty)" title="@strings.FilterText"
+                                                    @onclick="() => OpenFilterAsync(rowField)">
+                                                @((MarkupString)ElPivotDataGridGrowIcons.Get("filter"))
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            }
+                            @for (var leafIndex = 0; leafIndex < layout.ColumnLeaves.Count; leafIndex++)
+                            {
+                                var leaf = layout.ColumnLeaves[leafIndex];
+                                for (var aggregateIndex = 0; aggregateIndex < activeAggregates.Count; aggregateIndex++)
+                                {
+                                    var aggregate = activeAggregates[aggregateIndex];
+                                    var value = GetCellValue(bodyRow, leafIndex, aggregateIndex);
+                                    var leafPosition = leafIndex;
+                                    var aggregatePosition = aggregateIndex;
+                                    <td class="el-pivot-grow__value @GetAlignClass(aggregate.TextAlign)"
+                                        @onclick="() => RaiseLeafCellClickedAsync(bodyRow, leaf, leafPosition, aggregatePosition, aggregate, value)">
+                                        @if (aggregate.Template != null && value != null)
+                                        {
+                                            @aggregate.Template(value)
+                                        }
+                                        else
+                                        {
+                                            @aggregate.FormatValue(value)
+                                        }
+                                    </td>
+                                }
+                            }
+                            @if (ShowRowsTotals)
+                            {
+                                @for (var totalIndex = 0; totalIndex < activeAggregates.Count; totalIndex++)
+                                {
+                                    var aggregate = activeAggregates[totalIndex];
+                                    var totalValue = GetRowTotal(bodyRow, totalIndex);
+                                    var aggregatePosition = totalIndex;
+                                    <td class="el-pivot-grow__row-total @GetAlignClass(aggregate.TextAlign)"
+                                        @onclick="() => RaiseRowTotalClickedAsync(bodyRow, aggregatePosition, aggregate, totalValue)">
+                                        @if (aggregate.RowTotalTemplate != null)
+                                        {
+                                            @aggregate.RowTotalTemplate(new ElPivotAggregateGrowContext<TItem> { Items = bodyRow.Items, Aggregate = aggregate, Value = totalValue, Index = rowIndex, RowPath = bodyRow.PathValues, IsRowTotal = true })
+                                        }
+                                        else
+                                        {
+                                            @aggregate.FormatValue(totalValue)
+                                        }
+                                    </td>
+                                }
+                            }
+                        </tr>
+                    }
+                </tbody>
+                @if (ShowColumnsTotals)
+                {
+                    <tfoot class="el-pivot-grow__foot">
+                        <tr class="el-pivot-grow__foot-row">
+                            @for (var cornerIndex = 0; cornerIndex < FrozenRowHeaderCount; cornerIndex++)
+                            {
+                                <td class="el-pivot-grow__foot-corner">@strings.TotalText</td>
+                            }
+                            @for (var leafIndex = 0; leafIndex < layout.ColumnLeaves.Count; leafIndex++)
+                            {
+                                var leaf = layout.ColumnLeaves[leafIndex];
+                                for (var aggregateIndex = 0; aggregateIndex < activeAggregates.Count; aggregateIndex++)
+                                {
+                                    var aggregate = activeAggregates[aggregateIndex];
+                                    var total = GetColumnTotal(leaf, aggregateIndex);
+                                    var aggregatePosition = aggregateIndex;
+                                    <td class="el-pivot-grow__foot-value @GetAlignClass(aggregate.TextAlign)"
+                                        @onclick="() => RaiseColumnTotalClickedAsync(leaf, aggregatePosition, aggregate, total)">
+                                        @if (aggregate.ColumnTotalTemplate != null && total != null)
+                                        {
+                                            @aggregate.ColumnTotalTemplate(total)
+                                        }
+                                        else
+                                        {
+                                            @aggregate.FormatValue(total)
+                                        }
+                                    </td>
+                                }
+                            }
+                            @if (ShowRowsTotals)
+                            {
+                                @for (var totalIndex = 0; totalIndex < activeAggregates.Count; totalIndex++)
+                                {
+                                    var aggregate = activeAggregates[totalIndex];
+                                    var grandTotal = GetGrandTotal(totalIndex);
+                                    var aggregatePosition = totalIndex;
+                                    <td class="el-pivot-grow__foot-total @GetAlignClass(aggregate.TextAlign)"
+                                        @onclick="() => RaiseGrandTotalClickedAsync(aggregatePosition, aggregate, grandTotal)">
+                                        @if (aggregate.RowTotalTemplate != null)
+                                        {
+                                            @aggregate.RowTotalTemplate(new ElPivotAggregateGrowContext<TItem> { Items = layout.Items, Aggregate = aggregate, Value = grandTotal, IsGrandTotal = true })
+                                        }
+                                        else
+                                        {
+                                            @aggregate.FormatValue(grandTotal)
+                                        }
+                                    </td>
+                                }
+                            }
+                        </tr>
+                    </tfoot>
+                }
+            </table>
+        }
+    </div>
+
+    @if (AllowPaging && (PagerPosition & ElPivotPagerPosition.Bottom) == ElPivotPagerPosition.Bottom)
+    {
+        @pager
+    }
+</div>

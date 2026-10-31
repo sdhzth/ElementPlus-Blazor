@@ -1,0 +1,31 @@
+@page "/"
+
+<div class="demo-section">
+    <h1 class="demo-page-title">Element-Plus Blazor 组件演示中心</h1>
+    <p class="demo-page-sub">
+        本程序是一个独立的 Blazor WebAssembly 应用，引用了 <code>Element</code> 与 <code>Element.X</code> 两个组件库，
+        集中展示库中所有组件。需要数据的组件均使用本地 Mock 数据驱动。
+    </p>
+    <div class="demo-row">
+        <a class="el-button el-button--primary" href="/all">浏览全部组件</a>
+        <a class="el-button" href="/basic">基础组件</a>
+        <a class="el-button" href="/form">表单组件</a>
+        <a class="el-button" href="/form2">表单进阶</a>
+        <a class="el-button" href="/data">数据展示</a>
+        <a class="el-button" href="/layout">布局与容器</a>
+        <a class="el-button" href="/misc">交互与虚拟化</a>
+        <a class="el-button" href="/feedback">反馈组件</a>
+        <a class="el-button" href="/nav">导航组件</a>
+        <a class="el-button" href="/grow">自研 / Grow 组件</a>
+        <a class="el-button" href="/x">AI / X 组件</a>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>快速说明</h3>
+    <ul>
+        <li><b>全部组件</b>：通过反射自动发现并渲染 <code>Element</code> / <code>Element.X</code> 程序集内所有 Blazor 组件（泛型组件在分类演示中单独展示）。</li>
+        <li><b>分类演示</b>：针对基础、表单、表单进阶、数据展示、布局容器、交互虚拟化、反馈、导航、自研 Grow 与 AI/X 组件，提供带 Mock 数据的真实使用示例。</li>
+        <li><b>Mock 数据</b>：统一放在 <code>Models/MockData.cs</code>，包含产品、患者、组织树、订单、图表点等示例数据，供 Table / Tree / Select / Pivot / Chart 等组件复用。</li>
+    </ul>
+</div>

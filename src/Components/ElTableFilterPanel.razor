@@ -1,0 +1,92 @@
+@inherits ElementComponentBase
+@* 列筛选面板：对齐 EP filter-panel.vue 的两态（勾选组 / 单选列表），另有本库扩展的条件式面板。
+   不由使用者摆放，ElTable 点漏斗时才渲染一个，坐标由表格按触发器的视口矩形钉成 position:fixed ——
+   absolute 会被 .cell / .el-table__header-wrapper 的 overflow:hidden 整条裁掉（「点不开」的真因）。 *@
+<div class="el-table-filter @(Header?.AdvancedFilter == true ? "el-table-filter--advanced" : null)" style="@PanelStyle"
+     @onclick:stopPropagation>
+    @if (Header?.AdvancedFilter == true)
+    {
+        <div class="el-table-filter__content">
+            @for (var slot = 0; slot < 2; slot++)
+            {
+                var index = slot;
+                var condition = Slots[index];
+                @* 关系下拉只挂在第二条上：第一条没有左操作数，它的 Relation 位不生效 *@
+                if (index > 0)
+                {
+                    <div class="el-table-filter__relation">
+                        <ElSelect TValue="string" Value="@RelationValue(condition)" Label="@RelationText(condition)"
+                                  ValueChanged="@(v => RelationChanged(index, v))"
+                                  Clearable="false" Size="InputSize.Small">
+                            <ElOption TValue="string" Value="@("and")" Text="@RelationAndLabel" />
+                            <ElOption TValue="string" Value="@("or")" Text="@RelationOrLabel" />
+                        </ElSelect>
+                    </div>
+                }
+                <div class="el-table-filter__rule">
+                    <div class="el-table-filter__rule-op">
+                        <ElSelect TValue="string" Value="@OperatorValue(condition)" Label="@LabelOf(condition.Operator)"
+                                  ValueChanged="@(v => OperatorChanged(index, v))"
+                                  Clearable="false" Size="InputSize.Small">
+                            @foreach (var op in Operators)
+                            {
+                                <ElOption TValue="string" Value="@OperatorKey(op)" Text="@LabelOf(op)" />
+                            }
+                        </ElSelect>
+                    </div>
+                    @* 这里必须写 @if：@for 体里出现过标记之后 Razor 已切到标记上下文，
+                       裸 if 会被当成正文——实测整句 "if (NeedsValue(condition)) {" 直接印进 DOM，
+                       右值框被这段匿名文字挤到 11px 宽（面板 320px）。 *@
+                    @if (NeedsValue(condition))
+                    {
+                        <div class="el-table-filter__rule-val">
+                            <ElInput TValue="string" Value="@condition.Value"
+                                     ValueChanged="@(v => ConditionValueChanged(index, v))"
+                                     Size="InputSize.Small" />
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+        <div class="el-table-filter__bottom">
+            <button type="button" @onclick="ApplyAdvancedAsync">@ApplyLabel</button>
+            <button type="button" @onclick="ClearAdvancedAsync">@AdvancedClearLabel</button>
+        </div>
+    }
+    else if (Header?.FilterMultiple != false)
+    {
+        @* EP 口径：filter-multiple 默认 true —— 勾选组 +「筛选 / 重置」，点「筛选」才把草稿落到列上 *@
+        <div class="el-table-filter__multiple">
+            <div class="el-table-filter__content">
+                <div class="el-table-filter__checkbox-group">
+                    @foreach (var filter in Header?.Filters ?? new List<TableFilterOption>())
+                    {
+                        var option = filter;
+                        <ElCheckbox TValue="Boolean" Label="@option.Text"
+                                    Status="@(Draft.Contains(option.Value) ? Status.Checked : Status.UnChecked)"
+                                    StatusChanged="@(s => ToggleOption(option, s))" />
+                    }
+                </div>
+            </div>
+            <div class="el-table-filter__bottom">
+                <button type="button" class="@(Draft.Count == 0 ? "is-disabled" : null)" disabled="@(Draft.Count == 0)"
+                        @onclick="ConfirmAsync">@ConfirmLabel</button>
+                <button type="button" @onclick="ResetDraftAsync">@ResetLabel</button>
+            </div>
+        </div>
+    }
+    else
+    {
+        @* EP 口径：filter-multiple=false —— 单选列表，首项「清除」，点一项即生效并收起（EP handleSelect 里 hidden()） *@
+        <ul class="el-table-filter__list" role="radiogroup">
+            <li class="el-table-filter__list-item @(Draft.Count == 0 ? "is-active" : null)" role="radio"
+                aria-checked="@(Draft.Count == 0)" @onclick="ClearSingleAsync">@ClearLabel</li>
+            @foreach (var filter in Header?.Filters ?? new List<TableFilterOption>())
+            {
+                var option = filter;
+                <li class="el-table-filter__list-item @(IsSingleActive(option) ? "is-active" : null)" role="radio"
+                    aria-checked="@IsSingleActive(option)" @onclick="@(e => SelectSingleAsync(option))">@option.Text</li>
+            }
+        </ul>
+    }
+</div>

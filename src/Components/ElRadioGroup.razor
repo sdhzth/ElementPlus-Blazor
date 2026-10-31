@@ -1,0 +1,14 @@
+@inherits ElementFieldComponentBase<TValue>
+@typeparam TValue
+@{
+    var groupClass = "el-radio-group" + (Direction == "vertical" ? " el-radio-group--vertical" : string.Empty);
+}
+<ElementTagRenderer Tag="@Tag"
+                   Class="@groupClass"
+                   role="radiogroup"
+                   aria-label="@AriaLabel"
+                   aria-disabled="@(EffectiveDisabled ? "true" : "false")">
+    <CascadingValue Value="@this">
+        @ChildContent
+    </CascadingValue>
+</ElementTagRenderer>

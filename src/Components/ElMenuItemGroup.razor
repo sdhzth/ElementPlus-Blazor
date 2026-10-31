@@ -1,0 +1,16 @@
+@inherits ElementComponentBase
+<li class="el-menu-item-group @Cls">
+    <div class="el-menu-item-group__title">
+        @if (TitleTemplate != null)
+        {
+            @TitleTemplate
+        }
+        else
+        {
+            @Title
+        }
+    </div>
+    <ul>
+        @ChildContent
+    </ul>
+</li>

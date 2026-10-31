@@ -1,0 +1,53 @@
+@inherits ElementFieldComponentBase<IList<string>>
+
+<div class="@wrapperClsBuilder.ToString()"
+     style="@Style"
+     @onclick="FocusInputAsync">
+    @for (var i = 0; i < CurrentTags.Count; i++)
+    {
+        var index = i;
+        var tag = CurrentTags[index];
+        <span class="@GetTagClass(index)"
+              @key="@($"{index}-{tag}")"
+              draggable="@IsTagDraggable"
+              aria-selected="@GetAriaBoolean(IsTagSelected(index))"
+              @ondragstart="e => OnTagDragStartAsync(index, e)"
+              @ondragover:preventDefault
+              @ondragover="e => OnTagDragOverAsync(index, e)"
+              @ondrop:preventDefault
+              @ondrop="e => OnTagDropAsync(index, e)"
+              @ondragend="OnTagDragEndAsync"
+              @onclick="e => SelectTagAsync(index)"
+              @onclick:stopPropagation>
+            <span class="el-select__tags-text">@tag</span>
+            @if (!IsInputTagDisabled && !Readonly)
+            {
+                <i class="el-tag__close el-icon-close" @onclick="e => RemoveTagAtAsync(index)" @onclick:stopPropagation></i>
+            }
+        </span>
+    }
+    @if (CollapsedCount > 0)
+    {
+        <span class="el-tag el-tag--info el-tag--small el-tag--light is-collapsed">
+            <span class="el-select__tags-text">+ @CollapsedCount</span>
+        </span>
+    }
+    @if (Clearable && currentTags.Any() && !IsInputTagDisabled && !Readonly)
+    {
+        <i class="el-input-tag__clear el-icon-circle-close" @onclick="ClearAsync" @onclick:stopPropagation></i>
+    }
+    @if (!IsLimitReached)
+    {
+        <input class="el-input-tag__inner"
+               @ref="inputElement"
+               value="@inputText"
+               placeholder="@EffectivePlaceholder"
+               disabled="@IsInputTagDisabled"
+               readonly="@Readonly"
+               @oninput="OnInputAsync"
+               @onkeydown="OnKeyDownAsync"
+               @onblur="OnBlurAsync"
+               tabindex="@Tabindex"
+               aria-label="@AriaLabel" />
+    }
+</div>

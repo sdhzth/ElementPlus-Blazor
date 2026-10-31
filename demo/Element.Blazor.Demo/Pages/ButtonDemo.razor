@@ -1,0 +1,363 @@
+@page "/button"
+@using ElementPlus
+@using Microsoft.AspNetCore.Components.Web
+
+<h1 class="demo-page-title">ElButton 按钮 / ElButtonGroup 按钮组</h1>
+<p class="demo-page-sub">
+    对齐 <a href="https://element-plus.org/zh-CN/component/button" target="_blank">Element Plus 官方 Button</a>：
+    类型 / 朴素 / 圆角 / 圆形 / 尺寸 / 图标(左·右) / 文字·链接·虚线 / 自定义颜色 + dark / 加载 /
+    禁用 / 自动插空格 / 原生类型 / 程序聚焦（Exposes ref）/ 防抖（自加功能）/ 按钮组级联。
+</p>
+
+<div class="demo-section">
+    <h3>基础类型</h3>
+    <div class="demo-row">
+        <ElButton id="btn-default">默认</ElButton>
+        <ElButton id="btn-primary" Type="ButtonType.Primary">主要</ElButton>
+        <ElButton id="btn-success" Type="ButtonType.Success">成功</ElButton>
+        <ElButton id="btn-info" Type="ButtonType.Info">信息</ElButton>
+        <ElButton id="btn-warning" Type="ButtonType.Warning">警告</ElButton>
+        <ElButton id="btn-danger" Type="ButtonType.Danger">危险</ElButton>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>朴素 / 圆角 / 圆形</h3>
+    <div class="demo-row">
+        <ElButton Type="ButtonType.Primary" Plain="true">朴素</ElButton>
+        <ElButton Type="ButtonType.Success" Plain="true">朴素</ElButton>
+        <ElButton Type="ButtonType.Primary" Round="true">圆角</ElButton>
+        <ElButton Type="ButtonType.Primary" Circle="true" Icon="el-icon-search" />
+        <ElButton Type="ButtonType.Danger" Circle="true" Icon="el-icon-delete" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>尺寸</h3>
+    <div class="demo-row">
+        <ElButton Type="ButtonType.Primary" Size="ButtonSize.Large">大号</ElButton>
+        <ElButton Type="ButtonType.Primary" Size="ButtonSize.Default">默认</ElButton>
+        <ElButton Type="ButtonType.Primary" Size="ButtonSize.Small">小号</ElButton>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>图标（左 / 右）</h3>
+    <div class="demo-row">
+        <ElButton Type="ButtonType.Primary" Icon="el-icon-search">搜索（左图标）</ElButton>
+        <ElButton Type="ButtonType.Primary" Icon="el-icon-edit" IconPosition="@ElButton.IconPositionMode.Right">编辑（右图标）</ElButton>
+        <ElButton Icon="el-icon-share">分享</ElButton>
+        <ElButton Type="ButtonType.Primary" Icon="el-icon-upload">上传</ElButton>
+    </div>
+    <p class="demo-note">图标按位置自动带 <code>el-icon--left</code> / <code>el-icon--right</code>，由样式产生 5px 留白（官方一致）。</p>
+</div>
+
+<div class="demo-section">
+    <h3>文字按钮 / 链接 / 虚线</h3>
+    <div class="demo-row">
+        <ElButton Text="true">文字按钮</ElButton>
+        <ElButton Text="true" Bg="true">文字(带底色)</ElButton>
+        <ElButton Type="ButtonType.Primary" Text="true">主要文字</ElButton>
+        <ElButton Link="true">链接按钮</ElButton>
+        <ElButton Type="ButtonType.Primary" Link="true">主要链接</ElButton>
+        <ElButton Type="ButtonType.Danger" Link="true">危险链接</ElButton>
+        <ElButton Dashed="true">虚线按钮</ElButton>
+        <ElButton Type="ButtonType.Primary" Dashed="true">虚线主要</ElButton>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>自定义颜色 + dark 模式</h3>
+    <div class="demo-row demo-row-wrap">
+        <ElButton Color="#626aef">Custom</ElButton>
+        <ElButton Color="#626aef" Dark="true">Custom Dark</ElButton>
+        <ElButton Color="#f56c6c">Red</ElButton>
+        <ElButton Color="#f56c6c" Dark="true">Red Dark</ElButton>
+        <ElButton Color="#67c23a" Text="true">Green Text</ElButton>
+        <ElButton Color="#626aef" Link="true">Purple Link</ElButton>
+    </div>
+    <p class="demo-note"><code>color</code> 自动推算 hover / active 颜色；<code>dark=true</code> 为深底白字；2.13.7 起 <code>color</code> 同样支持 text / link 按钮。</p>
+</div>
+
+<div class="demo-section">
+    <h3>加载状态（点击后进入加载 1.5s）</h3>
+    <div class="demo-row">
+        <ElButton id="btn-loading" Type="ButtonType.Primary" Loading="@loading" OnClick="ToggleLoading">@(loading ? "提交中…" : "点击提交")</ElButton>
+        <ElButton Type="ButtonType.Primary" Loading="true">常驻加载</ElButton>
+        <ElButton Type="ButtonType.Primary" Loading="true" LoadingIcon="el-icon-loading">自定义图标</ElButton>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>禁用</h3>
+    <div class="demo-row">
+        <ElButton Type="ButtonType.Primary" Disabled="true">禁用</ElButton>
+        <ElButton Text="true" Disabled="true">禁用文字</ElButton>
+        <ElButton Link="true" Disabled="true">禁用链接</ElButton>
+        <ElButton Type="ButtonType.Primary" Disabled="true" Icon="el-icon-search">禁用图标</ElButton>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>自动插空格（AutoInsertSpace）</h3>
+    <div class="demo-row">
+        <ElButton AutoInsertSpace="true" Content="确定" />
+        <ElButton AutoInsertSpace="true" Content="取消" />
+        <ElButton Content="确定" />
+        <ElButton Content="取消" />
+    </div>
+    <p class="demo-note">仅当文本长度=2 且全为中文时，两字之间自动加宽（letter-spacing）。</p>
+</div>
+
+<div class="demo-section">
+    <h3>原生类型（native-type=submit，在 form 内）</h3>
+    <form class="demo-row" style="gap:10px;" @onsubmit="OnNativeSubmit" @onsubmit:preventDefault>
+        <ElInput TValue="string" @bind-Value="@formName" Placeholder="输入姓名后回车" Style="width:200px;" />
+        <ElButton Type="ButtonType.Primary" NativeType="submit">提交表单</ElButton>
+        <span class="demo-badge">已提交：@submitCount 次</span>
+    </form>
+</div>
+
+<div class="demo-section">
+    <h3>程序聚焦（Exposes ref → FocusAsync）</h3>
+    <div class="demo-row">
+        <ElButton @ref="focusBtn" Type="ButtonType.Warning">可被聚焦的按钮</ElButton>
+        <ElButton Type="ButtonType.Primary" OnClick="() => focusBtn?.FocusAsync()">点我聚焦上面的按钮</ElButton>
+    </div>
+    <p class="demo-note">对齐官方暴露的 <code>ref</code>：用 <code>@@ref</code> 拿到组件引用后 <code>await xxx.FocusAsync()</code> 即可聚焦。</p>
+</div>
+
+<div class="demo-section">
+    <h3>防抖（自加功能 Debounce）</h3>
+    <div class="demo-row demo-row-wrap" style="align-items:flex-end;">
+        <span class="demo-debounce-wrap" @onclick="OnRawClick">
+            <ElButton id="btn-debounce" Type="ButtonType.Success" Debounce="800" DebounceLeading="false"
+                      OnClick="() => effectiveClicks++">
+                防抖提交（800ms 尾部合并）
+            </ElButton>
+        </span>
+        <ElButton Type="ButtonType.Primary" Debounce="800" DebounceLeading="true"
+                  OnClick="() => leadingClicks++">
+            防抖（首触发）
+        </ElButton>
+        <span class="demo-badge">原始点击：@rawClicks</span>
+        <span class="demo-badge">实际触发(尾部)：@effectiveClicks</span>
+        <span class="demo-badge">实际触发(首触发)：@leadingClicks</span>
+    </div>
+    <p class="demo-note">
+        快速连点「防抖提交」：原始点击数飙升，但实际触发被合并成 1 次（尾部模式等停止 800ms 后才触发；首触发模式只放行第一次）。
+        用 <code>@@onclick</code> 计数原始点击、<code>OnClick</code> 计数实际触发，直观对比。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>Exposes 读取（ref → 属性，对齐官方 size/type/disabled/shouldAddSpace）</h3>
+    <div class="demo-row demo-row-wrap">
+        <ElButton @ref="exposeBtn" Type="ButtonType.Success" Size="ButtonSize.Small" Content="读取我的 Exposes" />
+        <ElButton Type="ButtonType.Primary" OnClick="ReadExposes">点我读取左侧按钮的 Exposes</ElButton>
+        <span class="demo-badge">@exposeInfo</span>
+    </div>
+    <p class="demo-note">通过 <code>@@ref</code> 拿到组件引用后，可直接读取 <code>ResolvedType</code> / <code>ResolvedSize</code> / <code>ResolvedDisabled</code> / <code>ShouldAddSpace</code>（对应官方 Exposes 的 type/size/disabled/shouldAddSpace，返回解析后生效值，含按钮组级联与全局配置）。</p>
+</div>
+
+<div class="demo-section">
+    <h3>ElButtonGroup 按钮组</h3>
+    <h4>横向基础</h4>
+    <div class="demo-row">
+        <ElButtonGroup id="grp-horizontal">
+            <ElButton>左</ElButton>
+            <ElButton>中</ElButton>
+            <ElButton>右</ElButton>
+        </ElButtonGroup>
+    </div>
+
+    <h4>纵向</h4>
+    <div class="demo-row">
+        <ElButtonGroup Direction="vertical">
+            <ElButton>上</ElButton>
+            <ElButton>中</ElButton>
+            <ElButton>下</ElButton>
+        </ElButtonGroup>
+    </div>
+
+    <h4>组级联 Type / Size（子按钮不写即继承组）</h4>
+    <div class="demo-row demo-row-wrap">
+        <ElButtonGroup Type="ButtonType.Primary" Size="ButtonSize.Small">
+            <ElButton>继承主要+小</ElButton>
+            <ElButton>继承主要+小</ElButton>
+            <ElButton>继承主要+小</ElButton>
+        </ElButtonGroup>
+        <ElButtonGroup Type="ButtonType.Danger">
+            <ElButton>继承危险</ElButton>
+            <ElButton>继承危险</ElButton>
+        </ElButtonGroup>
+    </div>
+
+    <h4>带图标 + 禁用 + 加载</h4>
+    <div class="demo-row">
+        <ElButtonGroup id="grp-icon">
+            <ElButton Icon="el-icon-arrow-left">上一页</ElButton>
+            <ElButton Icon="el-icon-arrow-right" IconPosition="@ElButton.IconPositionMode.Right">下一页</ElButton>
+        </ElButtonGroup>
+        <ElButtonGroup Disabled="true">
+            <ElButton>禁用组-左</ElButton>
+            <ElButton>禁用组-右</ElButton>
+        </ElButtonGroup>
+        <ElButtonGroup>
+            <ElButton Loading="true">加载中</ElButton>
+            <ElButton>正常</ElButton>
+        </ElButtonGroup>
+    </div>
+    <p class="demo-note">
+        按钮组通过 <code>CascadingValue</code> 把 Size / Type 下发给子按钮（未显式指定的子按钮继承）；
+        <code>direction</code> 控制横/纵；首尾子按钮自动处理圆角衔接。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>ElSplitButton 分裂按钮（RadzenSplitButton 全功能 · Element 渲染）</h3>
+    <p class="demo-note">
+        左侧主按钮触发 <code>Click(null)</code>，右侧箭头展开菜单、点菜单项回传
+        <code>ElSplitButtonItem</code>；键盘 ↑/↓/Home/End/Enter/Space/Esc/首字母定位全部可用。
+    </p>
+
+    <h4>基础：主操作 + 备选菜单</h4>
+    <div class="demo-row demo-row-wrap">
+        <ElSplitButton id="split-basic" Text="提交" Type="ButtonType.Primary" Click="OnSplitClick">
+            <ElSplitButtonItem Text="提交并关闭" Value="close" />
+            <ElSplitButtonItem Text="提交并新建" Value="new" />
+            <ElSplitButtonItem Text="另存为草稿" Value="draft" />
+            <ElSplitButtonItem Text="归档（禁用）" Value="archive" Disabled="true" />
+        </ElSplitButton>
+        <span class="demo-badge">最近动作：@splitLog</span>
+    </div>
+
+    <h4>类型 / 朴素 / 圆角</h4>
+    <div class="demo-row demo-row-wrap">
+        <ElSplitButton Text="成功" Type="ButtonType.Success" Click="OnSplitClick">
+            <ElSplitButtonItem Text="成功项 A" />
+            <ElSplitButtonItem Text="成功项 B" />
+        </ElSplitButton>
+        <ElSplitButton Text="警告" Type="ButtonType.Warning" Plain="true" Click="OnSplitClick">
+            <ElSplitButtonItem Text="警告项 A" />
+            <ElSplitButtonItem Text="警告项 B" />
+        </ElSplitButton>
+        <ElSplitButton Text="危险" Type="ButtonType.Danger" Round="true" Click="OnSplitClick">
+            <ElSplitButtonItem Text="危险项 A" />
+            <ElSplitButtonItem Text="危险项 B" />
+        </ElSplitButton>
+        <ElSplitButton Text="信息" Type="ButtonType.Info" Size="ButtonSize.Small" Click="OnSplitClick">
+            <ElSplitButtonItem Text="小号项 A" />
+            <ElSplitButtonItem Text="小号项 B" />
+        </ElSplitButton>
+    </div>
+
+    <h4>图标（主按钮图标 / 菜单项图标 / 自定义箭头 / 图片）</h4>
+    <div class="demo-row demo-row-wrap">
+        <ElSplitButton id="split-search" Text="搜索" Type="ButtonType.Primary" Icon="el-icon-search" Click="OnSplitClick">
+            <ElSplitButtonItem Text="按姓名搜索" Icon="el-icon-user" />
+            <ElSplitButtonItem Text="按病历号搜索" Icon="el-icon-document" IconColor="#f56c6c" />
+        </ElSplitButton>
+        <ElSplitButton id="split-icon" Text="更多" Icon="el-icon-more" IconColor="#409eff" DropDownIcon="el-icon-arrow-down" Click="OnSplitClick">
+            <ElSplitButtonItem Text="导出" Value="export" />
+            <ElSplitButtonItem Text="打印" Value="print" />
+        </ElSplitButton>
+        <ElSplitButton Text="报告" Image="images/demo-img-report.svg" ImageAlternateText="报告" Click="OnSplitClick">
+            <ElSplitButtonItem Text="查看报告" />
+        </ElSplitButton>
+    </div>
+
+    <h4>禁用 / 忙碌（对齐 Radzen IsDisabled = Disabled || IsBusy）</h4>
+    <div class="demo-row demo-row-wrap">
+        <ElSplitButton id="split-disabled" Text="禁用" Type="ButtonType.Primary" Disabled="true" Click="OnSplitClick">
+            <ElSplitButtonItem Text="不可达项" />
+        </ElSplitButton>
+        <ElSplitButton id="split-busy" Text="保存" Type="ButtonType.Primary" IsBusy="@splitBusy" BusyText="保存中…" Click="OnSplitClick">
+            <ElSplitButtonItem Text="保存并关闭" />
+        </ElSplitButton>
+        <ElSplitButton id="split-all-disabled-items" Text="全部项禁用" Type="ButtonType.Info" Click="OnSplitClick">
+            <ElSplitButtonItem Text="不可用一" Disabled="true" />
+            <ElSplitButtonItem Text="不可用二" Disabled="true" />
+        </ElSplitButton>
+        <ElButton Type="ButtonType.Warning" OnClick="ToggleSplitBusy">切换忙碌 1.5s</ElButton>
+    </div>
+
+    <h4>AlwaysOpenPopup（主按钮只切菜单）/ 自定义箭头图标</h4>
+    <div class="demo-row demo-row-wrap">
+        <ElSplitButton id="split-always" Text="只展开菜单" Type="ButtonType.Default" AlwaysOpenPopup="true" Click="OnSplitClick">
+            <ElSplitButtonItem Text="项目一" />
+            <ElSplitButtonItem Text="项目二" />
+        </ElSplitButton>
+        <ElSplitButton Text="自定义箭头" Type="ButtonType.Success" DropDownIcon="el-icon-more" Click="OnSplitClick">
+            <ElSplitButtonItem Text="项目一" />
+        </ElSplitButton>
+    </div>
+
+    <h4>程序收起（Exposes Close）+ 点击菜单项回传 Value</h4>
+    <div class="demo-row demo-row-wrap">
+        <ElSplitButton id="split-programmatic" @ref="splitRef" Text="可被程序收起" Type="ButtonType.Primary" Click="OnSplitClick">
+            <ElSplitButtonItem Text="菜单打开后点右侧按钮" />
+            <ElSplitButtonItem Text="收起我" Value="close-me" />
+        </ElSplitButton>
+        <ElButton Type="ButtonType.Danger" OnClick="() => splitRef?.Close()">程序收起（Close()）</ElButton>
+        <span class="demo-badge">最近菜单项：@splitItemLog</span>
+    </div>
+
+    <p class="demo-note">
+        菜单由 <code>ElPopup</code> 宿主统一渲染，菜单容器带 <code>role="menu"</code> /
+        <code>aria-label</code>；点击菜单外收起（<code>elementPickerOutsideAttach</code>），
+        <code>AlwaysOpenPopup</code> 打开时主按钮仍可点。
+    </p>
+</div>
+
+@code {
+    private bool loading;
+    private string formName = "";
+    private int submitCount;
+    private ElButton focusBtn;
+    private ElButton exposeBtn;
+    private string exposeInfo = "—";
+    private int rawClicks;
+    private int effectiveClicks;
+    private int leadingClicks;
+    private ElSplitButton splitRef;
+    private bool splitBusy;
+    private string splitLog = "—";
+    private string splitItemLog = "—";
+
+    private void OnSplitClick(ElSplitButtonItem item)
+    {
+        if (item == null)
+        {
+            splitLog = "主按钮 Click(null)";
+            return;
+        }
+
+        splitLog = $"菜单项 {item.Text}";
+        splitItemLog = $"{item.Text}（Value={item.Value ?? "null"}）";
+    }
+
+    private void ToggleSplitBusy()
+    {
+        splitBusy = true;
+        _ = Task.Delay(1500).ContinueWith(_ => InvokeAsync(() => { splitBusy = false; StateHasChanged(); }));
+    }
+
+    private void ToggleLoading()
+    {
+        loading = true;
+        _ = Task.Delay(1500).ContinueWith(_ => InvokeAsync(() => { loading = false; StateHasChanged(); }));
+    }
+
+    private void OnNativeSubmit() => submitCount++;
+
+    // 原始点击计数（用于防抖对比）
+    private void OnRawClick() => rawClicks++;
+
+    // 读取左侧按钮的 Exposes（对齐官方 type/size/disabled/shouldAddSpace）
+    private void ReadExposes()
+    {
+        if (exposeBtn == null) { exposeInfo = "未引用到按钮"; return; }
+        exposeInfo = $"type={exposeBtn.ResolvedType}, size={exposeBtn.ResolvedSize}, disabled={exposeBtn.ResolvedDisabled}, shouldAddSpace={exposeBtn.ShouldAddSpace}";
+    }
+}

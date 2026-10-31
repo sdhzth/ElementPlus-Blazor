@@ -1,0 +1,121 @@
+@page "/i18n"
+@using ElementPlus
+@using ElementPlus.Lang
+@inject ILang Lang
+
+<h1 class="demo-page-title">多语言 / i18n</h1>
+<p class="demo-page-sub">展示已接通的 EP 2.14.0 词条，支持中英文切换。所有文案来自 <code>el.*</code> 命名空间，与官方一致。</p>
+
+<div class="demo-section">
+    <h3>语言切换</h3>
+    <div class="demo-row">
+        <ElButton Type="ButtonType.Primary" OnClick="SwitchToZh">中文</ElButton>
+        <ElButton Type="ButtonType.Success" OnClick="SwitchToEn">English</ElButton>
+        <span class="demo-badge">当前语言：@CurrentLang</span>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>输入数字（ElInputNumber）</h3>
+    <div class="demo-row">
+        <ElInputNumber Controls="true" @bind-ModelValue="numValue" Min="0" Max="100" />
+        <span class="demo-note">减少/增加按钮的 aria-label 取自 <code>el.inputNumber.decrease/increase</code></span>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>走马灯（ElCarousel）</h3>
+    <div class="demo-row" style="max-width:400px">
+        <ElCarousel Height="150px">
+            <ElCarouselItem><div style="background:#409eff;color:#fff;height:150px;line-height:150px;text-align:center">Slide 1</div></ElCarouselItem>
+            <ElCarouselItem><div style="background:#67c23a;color:#fff;height:150px;line-height:150px;text-align:center">Slide 2</div></ElCarouselItem>
+        </ElCarousel>
+        <span class="demo-note">左右箭头的 aria-label 取自 <code>el.carousel.leftArrow/rightArrow</code></span>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>表格空态（ElTable）</h3>
+    <div class="demo-row">
+        <ElTable DataSource="emptyData" Style="width:100%">
+            <ElTableColumn Property="Name" Text="姓名" />
+        </ElTable>
+        <span class="demo-note">空数据文案取自 <code>el.table.emptyText</code>（EP 回落到 el.empty.description）</span>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>对话框（ElDialog）</h3>
+    <div class="demo-row">
+        <ElButton Type="ButtonType.Primary" OnClick="ShowDialog">打开对话框</ElButton>
+        <ElDialog Visible="@dialogVisible" VisibleChanged="v => dialogVisible = v" Title="测试对话框" Width="400px">
+            <p>关闭按钮的 aria-label 取自 <code>el.dialog.close</code></p>
+        </ElDialog>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>引导（ElTour）</h3>
+    <div class="demo-row">
+        <ElButton Type="ButtonType.Primary" OnClick="StartTour">开始引导</ElButton>
+        <span class="demo-note">上一步/下一步/完成按钮文本取自 <code>el.tour.previous/next/finish</code></span>
+        <div id="i18n-tour-target-1" style="margin-top:12px;padding:20px;border:1px dashed #dcdfe6;border-radius:6px">目标区域 1</div>
+        <div id="i18n-tour-target-2" style="margin-top:12px;padding:20px;border:1px dashed #dcdfe6;border-radius:6px">目标区域 2</div>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>上传（ElUpload）</h3>
+    <div class="demo-row" id="i18n-upload-row">
+        @* AutoUpload=false：演示站点是纯 WASM 静态托管，没有 /api/upload 后端；真发请求只会拿到 405，
+           而这一节要看的是列表项删除图标的取词，选完文件进列表就够了。 *@
+        <ElUpload Url="/api/upload" AutoUpload="false" ListType="UploadListType.Text" />
+        <span class="demo-note">选一个文件后：列表项删除图标的 aria-label 取自 <code>el.upload.delete</code>，悬停提示取自 <code>el.upload.deleteTip</code>。触发按钮与拖拽区文案在 EP 里不是词条（<code>upload-content.vue</code> 没有任何取词调用），属宿主插槽内容。</span>
+    </div>
+</div>
+
+<ElTour @bind-Value="tourVisible" Steps="tourSteps" Placement="bottom" />
+
+@code {
+    private string CurrentLang => Lang.CurrentLang;
+    private decimal? numValue = 10;
+    private List<I18nTableRow> emptyData = new();
+    private bool dialogVisible;
+    private bool tourVisible;
+    private List<TourStep> tourSteps = new();
+
+    // ElTable 的列要反射属性名，行类型必须是强类型（Dictionary 没有 Name 属性，AddColumn 会直接抛）。
+    private sealed class I18nTableRow
+    {
+        public string Name { get; set; }
+    }
+
+    private async Task SwitchToZh()
+    {
+        await Lang.SetLangAsync("zh-CN");
+    }
+
+    private async Task SwitchToEn()
+    {
+        await Lang.SetLangAsync("en-US");
+    }
+
+    private void ShowDialog()
+    {
+        dialogVisible = true;
+    }
+
+    private void StartTour()
+    {
+        tourVisible = true;
+    }
+
+    protected override void OnInitialized()
+    {
+        tourSteps = new List<TourStep>
+        {
+            new TourStep { Target = "#i18n-tour-target-1", Title = "第一步", Content = b => b.AddContent(0, "这是多语言演示的第一步。") },
+            new TourStep { Target = "#i18n-tour-target-2", Title = "第二步", Content = b => b.AddContent(0, "这是多语言演示的第二步。") }
+        };
+    }
+}

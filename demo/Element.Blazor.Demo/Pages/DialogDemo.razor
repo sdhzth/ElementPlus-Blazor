@@ -1,0 +1,384 @@
+@page "/dialog"
+@using ElementPlus
+@using ElementPlus.Blazor.Demo.Components
+@inject ElementPlus.MessageBox MessageBox
+@inject ElDialogGrowService DialogGrow
+
+<h1 class="demo-page-title">ElDialog 对话框（对齐 Element Plus Dialog）</h1>
+<p class="demo-page-sub">
+    在保留居中、全屏、可拖拽、遮罩自定义 class 等扩展的基础上，对齐官方 API：align-center、close-on-click-modal、modal-class、header 插槽、before-close 等。
+</p>
+
+<div class="demo-section">
+    <h3>基础对话框</h3>
+    <ElButton Type="ButtonType.Primary" OnClick="() => Basic = true">打开对话框</ElButton>
+    <ElDialog @bind-ModelValue="Basic" Title="提示" Width="30%">
+        <ChildContent>
+            <p>这是一段对话框内容。点击遮罩或右上角可关闭。</p>
+        </ChildContent>
+        <Footer>
+            <ElButton OnClick="() => Basic = false">取消</ElButton>
+            <ElButton Type="ButtonType.Primary" OnClick="() => Basic = false">确定</ElButton>
+        </Footer>
+    </ElDialog>
+</div>
+
+<div class="demo-section">
+    <h3>垂直居中 + 自定义遮罩 class + 全屏 + 自定义正文位置</h3>
+    <div class="demo-row demo-row-wrap">
+        <ElButton OnClick="() => Center = true">align-center</ElButton>
+        <ElButton OnClick="() => CustomModal = true">自定义 modal-class</ElButton>
+        <ElButton OnClick="() => Full = true">全屏</ElButton>
+        <ElButton OnClick="() => ContentTight = true">正文紧贴标题</ElButton>
+        <ElButton OnClick="() => ContentCenter = true">正文区垂直居中</ElButton>
+    </div>
+    <ElDialog @bind-ModelValue="Center" Title="居中对话框" AlignCenter="true" Width="30%">
+        <ChildContent><p>该对话框在视口中垂直居中（align-center）。</p></ChildContent>
+    </ElDialog>
+    <ElDialog @bind-ModelValue="CustomModal" Title="自定义遮罩" ModalClass="my-custom-modal" Width="30%">
+        <ChildContent><p>遮罩层带自定义 class <code>my-custom-modal</code>，可在 CSS 中单独定制。</p></ChildContent>
+    </ElDialog>
+    <ElDialog @bind-ModelValue="Full" Title="全屏对话框" Fullscreen="true">
+        <ChildContent><p>占满整个视口的对话框。</p></ChildContent>
+    </ElDialog>
+    @* 正文与标题的默认间距来自 EP 原生 .el-dialog__body{padding:30px 20px}，
+       用 ContentStyle 就地覆盖即可改变正文位置，无需改全局 CSS。 *@
+    <ElDialog @bind-ModelValue="ContentTight" Title="正文紧贴标题" AlignCenter="true" Width="34%"
+              ContentStyle="padding:0 20px 20px">
+        <ChildContent><p>正文容器加了 <code>ContentStyle="padding:0 20px 20px"</code>：上内边距归零，正文紧贴标题。</p></ChildContent>
+    </ElDialog>
+    <ElDialog @bind-ModelValue="ContentCenter" Title="正文区垂直居中" AlignCenter="true" Width="34%"
+              ContentStyle="min-height:220px;display:flex;align-items:center;justify-content:center">
+        <ChildContent><p>正文容器加了 <code>display:flex;align-items:center</code>：正文在正文区内垂直居中。</p></ChildContent>
+    </ElDialog>
+</div>
+
+<div class="demo-section">
+    <h3>可拖拽 + before-close 校验</h3>
+    <ElButton OnClick="() => Draggable = true">可拖拽对话框</ElButton>
+    <ElDialog @bind-ModelValue="Draggable" Title="可拖拽" Draggable="true" Width="30%"
+              BeforeClose="BeforeClose">
+        <ChildContent><p>按住标题栏可拖动。关闭前会弹确认（before-close 校验）。</p></ChildContent>
+    </ElDialog>
+    <p class="demo-note">关闭前拦截结果：@beforeResult</p>
+</div>
+
+<div class="demo-section">
+    <h3>自定义 header 插槽</h3>
+    <ElButton OnClick="() => HeaderSlot = true">header 插槽</ElButton>
+    <ElDialog @bind-ModelValue="HeaderSlot" Width="30%">
+        <Header>
+            <div style="display:flex;align-items:center;gap:8px">
+                <i class="el-icon-info" style="color:#409eff"></i>
+                <strong>自定义标题区</strong>
+            </div>
+        </Header>
+        <ChildContent><p>标题区由 header 插槽自定义渲染。</p></ChildContent>
+    </ElDialog>
+</div>
+
+<div class="demo-section">
+    <h3>ElDialogGrow 组件增强：可缩放 / 自动聚焦 / 焦点陷阱 / 关闭回传</h3>
+    <p class="demo-page-sub">
+        声明式用法新增：<code>Height</code>（固定高度，正文超滚）、<code>Resizable</code>（右下角缩放手柄）、
+        <code>AutoFocusFirstElement</code>（打开聚焦首个输入）、<code>FocusTrap</code>（Tab 焦点循环）、
+        <code>ShowTitle</code>（隐藏标题栏）、<code>Role</code>/<code>AriaLabel</code>/<code>CloseAriaLabel</code>、
+        <code>WrapperClass</code>/<code>ContentClass</code>，以及 <code>CloseAsync(result)</code> + <code>OnCloseWithResult</code> 回传结果。
+    </p>
+    <div class="demo-row demo-row-wrap">
+        <ElButton Type="ButtonType.Primary" OnClick="() => GrowDialog = true">打开可缩放对话框</ElButton>
+        <ElButton OnClick="() => GrowNoTitle = true">无标题栏对话框</ElButton>
+    </div>
+    <ElDialogGrow @ref="growDialogRef" @bind-Visible="GrowDialog" Title="可缩放 + 自动聚焦" Width="520px" Height="300px"
+                  Resizable="true" AutoFocusFirstElement="true" FocusTrap="true"
+                  OnResize="OnGrowResize" OnCloseWithResult="@(r => growResult = r?.ToString() ?? "（无结果）")">
+        <ChildContent>
+            <ElInput TValue="string" @bind-Value="growText" Placeholder="打开即自动聚焦这里" />
+            <p class="demo-note">拖右下角斜纹手柄可缩放；Tab 不会跑到对话框外。</p>
+        </ChildContent>
+        <Footer>
+            <ElButton OnClick="() => GrowDialog = false">取消</ElButton>
+            <ElButton Type="ButtonType.Primary" OnClick="SubmitGrowAsync">确定（回传输入值）</ElButton>
+        </Footer>
+    </ElDialogGrow>
+    <ElDialogGrow @bind-Visible="GrowNoTitle" ShowTitle="false" Width="380px" Role="alertdialog"
+                  AriaLabel="无标题提示" ContentClass="no-title-body">
+        <ChildContent><p>ShowTitle=false 时整个标题栏（含关闭按钮）都不渲染，仅靠 Esc / 遮罩或按钮关闭。</p></ChildContent>
+    </ElDialogGrow>
+    <p class="demo-note">ElDialogGrow 关闭回传：<b>@growResult</b></p>
+</div>
+
+<div class="demo-section">
+    <h3>ElDialogGrow 声明式对话框（标题 + 正文 + Footer）</h3>
+    <p class="demo-page-sub">
+        最简单的用法：直接 <code>&lt;ElDialogGrow @@bind-Visible="…" Title="…"&gt;</code>，
+        正文放 <code>ChildContent</code>，操作按钮放 <code>Footer</code> 插槽；
+        加 <code>Draggable</code> 后按住标题栏即可拖动。
+    </p>
+    <div class="demo-row demo-row-wrap">
+        <ElButton Type="ButtonType.Primary" OnClick="() => DiagDialog = true">打开诊断结论对话框</ElButton>
+        <ElButton OnClick="() => GrowNoClose = true">隐藏右上角 ×（ShowClose=false）</ElButton>
+        <ElButton OnClick="() => GrowNoModalClose = true">点遮罩不关（CloseOnClickModal=false）</ElButton>
+        <ElButton OnClick="OpenDynamicTitle">动态标题（运行中改 Title）</ElButton>
+    </div>
+    <ElDialogGrow @bind-Visible="DiagDialog" Title="诊断结论" Draggable="true">
+        <ChildContent>
+            <div>
+                <p>初步诊断：原发性高血压（2 级，高危）。</p>
+                <p>处置：低盐饮食，氨氯地平 5mg qd。</p>
+            </div>
+        </ChildContent>
+        <Footer>
+            <ElButton OnClick="() => DiagDialog = false">关闭</ElButton>
+        </Footer>
+    </ElDialogGrow>
+    <ElDialogGrow @bind-Visible="GrowNoClose" Title="没有关闭按钮" Width="380px" ShowClose="false">
+        <ChildContent><p>ShowClose=false 只隐藏右上角 ×，遮罩 / Esc / 页脚按钮仍然可以关闭。</p></ChildContent>
+        <Footer><ElButton OnClick="() => GrowNoClose = false">关闭</ElButton></Footer>
+    </ElDialogGrow>
+    <ElDialogGrow @bind-Visible="GrowNoModalClose" Title="点遮罩不关闭" Width="380px" CloseOnClickModal="false">
+        <ChildContent><p>CloseOnClickModal=false 时点遮罩只是「点了个寂寞」，× / Esc / 页脚按钮照常能关。</p></ChildContent>
+        <Footer><ElButton OnClick="() => GrowNoModalClose = false">关闭</ElButton></Footer>
+    </ElDialogGrow>
+    <ElDialogGrow @bind-Visible="GrowDynamic" Title="@dynamicTitle" Width="420px">
+        <ChildContent>
+            <p class="demo-note">当前标题：<b>@dynamicTitle</b></p>
+            <p class="demo-note">Title 是普通参数，父组件改字段并重渲染，标题栏立即跟着变（无需重建对话框）。</p>
+        </ChildContent>
+        <Footer>
+            <ElButton OnClick="RenameDynamicTitle">改标题</ElButton>
+            <ElButton OnClick="() => GrowDynamic = false">关闭</ElButton>
+        </Footer>
+    </ElDialogGrow>
+</div>
+
+<div class="demo-section">
+    <h3>ElDialogGrow 服务化对话框（打开表单组件 + 回传返回值）</h3>
+    <p class="demo-page-sub">
+        对齐 Radzen <code>DialogService.OpenAsync</code>：注入 <code>ElDialogGrowService</code> 后一行代码打开任意组件，
+        <code>await</code> 直接拿到内容组件回传的结果。对话框本体仍是 Element 自渲染的 <code>ElDialogGrow</code>
+        （<code>el-dialog</code> 系列标签），全局宿主 <code>&lt;ElDialogGrowHost /&gt;</code> 挂在 <code>App.razor</code>。
+    </p>
+    <div class="demo-row demo-row-wrap">
+        <ElButton Type="ButtonType.Primary" OnClick="OpenFormDialogAsync">打开表单对话框（OpenAsync 返回值）</ElButton>
+        <ElButton OnClick="OpenInlineDialogAsync">内联内容 + 级联 ref 回传</ElButton>
+        <ElButton OnClick="OpenCanCloseDialogAsync">CanClose 拦截（关不掉）</ElButton>
+        <ElButton OnClick="OpenResizableDialogAsync">可缩放 + 自动聚焦 + 焦点陷阱</ElButton>
+        <ElButton OnClick="ConfirmViaGrowAsync">ConfirmAsync</ElButton>
+        <ElButton OnClick="AlertViaGrowAsync">AlertAsync</ElButton>
+    </div>
+    <p class="demo-note">表单对话框返回值：<b>@formResult</b></p>
+    <p class="demo-note">内联对话框返回值：<b>@inlineResult</b></p>
+    <p class="demo-note">可缩放对话框最后尺寸：<b>@resizeInfo</b></p>
+    <p class="demo-note">ConfirmAsync 返回：<b>@confirmResult</b>（CanClose 为 true 时点「×」关不掉，需点取消）</p>
+</div>
+
+@code {
+    private bool Basic;
+    private bool Center;
+    private bool CustomModal;
+    private bool Full;
+    private bool ContentTight;
+    private bool ContentCenter;
+    private bool Draggable;
+    private bool HeaderSlot;
+    private string beforeResult = "未触发";
+
+    // ---- ElDialogGrow 声明式增强演示状态 ----
+    private bool DiagDialog;
+    private bool GrowNoClose;
+    private bool GrowNoModalClose;
+    private bool GrowDynamic;
+    private string dynamicTitle = "动态标题（初始）";
+    private int dynamicTitleSeq;
+    private bool GrowDialog;
+    private bool GrowNoTitle;
+    private string growText = string.Empty;
+    private string growResult = "（尚未关闭）";
+
+    private Task OnGrowResize(ElDialogGrowSize size)
+    {
+        // 缩放过程中实时回写宽高（可在此做「按窗口大小保存偏好」之类的事）。
+        return Task.CompletedTask;
+    }
+
+    private async Task SubmitGrowAsync()
+    {
+        // 声明式用法也能回传结果：await 关闭 → 触发 OnCloseWithResult。
+        await growDialogRef.CloseAsync(growText);
+    }
+
+    private ElDialogGrow growDialogRef;
+
+    /// <summary>打开「动态标题」对话框（每次打开都把标题复位，便于观察运行中改标题的效果）。</summary>
+    private void OpenDynamicTitle()
+    {
+        dynamicTitle = "动态标题（初始）";
+        dynamicTitleSeq = 0;
+        GrowDynamic = true;
+    }
+
+    /// <summary>运行中改标题：只改绑定字段，父组件重渲染后标题栏立即更新。</summary>
+    private void RenameDynamicTitle()
+    {
+        dynamicTitle = $"动态标题（第 {++dynamicTitleSeq} 次修改）";
+    }
+
+    //---- 服务化对话框演示状态 ----
+    private string formResult = "（尚未打开）";
+    private string inlineResult = "（尚未打开）";
+    private string resizeInfo = "（尚未打开）";
+    private string confirmResult = "（尚未打开）";
+
+    /// <summary>打开以 <see cref="EmployeeFormDialog"/> 为内容的服务化对话框，await 拿回表单模型。</summary>
+    private async Task OpenFormDialogAsync()
+    {
+        var model = new EmployeeModel { Name = "张三", Age = 30, Department = "门诊部", OnDuty = true };
+        var result = await DialogGrow.OpenAsync<EmployeeFormDialog, EmployeeModel>(
+            "编辑员工信息",
+            new Dictionary<string, object>
+            {
+                ["Model"] = model,
+                ["Hint"] = "由调用方传入的初始值"
+            },
+            new ElDialogGrowOptions
+            {
+                Width = "520px",
+                AutoFocusFirstElement = true,
+                FocusTrap = true,
+                Resizable = true,
+                Height = "",
+                AlignCenter = true
+            });
+
+        formResult = result == null ? "用户取消（返回 null）" : result.ToString();
+    }
+
+    /// <summary>内联 RenderFragment 内容：通过级联 <see cref="ElDialogGrowRef"/> 回传结果，并演示动态改标题。</summary>
+    private async Task OpenInlineDialogAsync()
+    {
+        var result = await DialogGrow.OpenAsync<object>("内联内容对话框", dlg => builder =>
+        {
+            builder.OpenElement(0, "p");
+            builder.AddAttribute(1, "style", "margin:0 0 12px");
+            builder.AddContent(2, "这段内容不是独立组件，而是直接写在调用处的 RenderFragment。");
+            builder.CloseElement();
+            builder.OpenElement(3, "div");
+            builder.AddAttribute(4, "class", "demo-dialog-form__footer");
+            builder.OpenComponent<ElButton>(5);
+            builder.AddAttribute(6, nameof(ElButton.OnClick),
+                EventCallback.Factory.Create<Microsoft.AspNetCore.Components.Web.MouseEventArgs>(this,
+                    () => dlg.CloseAsync("点「回传字符串」关闭")));
+            builder.AddAttribute(7, nameof(ElButton.ChildContent), (RenderFragment)(b => b.AddContent(0, "回传字符串")));
+            builder.CloseComponent();
+            builder.OpenComponent<ElButton>(8);
+            builder.AddAttribute(9, nameof(ElButton.OnClick),
+                EventCallback.Factory.Create<Microsoft.AspNetCore.Components.Web.MouseEventArgs>(this,
+                    // 演示「通过级联引用动态改标题 + 改宽度」（对应 Radzen 的 Update dialog properties）
+                    () => { dlg.Title = "标题已被内容组件改成这样"; dlg.Width = "70%"; }));
+            builder.AddAttribute(10, nameof(ElButton.ChildContent), (RenderFragment)(b => b.AddContent(0, "改标题/宽度")));
+            builder.CloseComponent();
+            builder.CloseElement();
+        },
+        new ElDialogGrowOptions { Width = "480px" });
+
+        inlineResult = result == null ? "被关闭且未回传结果" : result.ToString();
+    }
+
+    /// <summary>CanClose 返回 false 时，× / 遮罩 / Esc 都关不掉（对齐 Radzen 的 CanClose 语义）。</summary>
+    private Task OpenCanCloseDialogAsync()
+    {
+        return DialogGrow.OpenAsync<object>("关不掉的对话框", dlg => builder =>
+        {
+            builder.OpenElement(0, "p");
+            builder.AddAttribute(1, "style", "margin:0 0 12px");
+            builder.AddContent(2, "CanClose 返回 false，所以点右上角 ×、点遮罩、按 Esc 都关不掉；只能点下面的「强制关闭」。");
+            builder.CloseElement();
+            builder.OpenElement(3, "div");
+            builder.AddAttribute(4, "class", "demo-dialog-form__footer");
+            builder.OpenComponent<ElButton>(5);
+            builder.AddAttribute(6, nameof(ElButton.Type), ButtonType.Primary);
+            builder.AddAttribute(7, nameof(ElButton.OnClick),
+                EventCallback.Factory.Create<Microsoft.AspNetCore.Components.Web.MouseEventArgs>(this,
+                    () => DialogGrow.Close("由服务强制关闭")));
+            builder.AddAttribute(8, nameof(ElButton.ChildContent), (RenderFragment)(b => b.AddContent(0, "强制关闭")));
+            builder.CloseComponent();
+            builder.CloseElement();
+        },
+        new ElDialogGrowOptions
+        {
+            Width = "480px",
+            CanClose = () => Task.FromResult(false)
+        });
+    }
+
+    /// <summary>可缩放 + 自动聚焦首个输入 + 焦点陷阱（Tab 在对话框内循环）。</summary>
+    private Task OpenResizableDialogAsync()
+    {
+        var task = DialogGrow.OpenAsync<object>("可缩放对话框", dlg => builder =>
+        {
+            builder.OpenElement(0, "p");
+            builder.AddAttribute(1, "style", "margin:0 0 8px");
+            builder.AddContent(2, "拖右下角斜纹手柄可缩放；打开时焦点自动落到第一个输入框；Tab 不会跑出对话框。");
+            builder.CloseElement();
+            builder.OpenComponent<ElInput<string>>(3);
+            builder.AddAttribute(4, nameof(ElInput<string>.Value), "");
+            builder.AddAttribute(5, nameof(ElInput<string>.Placeholder), "第一个输入框（打开时自动聚焦）");
+            builder.CloseComponent();
+            builder.OpenComponent<ElInput<string>>(6);
+            builder.AddAttribute(7, nameof(ElInput<string>.Value), "");
+            builder.AddAttribute(8, nameof(ElInput<string>.Placeholder), "第二个输入框（Shift+Tab 可回到上一个）");
+            builder.CloseComponent();
+            builder.OpenElement(9, "div");
+            builder.AddAttribute(10, "class", "demo-dialog-form__footer");
+            builder.OpenComponent<ElButton>(11);
+            builder.AddAttribute(12, nameof(ElButton.OnClick),
+                EventCallback.Factory.Create<Microsoft.AspNetCore.Components.Web.MouseEventArgs>(this,
+                    () => dlg.CloseAsync("已关闭")));
+            builder.AddAttribute(13, nameof(ElButton.ChildContent), (RenderFragment)(b => b.AddContent(0, "关闭")));
+            builder.CloseComponent();
+            // 缩放后改标题：宿主会重渲染，缩放尺寸必须保留（不得被参数打回原值）。
+            builder.OpenComponent<ElButton>(14);
+            builder.AddAttribute(15, nameof(ElButton.OnClick),
+                EventCallback.Factory.Create<Microsoft.AspNetCore.Components.Web.MouseEventArgs>(this,
+                    () => dlg.Title = "可缩放对话框（标题已改）"));
+            builder.AddAttribute(16, nameof(ElButton.ChildContent), (RenderFragment)(b => b.AddContent(0, "改标题")));
+            builder.CloseComponent();
+            builder.CloseElement();
+        },
+        new ElDialogGrowOptions
+        {
+            Width = "520px",
+            Height = "260px",
+            Resizable = true,
+            AutoFocusFirstElement = true,
+            FocusTrap = true,
+            Resize = size =>
+            {
+                resizeInfo = $"{size.Width:0} × {size.Height:0}px";
+                return Task.CompletedTask;
+            }
+        });
+
+        return task;
+    }
+
+    private async Task ConfirmViaGrowAsync()
+    {
+        confirmResult = await DialogGrow.ConfirmAsync("这是通过 ElDialogGrowService.ConfirmAsync 弹出的确认框。", "请确认")
+            ? "点了「确定」（true）"
+            : "点了「取消」或 ×（false）";
+    }
+
+    private async Task AlertViaGrowAsync()
+    {
+        await DialogGrow.AlertAsync("这是一个只有「知道了」按钮的提示框。", "提示");
+    }
+
+    private async Task<bool> BeforeClose()
+    {
+        var ok = await MessageBox.ConfirmAsync("确定要关闭吗？");
+        beforeResult = ok == MessageBoxResult.Ok ? "允许关闭" : "已取消";
+        return ok == MessageBoxResult.Ok;
+    }
+}

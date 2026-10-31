@@ -1,0 +1,125 @@
+@inherits ElementComponentBase
+
+<div id="@Id" class="@CalendarClass" style="@Style" aria-label="@AriaLabel" @attributes="Attributes">
+    <div class="el-calendar__header">
+        @if (Header != null)
+        {
+            @Header(ReferenceDate)
+        }
+        else
+        {
+            <div class="el-calendar__title">@Title</div>
+            @if (!IsRangeMode)
+            {
+                @if (ControllerType == CalendarControllerType.Button)
+                {
+                    <div class="el-calendar__button-group">
+                        <div class="el-button-group">
+                            <button type="button" class="el-button el-button--small" @onclick="SelectPreviousMonthAsync">@PrevMonthLabel</button>
+                            <button type="button" class="el-button el-button--small" @onclick="SelectTodayAsync">@TodayLabel</button>
+                            <button type="button" class="el-button el-button--small" @onclick="SelectNextMonthAsync">@NextMonthLabel</button>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="el-calendar__select-controller">
+                        <ElSelect TValue="int" Value="ViewDate.Year" ValueChanged="OnYearChanged" Size="InputSize.Small">
+                            @foreach (var opt in YearOptions)
+                            {
+                                <ElOption TValue="int" Value="@opt.Value" Text="@opt.Label" />
+                            }
+                        </ElSelect>
+                        <ElSelect TValue="int" Value="ViewDate.Month" ValueChanged="OnMonthChanged" Size="InputSize.Small">
+                            @foreach (var opt in MonthOptions)
+                            {
+                                <ElOption TValue="int" Value="@opt.Value" Text="@opt.Label" />
+                            }
+                        </ElSelect>
+                        <button type="button" class="el-button el-button--small" @onclick="SelectTodayAsync">@TodayLabel</button>
+                    </div>
+                }
+            }
+        }
+    </div>
+
+    <div class="el-calendar__body">
+        @if (IsRangeMode)
+        {
+            @for (var s = 0; s < RangeSegments.Count; s++)
+            {
+                var segment = RangeSegments[s];
+                <table class="el-calendar-table is-range" cellspacing="0" cellpadding="0">
+                    @if (s == 0)
+                    {
+                        <thead>
+                            <tr>
+                                @foreach (var day in ResolvedWeekDays)
+                                {
+                                    <th>@day</th>
+                                }
+                            </tr>
+                        </thead>
+                    }
+                    <tbody>
+                        @foreach (var week in segment.Weeks)
+                        {
+                            <tr class="el-calendar-table__row">
+                                @foreach (var context in week)
+                                {
+                                    <td class="@GetRangeCellClass(context)" @onclick="() => SelectDateAsync(context.Date)">
+                                        <div class="el-calendar-day">
+                                            @if (DateCell != null)
+                                            {
+                                                @DateCell(context)
+                                            }
+                                            else
+                                            {
+                                                <span>@context.Date.Day</span>
+                                            }
+                                        </div>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        }
+        else
+        {
+            <table class="el-calendar-table" cellspacing="0" cellpadding="0">
+                <thead>
+                    <tr>
+                        @foreach (var day in ResolvedWeekDays)
+                        {
+                            <th>@day</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var week in Weeks)
+                    {
+                        <tr class="el-calendar-table__row">
+                            @foreach (var context in week)
+                            {
+                                <td class="@GetCellClass(context)" @onclick="() => SelectDateAsync(context.Date)">
+                                    <div class="el-calendar-day">
+                                        @if (DateCell != null)
+                                        {
+                                            @DateCell(context)
+                                        }
+                                        else
+                                        {
+                                            <span>@context.Date.Day</span>
+                                        }
+                                    </div>
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

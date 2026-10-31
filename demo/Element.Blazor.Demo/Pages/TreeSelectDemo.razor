@@ -1,0 +1,94 @@
+@page "/treeselect"
+@using ElementPlus
+
+<h1 class="demo-page-title">树形选择 / ElTreeSelect</h1>
+<p class="demo-page-sub">对齐官方：基于 ElTree 的下拉选择，支持 @("@bind-Value")（int?）、DataSource（TreeItemBase 树）、ShowCheckbox、CheckStrictly、AutoExpandAll、Disabled。</p>
+
+<div class="demo-section">
+    <h3>基础用法</h3>
+    <div class="demo-row">
+        <ElTreeSelect @bind-Value="value1" DataSource="treeData" DataFormat="DataFormat.Children" Placeholder="请选择节点" />
+    </div>
+    <p class="demo-note">value1=@value1</p>
+</div>
+
+<div class="demo-section">
+    <h3>显示复选框 / 禁用</h3>
+    <div class="demo-row">
+        <ElTreeSelect @bind-Value="value1" DataSource="treeData" DataFormat="DataFormat.Children" ShowCheckbox="true" />
+        <ElTreeSelect @bind-Value="value1" DataSource="treeData" DataFormat="DataFormat.Children" Disabled="true" />
+    </div>
+    <p class="demo-note">
+        勾选模式的口径与官方一致：面板里勾的是哪一个，输入框就回显那一条路径；
+        勾父节点时按官方 <code>onCheck</code> 折算成「该子树第一个可用叶子」，父节点自身显示<b>半选</b>；
+        一次只能有一个勾（再勾别的会顶掉前一个，不会累积），勾完面板保持打开。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>CheckStrictly（父子不关联）</h3>
+    <div class="demo-row">
+        <ElTreeSelect @bind-Value="value3" DataSource="treeData" DataFormat="DataFormat.Children"
+                      ShowCheckbox="true" CheckStrictly="true" />
+    </div>
+    <p class="demo-note">value3=@value3 —— 严格模式下勾父节点就取父节点自己的 Id，既不折算成叶子，也不出现半选。</p>
+</div>
+
+<div class="demo-section">
+    <h3>EmptyText（空数据提示）</h3>
+    <div class="demo-row">
+        <ElTreeSelect @bind-Value="value2" DataSource="emptyData" Placeholder="点开看看" EmptyText="暂无可选节点" />
+        <ElTreeSelect @bind-Value="value2" DataSource="emptyData" Placeholder="默认提示" />
+    </div>
+    <p class="demo-note">数据源为空时，下拉面板里显示的就是 EmptyText；右侧用默认文案作对照。</p>
+</div>
+
+<div class="demo-section">
+    <h3>可搜索（Filterable）—— 下拉里过滤树节点</h3>
+    <p class="demo-note">
+        <code>Filterable="true"</code> 让<b>触发器输入框本身变成搜索框</b>：点开后直接在框里打字，
+        内嵌的 ElTree 会实时过滤（命中节点的祖先会自动展开，方便定位）。
+        默认按节点 <code>Text</code> 做不区分大小写的包含匹配；需要自定义匹配规则（如按拼音、按编码）时传
+        <code>FilterNodeMethod="(node, kw) => ..."</code>。
+    </p>
+    <div class="demo-row">
+        <ElTreeSelect @bind-Value="value1" DataSource="treeData" DataFormat="DataFormat.Children"
+                      Filterable="true" Placeholder="输入关键字过滤节点" />
+    </div>
+    <p class="demo-note">value1=@value1（试试输入「B」「2」「节点」）</p>
+</div>
+
+@code {
+    private int? value1;
+    private int? value2;
+    private int? value3;
+
+    private List<TreeItemBase> emptyData = new List<TreeItemBase>();
+
+    // 注意：这是「嵌套 Children」格式的数据源，必须显式声明 DataFormat="DataFormat.Children"，
+    // 否则组件按默认的 DataFormat.List（扁平 ParentId 树）去解析，层级会丢失。
+    // 同时每个节点都要有唯一 Id —— @bind-Value 绑定的是节点 Id，全部为 0 时无法区分选中项。
+    private List<TreeItemBase> treeData = new List<TreeItemBase>
+    {
+        new TreeItemBase
+        {
+            Id = 1,
+            Text = "一级节点 A",
+            Children = new List<TreeItemBase>
+            {
+                new TreeItemBase { Id = 11, Text = "二级节点 A-1" },
+                new TreeItemBase { Id = 12, Text = "二级节点 A-2" }
+            }
+        },
+        new TreeItemBase
+        {
+            Id = 2,
+            Text = "一级节点 B",
+            Children = new List<TreeItemBase>
+            {
+                new TreeItemBase { Id = 21, Text = "二级节点 B-1" },
+                new TreeItemBase { Id = 22, Text = "二级节点 B-2" }
+            }
+        }
+    };
+}

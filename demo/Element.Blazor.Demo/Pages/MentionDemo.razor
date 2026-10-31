@@ -1,0 +1,41 @@
+@page "/mention"
+@using ElementPlus
+
+<h1 class="demo-page-title">提及 / ElMention</h1>
+<p class="demo-page-sub">对齐官方：支持 @("@bind-Value")、Options（MentionOption）、Prefix、Rows、Clearable、Disabled、Placeholder，输入 @@ 触发候选。</p>
+
+<div class="demo-section">
+    <h3>基础用法</h3>
+    <div class="demo-row" style="flex-direction:column;align-items:stretch;max-width:480px">
+        <ElMention @bind-Value="value1" Options="options" Placeholder="@("输入 @ 提及某人")" Rows="3" />
+    </div>
+    <p class="demo-note">value1=@value1</p>
+</div>
+
+<div class="demo-section">
+    <h3>禁用</h3>
+    <div class="demo-row" style="flex-direction:column;align-items:stretch;max-width:480px">
+        <ElMention @bind-Value="value1" Options="options" Disabled="true" Rows="2" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>Debounce（候选刷新防抖）</h3>
+    <div class="demo-row" style="flex-direction:column;align-items:stretch;max-width:480px">
+        <ElMention @bind-Value="value2" Options="options" Debounce="0" Rows="2" Placeholder="@("Debounce=0：输入 @a 立即出候选")" />
+        <ElMention @bind-Value="value2" Options="options" Debounce="800" Rows="2" Placeholder="@("Debounce=800：停手约 0.8 秒才出候选")" />
+    </div>
+</div>
+
+@code {
+    private string value1 = "";
+    private string value2 = "";
+
+    private List<MentionOption> options = new List<MentionOption>
+    {
+        new MentionOption { Value = "alice", Label = "Alice  Alice@corp" },
+        new MentionOption { Value = "bob", Label = "Bob  Bob@corp" },
+        new MentionOption { Value = "carol", Label = "Carol  Carol@corp" },
+        new MentionOption { Value = "dave", Label = "Dave  Dave@corp" }
+    };
+}

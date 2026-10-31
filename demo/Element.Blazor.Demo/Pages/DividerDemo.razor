@@ -1,0 +1,47 @@
+@page "/divider"
+@using ElementPlus
+
+<h1 class="demo-page-title">ElDivider 分割线（对齐 Element Plus Divider）</h1>
+<p class="demo-page-sub">
+    区隔内容的分割线。支持水平/垂直方向、内容位置（left/right/center）与自定义边框样式，插槽内容可放置文字或图标。
+</p>
+
+<div class="demo-section">
+    <h3>水平分割线 + 内容位置</h3>
+    <div class="demo-text-block">
+        <p>春眠不觉晓，处处闻啼鸟。</p>
+        <ElDivider />
+        <p>夜来风雨声，花落知多少。</p>
+        <ElDivider ContentPosition="DividerContentPosition.Left">左侧文字</ElDivider>
+        <p>白日依山尽，黄河入海流。</p>
+        <ElDivider ContentPosition="DividerContentPosition.Right">右侧文字</ElDivider>
+        <p>欲穷千里目，更上一层楼。</p>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>自定义边框样式（border-style）</h3>
+    <div class="demo-text-block">
+        <ElDivider BorderStyle="dashed">虚线</ElDivider>
+        <ElDivider BorderStyle="dotted">点线</ElDivider>
+        <ElDivider BorderStyle="double">双线</ElDivider>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>带图标的分割内容</h3>
+    <ElDivider>
+        <ChildContent><i class="el-icon-star-on" style="color:#f7ba2a"></i> 收藏</ChildContent>
+    </ElDivider>
+</div>
+
+<div class="demo-section">
+    <h3>垂直分割线（inline 排列）</h3>
+    <div class="demo-row">
+        <span>编辑</span>
+        <ElDivider Direction="DividerDirection.Vertical" />
+        <span>删除</span>
+        <ElDivider Direction="DividerDirection.Vertical" />
+        <span>分享</span>
+    </div>
+</div>

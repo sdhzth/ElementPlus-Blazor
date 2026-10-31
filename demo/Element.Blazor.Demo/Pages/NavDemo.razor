@@ -1,0 +1,309 @@
+@page "/nav"
+
+<h1 class="demo-page-title">导航组件（带 Mock 数据）</h1>
+<p class="demo-page-sub">菜单、标签页、下拉、分页、面包屑均使用本地 Mock 状态驱动。</p>
+
+<div class="demo-section">
+    <h3>ElMenu 侧栏（子菜单 + 分组 + 折叠）</h3>
+    <p class="demo-page-sub">
+        对齐 Element Plus 官方 <code>el-menu / el-sub-menu / el-menu-item / el-menu-item-group</code>：
+        <code>DefaultOpeneds</code> 默认展开、<code>UniqueOpened</code> 手风琴、<code>Collapse</code> 折叠、
+        <code>DefaultActive</code> 默认激活；<code>--el-menu-level</code> 逐级缩进。
+    </p>
+    <div class="demo-row" style="align-items:flex-start; gap:12px;">
+        <ElButton Size="ButtonSize.Small" OnClick="ToggleCollapse">
+            @(menuCollapse ? "展开" : "折叠")
+        </ElButton>
+        <ElButton Size="ButtonSize.Small" OnClick="ToggleUnique">
+            手风琴：@(menuUnique ? "开" : "关")
+        </ElButton>
+        <ElButton Size="ButtonSize.Small" OnClick="OpenSecond">Open(&quot;2&quot;)</ElButton>
+        <ElButton Size="ButtonSize.Small" OnClick="CloseSecond">Close(&quot;2&quot;)</ElButton>
+    </div>
+    <div style="display:flex; gap:16px; margin-top:8px; align-items:flex-start;">
+        <ElMenu @ref="menuRef"
+                DefaultActive="1-1"
+                DefaultOpeneds="@(new[] { "1", "2" })"
+                UniqueOpened="@menuUnique"
+                Collapse="@menuCollapse"
+                Style="width:220px;"
+                OnSelect="OnMenuSelect"
+                OnOpen="OnMenuOpen"
+                OnClose="OnMenuClose">
+            <ElSubMenu Index="1" Label="Navigator One" Icon="el-icon-location">
+                <ElMenuItemGroup Title="Group One">
+                    <ElMenuItem Index="1-1">item one</ElMenuItem>
+                    <ElMenuItem Index="1-2">item two</ElMenuItem>
+                </ElMenuItemGroup>
+                <ElMenuItemGroup Title="Group Two">
+                    <ElMenuItem Index="1-3">item three</ElMenuItem>
+                </ElMenuItemGroup>
+                <ElSubMenu Index="1-4" Label="item four">
+                    <ElMenuItem Index="1-4-1">item one</ElMenuItem>
+                </ElSubMenu>
+            </ElSubMenu>
+            <ElSubMenu Index="2" Label="Navigator Two" Icon="el-icon-menu">
+                <ElMenuItem Index="2-1">item one</ElMenuItem>
+                <ElMenuItem Index="2-2">item two</ElMenuItem>
+            </ElSubMenu>
+            <ElMenuItem Index="3" Icon="el-icon-document" Disabled="true">Navigator Three</ElMenuItem>
+            <ElMenuItem Index="4" Icon="el-icon-setting">Navigator Four</ElMenuItem>
+        </ElMenu>
+        <div style="font-size:12px; color:#909399;">最近事件：@menuLog</div>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>ElMenu 顶栏（horizontal）</h3>
+    <p class="demo-page-sub">水平模式下子菜单以弹层展开（<code>el-menu--popup-container</code> 包裹 <code>ul.el-menu--popup</code>）。</p>
+    <ElMenu Mode="MenuMode.Horizontal" DefaultActive="h1" Style="width:100%;">
+        <ElMenuItem Index="h1">Processing Center</ElMenuItem>
+        <ElSubMenu Index="h2" Label="Workspace">
+            <ElMenuItem Index="h2-1">item one</ElMenuItem>
+            <ElMenuItem Index="h2-2">item two</ElMenuItem>
+            <ElSubMenu Index="h2-3" Label="item three">
+                <ElMenuItem Index="h2-3-1">item one</ElMenuItem>
+            </ElSubMenu>
+        </ElSubMenu>
+        <ElMenuItem Index="h3" Disabled="true">Info</ElMenuItem>
+        <ElMenuItem Index="h4">Orders</ElMenuItem>
+    </ElMenu>
+</div>
+
+<div class="demo-section">
+    <h3>ElTabs 标签页</h3>
+    <ElTabs @bind-Value="activeTab">
+        <ElTabPane Name="t1" Title="待诊患者">
+            <ChildContent><text>当前 @MockData.Patients.Count 位患者排队中</text></ChildContent>
+        </ElTabPane>
+        <ElTabPane Name="t2" Title="已诊患者">
+            <ChildContent><text>今日已完成 18 位患者诊疗</text></ChildContent>
+        </ElTabPane>
+        <ElTabPane Name="t3" Title="转诊">
+            <ChildContent><text>无转诊记录</text></ChildContent>
+        </ElTabPane>
+    </ElTabs>
+</div>
+
+<div class="demo-section">
+    <h3>ElRibbon 功能区导航（带 Menu 弹出菜单）</h3>
+    <p class="demo-page-sub">
+        最左侧「开始」页签点击后，会在其下方弹出 <code>Menu</code> 指定的组件（菜单层）；其余页签为普通内容页，
+        <code>Body</code> 渲染功能区下方的主体区域。设置 <code>ModelValue="home"</code> 指定默认激活页，
+        可避免首屏默认激活菜单页签而自动弹出菜单层。点击菜单层外空白处即可关闭。
+    </p>
+    <ElRibbon Menu="typeof(DemoRibbonMenu)" ModelValue="home" NavigationHeight="120">
+        <Tabs>
+            <ElTabPane Name="home" Title="首页">
+                <ChildContent>
+                    <div class="demo-row" style="gap:10px; flex-wrap:wrap;">
+                        <ElRibbonBlock Title="常用">
+                            <ChildContent>
+                                <ElRibbonItem>新建</ElRibbonItem>
+                                <ElRibbonItem>保存</ElRibbonItem>
+                            </ChildContent>
+                        </ElRibbonBlock>
+                        <ElRibbonBlock Title="视图">
+                            <ChildContent>
+                                <ElRibbonItem>缩放</ElRibbonItem>
+                                <ElRibbonItem>全屏</ElRibbonItem>
+                            </ChildContent>
+                        </ElRibbonBlock>
+                    </div>
+                </ChildContent>
+            </ElTabPane>
+            <ElTabPane Name="outpatient" Title="门诊">
+                <ChildContent><text>门诊工作台内容区</text></ChildContent>
+            </ElTabPane>
+            <ElTabPane Name="inpatient" Title="住院">
+                <ChildContent><text>住院工作台内容区</text></ChildContent>
+            </ElTabPane>
+        </Tabs>
+        <Body>
+            <div style="padding:12px; font-size:13px; color:#606266;">
+                当前展示：功能区下方主体区域（<code>Body</code>）
+            </div>
+        </Body>
+    </ElRibbon>
+</div>
+
+<div class="demo-section">
+    <h3>ElDropdown 下拉菜单</h3>
+    <ElDropdown>
+        <Trigger>
+            <ElButton>更多操作</ElButton>
+        </Trigger>
+        <Items>
+            <ElDropdownItem Icon="el-icon-more">查看详情</ElDropdownItem>
+            <ElDropdownItem Icon="el-icon-edit">编辑</ElDropdownItem>
+            <ElDropdownItem Icon="el-icon-delete">删除</ElDropdownItem>
+        </Items>
+    </ElDropdown>
+</div>
+
+<div class="demo-section">
+    <h3>ElBreadcrumb 面包屑</h3>
+    <ElBreadcrumb>
+        <ElBreadcrumbItem To="/">首页</ElBreadcrumbItem>
+        <ElBreadcrumbItem To="/data">数据展示</ElBreadcrumbItem>
+        <ElBreadcrumbItem><text>当前页</text></ElBreadcrumbItem>
+    </ElBreadcrumb>
+</div>
+
+<div class="demo-section">
+    <h3>ElPagination 分页（共 @total 条）</h3>
+    <ElPagination Total="total" PageSize="10" CurrentPage="currentPage"
+                  CurrentPageChanged="(p) => currentPage = p" />
+    <p class="demo-note">当前第 @currentPage 页</p>
+</div>
+
+<div class="demo-section" id="jumper-props-demo">
+    <h3>ElPagination 跳页框开关（ShowJumper / ShowJumperControls）</h3>
+    <p class="demo-page-sub">
+        <code>ShowJumper="false"</code> 整块隐藏「前往 N 页」；<code>ShowJumperControls="false"</code> 仅隐藏输入框右侧的 ± 步进按钮。
+    </p>
+    <div class="demo-row" style="align-items:center; gap:8px;">
+        <span style="font-size:13px;">ShowJumper</span>
+        <ElSwitch @bind-Value="showJumper" />
+        <span style="font-size:13px; margin-left:12px;">ShowJumperControls</span>
+        <ElSwitch @bind-Value="showJumperControls" />
+    </div>
+    <div style="margin-top:12px;">
+        <ElPagination Total="total" PageSize="10" CurrentPage="currentPage"
+                      Layout="total, prev, pager, next, jumper"
+                      ShowJumper="showJumper" ShowJumperControls="showJumperControls"
+                      CurrentPageChanged="(p) => currentPage = p" />
+    </div>
+</div>
+
+<div class="demo-section" id="sec-pro-tabs">
+    <h3>ElProTabsGrow 页签导航（ProTabs 风格）</h3>
+    <p class="demo-page-sub">
+        圆点（或图标）+ 标题 + 关闭按钮的胶囊页签：<code>CloseButtonDisplay</code> 决定 X 是
+        <b>悬停该标签才显示</b>（默认 <code>Hover</code>）还是常显（<code>Always</code>）；
+        溢出时出现左右滚动箭头，右侧「更多」列出全部标签并提供「关闭其他 / 关闭全部」。
+        改激活色有<b>两个等价入口</b>：改 <code>ActiveTextColor</code> 属性，或调
+        <code>SetActiveTextColor(色) / ResetActiveTextColor()</code>。
+    </p>
+    <div class="demo-row" style="align-items:center;">
+        <label class="demo-note">激活色
+            <input type="color" @bind="ptColor" @bind:event="oninput"
+                   style="width:44px;height:26px;margin-left:6px;padding:0;vertical-align:middle;" />
+        </label>
+        <ElButton Size="ButtonSize.Small" OnClick="ApplyRuntimeColor">SetActiveTextColor(当前色)</ElButton>
+        <ElButton Size="ButtonSize.Small" OnClick="ResetRuntimeColor">ResetActiveTextColor()</ElButton>
+        <label class="demo-note"><input type="checkbox" @bind="ptCloseAlways" style="vertical-align:middle;" /> X 常显</label>
+        <label class="demo-note"><input type="checkbox" @bind="ptShowDot" style="vertical-align:middle;" /> 圆点</label>
+        <label class="demo-note"><input type="checkbox" @bind="ptShowIcon" style="vertical-align:middle;" /> 图标</label>
+        <label class="demo-note"><input type="checkbox" @bind="ptShowMore" style="vertical-align:middle;" /> 更多</label>
+        <span class="demo-note" id="pt-count">已打开 @ptTabs.Count 个标签</span>
+    </div>
+    <div id="pt-host" style="margin-top:12px;border:1px solid #ebeef5;border-radius:8px;overflow:hidden;">
+        <ElProTabsGrow @ref="ptRef"
+                       Items="ptTabs"
+                       @bind-ActivePath="ptActive"
+                       ActiveTextColor="@ptColor"
+                       CloseButtonDisplay="@(ptCloseAlways ? ElProTabsGrowCloseButtonDisplay.Always : ElProTabsGrowCloseButtonDisplay.Hover)"
+                       ShowDot="@ptShowDot"
+                       ShowIcon="@ptShowIcon"
+                       ShowMore="@ptShowMore"
+                       OnClose="OnPtClose"
+                       OnCloseOthers="OnPtCloseOthers"
+                       OnCloseAll="OnPtCloseAll" />
+        <div style="padding:16px;background:#fff;font-size:13px;color:#606266;">
+            当前激活：<b id="pt-active">@ptActive</b>
+            　（点标签切换 / 悬停标签才出现 X / 点 X 关闭 / 箭头滚动 / 更多里可关其他）
+        </div>
+    </div>
+</div>
+
+@code {
+    private ElMenu menuRef;
+    private bool menuCollapse;
+    private bool menuUnique;
+    private string menuLog = "—";
+
+    private void ToggleCollapse() => menuCollapse = !menuCollapse;
+    private void ToggleUnique() => menuUnique = !menuUnique;
+    private void OpenSecond() => _ = menuRef.OpenAsync("2");
+    private void CloseSecond() => _ = menuRef.CloseAsync("2");
+    private void OnMenuSelect(MenuSelectEventArgs e) => menuLog = $"select {e.Index}（路径 {string.Join("/", e.IndexPath)}）";
+    private void OnMenuOpen(MenuOpenEventArgs e) => menuLog = $"open {e.Index}";
+    private void OnMenuClose(MenuOpenEventArgs e) => menuLog = $"close {e.Index}";
+
+    private string activeTab = "t1";
+    private int total = MockData.Products.Count * 20;
+    private int currentPage = 1;
+    private bool showJumper = true;
+    private bool showJumperControls = true;
+
+    #region ElProTabsGrow 页签导航演示
+
+    private ElProTabsGrow ptRef;
+    private readonly List<ElProTabsGrowItem> ptTabs = new();
+    private string ptActive = "/pt/0";
+    private string ptColor = "#395ae3";
+    private bool ptCloseAlways;
+    private bool ptShowDot = true;
+    private bool ptShowIcon = true;
+    private bool ptShowMore = true;
+
+    protected override void OnInitialized()
+    {
+        // 故意给足 14 个标签（标题偏长），在常见窗口宽度下会溢出，方便看左右滚动箭头
+        var seed = new (string Title, string Icon)[]
+        {
+            ("首页", "el-icon-s-home"),
+            ("门诊叫号", null), ("处方审核", null), ("住院床位", null), ("检验报告", null),
+            ("影像调阅", null), ("电子病历", null), ("费用结算", null), ("医保对账", null),
+            ("统计报表", null), ("质控指标", null), ("设备管理", null), ("用户权限", null), ("系统参数", null)
+        };
+
+        for (var i = 0; i < seed.Length; i++)
+        {
+            ptTabs.Add(new ElProTabsGrowItem
+            {
+                Path = "/pt/" + i,
+                Title = seed[i].Title,
+                Icon = seed[i].Icon,
+                // 首页固定不可关（不渲染 X）
+                Closable = i != 0
+            });
+        }
+
+        ptActive = ptTabs[0].Path;
+    }
+
+    /// <summary>运行时改色入口之一：直接调组件方法。</summary>
+    private void ApplyRuntimeColor() => ptRef?.SetActiveTextColor(ptColor);
+
+    /// <summary>撤销运行时覆盖，回到 <c>ActiveTextColor</c> 属性。</summary>
+    private void ResetRuntimeColor() => ptRef?.ResetActiveTextColor();
+
+    private void OnPtClose(ElProTabsGrowItem item)
+    {
+        ptTabs.RemoveAll(x => x.Path == item.Path);
+
+        if (ptActive == item.Path && ptTabs.Count > 0)
+        {
+            ptActive = ptTabs[0].Path;
+        }
+    }
+
+    private void OnPtCloseOthers(ElProTabsGrowItem current)
+    {
+        if (current != null)
+        {
+            ptTabs.RemoveAll(x => x.Closable && x.Path != current.Path);
+            ptActive = current.Path;
+        }
+    }
+
+    private void OnPtCloseAll()
+    {
+        ptTabs.RemoveAll(x => x.Closable);
+        ptActive = ptTabs.FirstOrDefault()?.Path;
+    }
+
+    #endregion
+}

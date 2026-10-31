@@ -1,0 +1,33 @@
+@inherits ElementComponentBase
+<div id="@Id"
+     aria-label="@AriaLabel"
+     class="@DropdownClass"
+     style="@Style"
+     @onclick="OnTriggerClickAsync"
+     @onmouseenter="OnTriggerMouseOverAsync"
+     @onmouseleave="OnTriggerMouseOutAsync"
+     @oncontextmenu="OnTriggerContextMenuAsync"
+     @oncontextmenu:preventDefault="@(TriggerMode == DropdownTrigger.ContextMenu)"
+     @onkeydown="OnKeyDownAsync"
+     @ref="Target"
+     tabindex="@(Disabled ? -1 : Tabindex)"
+     aria-disabled="@Disabled"
+     aria-haspopup="@Role"
+     @attributes="Attributes">
+    @if (SplitButton)
+    {
+        @* 对齐 EP：分裂按钮的两半由 el-button-group 包裹后紧贴（margin-left:-1px 叠边、
+           仅外圈圆角，caret 侧 border-left:none 由 ::before 画 1px 分隔线）。
+           不包裹时两者是松散按钮，会叠加 .el-button+.el-button 的 12px margin。 *@
+        <ElButtonGroup>
+            @* 两半必须写在同一个标记行内：`.el-dropdown .el-button-group .el-button{float:none}`
+               （EP 原样规则）使按钮按行内盒排列，标签之间的换行会塌成一个 ~4px 词空格，
+               把本应紧贴的两半撑开；Vue 模板会自动压掉这段空白，Razor 不会。 *@
+            <ElButton Type="@Type" Size="@Size" Disabled="@Disabled" OnClick="OnSplitButtonClickAsync">@ButtonContent</ElButton><ElButton Type="@Type" Size="@Size" Disabled="@Disabled" Cls="el-dropdown__caret-button" OnClick="OnCaretButtonClickAsync" aria-label="dropdown trigger"><i class="@Icon"></i></ElButton>
+        </ElButtonGroup>
+    }
+    else
+    {
+        @Trigger
+    }
+</div>

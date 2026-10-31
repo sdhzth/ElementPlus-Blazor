@@ -1,0 +1,10 @@
+@inherits ElementComponentBase
+@* Visible=false ⇒ 整行连 ElCol 子树一起不进渲染树（不是 display:none，占位与外边距都不留）。
+   口径与 ElButton.Visible 一致：宿主按状态收起一块版式时本来要自己写 @if 包一层，包漏了就是一块
+   常驻的空白。默认 true ⇒ 加参数前的用法一字不变。 *@
+@if (Visible)
+{
+    <CascadingValue Value="this" IsFixed="false">
+        <DynamicComponent Type="@typeof(ElementTagRenderer)" Parameters="@RowParameters"></DynamicComponent>
+    </CascadingValue>
+}

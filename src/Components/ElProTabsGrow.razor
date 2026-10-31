@@ -1,0 +1,169 @@
+@inherits ElementComponentBase
+@{
+    var items = EffectiveItems;
+    var rootClass = HtmlPropertyBuilder.CreateCssClassBuilder()
+        .Add("el-pro-tabs-grow", Cls)
+        .AddIf(CloseButtonDisplay == ElProTabsGrowCloseButtonDisplay.Always, "is-close-always")
+        .ToString();
+    var rootStyle = HtmlPropertyBuilder.CreateCssStyleBuilder()
+        .AddIf(!string.IsNullOrWhiteSpace(EffectiveActiveTextColor), $"--eptg-active-color:{EffectiveActiveTextColor}")
+        .AddIf(!string.IsNullOrWhiteSpace(ActiveDotColor), $"--eptg-active-dot-color:{ActiveDotColor}")
+        .Add(Style)
+        .ToString();
+}
+<div class="@rootClass" style="@rootStyle" @ref="Root"
+     role="tablist" aria-orientation="horizontal" aria-label="@AriaLabel"
+     @attributes="Attributes">
+
+    @if (ShowScrollButtons && hasScroll)
+    {
+        <button type="button" class="el-pro-tabs-grow__arrow is-left"
+                disabled="@atStart" aria-label="向左滚动" @onclick="ScrollLeftAsync">
+            <svg class="el-pro-tabs-grow__arrow-icon" viewBox="0 0 1024 1024" width="12" height="12" aria-hidden="true">
+                <path d="M672 160 L320 512 L672 864" fill="none" stroke="currentColor" stroke-width="112"
+                      stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+        </button>
+    }
+
+    <div class="el-pro-tabs-grow__scroll" @ref="ScrollView">
+        <div class="el-pro-tabs-grow__list">
+            @foreach (var item in items)
+            {
+                var isActive = IsActivePath(item.Path);
+                var canClose = IsClosable(item);
+                var canRefresh = IsRefreshable(item);
+                var canDrag = IsDraggable(item);
+                var itemClass = ItemClass(item, isActive);
+                var itemStyle = HtmlPropertyBuilder.CreateCssStyleBuilder()
+                    .Add(ItemStyle)
+                    .Add(item.Style)
+                    .ToString();
+                <div class="@itemClass" style="@itemStyle" @key="item.Path"
+                     data-path="@item.Path" title="@EffectiveTooltip(item)"
+                     role="tab" aria-selected="@BoolText(isActive)" aria-disabled="@BoolText(item.Disabled)"
+                     tabindex="@(isActive && !item.Disabled ? 0 : -1)"
+                     draggable="@(canDrag ? "true" : null)"
+                     @onclick="() => SelectAsync(item)"
+                     @oncontextmenu="e => OpenContextAsync(item, e)"
+                     @ondragstart="e => DragStartAsync(item, e)"
+                     @ondragover="() => DragOverItemAsync(item)" @ondragover:preventDefault="true"
+                     @ondrop="() => DropOnItemAsync(item)" @ondrop:preventDefault="true"
+                     @ondragend="DragEndAsync"
+                     @onkeydown="e => OnItemKeyDownAsync(e, item)">
+                    @if (ShowIcon && !string.IsNullOrWhiteSpace(item.Icon))
+                    {
+                        <i class="el-pro-tabs-grow__icon @NormalizeIcon(item.Icon)" aria-hidden="true"></i>
+                    }
+                    else if (ShowDot)
+                    {
+                        <span class="el-pro-tabs-grow__dot" aria-hidden="true"></span>
+                    }
+                    <span class="el-pro-tabs-grow__label">@item.Title</span>
+                    @* 刷新图标常驻可见（不像关闭按钮那样悬停才出）：宿主要把「刷新当前页」这个动作从页面里挪到
+                       页签上，悬停才显形就等于没有入口。点击必须 stopPropagation，否则顺带触发整项的 SelectAsync，
+                       宿主会先收到一次 OnSelect 再收到 OnRefreshTab（非活动页签被刷成活动页）。 *@
+                    @if (canRefresh)
+                    {
+                        <span class="el-pro-tabs-grow__refresh" role="button" tabindex="-1"
+                              aria-label="@($"刷新 {item.Title}")" title="刷新"
+                              @onclick="() => RefreshAsync(item)" @onclick:stopPropagation="true">
+                            <svg class="el-pro-tabs-grow__refresh-icon" viewBox="0 0 1024 1024" width="12" height="12" aria-hidden="true">
+                                <path d="M832 512 A320 320 0 1 1 512 192" fill="none" stroke="currentColor"
+                                      stroke-width="104" stroke-linecap="round"></path>
+                                <path d="M512 128 L608 192 L512 256 Z" fill="currentColor"></path>
+                            </svg>
+                        </span>
+                    }
+                    @if (canClose)
+                    {
+                        <span class="el-pro-tabs-grow__close" role="button" tabindex="-1"
+                              aria-label="@($"关闭 {item.Title}")" title="关闭"
+                              @onclick="() => CloseAsync(item)" @onclick:stopPropagation="true">
+                            <svg class="el-pro-tabs-grow__close-icon" viewBox="0 0 1024 1024" width="10" height="10" aria-hidden="true">
+                                <path d="M192 192 L832 832 M832 192 L192 832" fill="none" stroke="currentColor"
+                                      stroke-width="120" stroke-linecap="round"></path>
+                            </svg>
+                        </span>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (ShowScrollButtons && hasScroll)
+    {
+        <button type="button" class="el-pro-tabs-grow__arrow is-right"
+                disabled="@atEnd" aria-label="向右滚动" @onclick="ScrollRightAsync">
+            <svg class="el-pro-tabs-grow__arrow-icon" viewBox="0 0 1024 1024" width="12" height="12" aria-hidden="true">
+                <path d="M352 160 L704 512 L352 864" fill="none" stroke="currentColor" stroke-width="112"
+                      stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+        </button>
+    }
+
+    @if (ShowMore && items.Count > 0)
+    {
+        <button type="button" class="el-pro-tabs-grow__more @(moreOpen ? "is-open" : string.Empty)"
+                aria-haspopup="menu" aria-expanded="@BoolText(moreOpen)" @onclick="ToggleMoreAsync">
+            <span class="el-pro-tabs-grow__more-text">@MoreText</span>
+            <svg class="el-pro-tabs-grow__more-arrow" viewBox="0 0 1024 1024" width="10" height="10" aria-hidden="true">
+                <path d="M192 352 L512 672 L832 352" fill="none" stroke="currentColor" stroke-width="120"
+                      stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+        </button>
+    }
+
+    @if (moreOpen)
+    {
+        <div class="el-pro-tabs-grow__more-panel" role="menu">
+            <div class="el-pro-tabs-grow__more-head">已打开 @items.Count 个标签</div>
+            <ul class="el-pro-tabs-grow__more-list">
+                @foreach (var item in items)
+                {
+                    var isActive = IsActivePath(item.Path);
+                    <li class="el-pro-tabs-grow__more-item @(isActive ? "is-active" : string.Empty)"
+                        @key="@($"more-{item.Path}")" data-path="@item.Path"
+                        role="menuitem" tabindex="0"
+                        @onclick="() => SelectAsync(item)"
+                        @onkeydown="e => OnItemKeyDownAsync(e, item)">
+                        <span class="el-pro-tabs-grow__dot" aria-hidden="true"></span>
+                        <span class="el-pro-tabs-grow__more-label">@item.Title</span>
+                    </li>
+                }
+            </ul>
+            <div class="el-pro-tabs-grow__more-actions">
+                <button type="button" class="el-pro-tabs-grow__more-btn" @onclick="CloseOthersAsync">关闭其他</button>
+                <button type="button" class="el-pro-tabs-grow__more-btn" @onclick="CloseAllAsync">关闭全部</button>
+            </div>
+        </div>
+    }
+
+    @if (contextOpen)
+    {
+        var ctx = ContextItem;
+        var canSelfClose = ctx != null && IsClosable(ctx);
+        <div class="el-pro-tabs-grow__ctx" role="menu"
+             style="@($"left:{contextX:0}px;top:{contextY:0}px")">
+            <div class="el-pro-tabs-grow__ctx-item" role="menuitem" tabindex="0"
+                 @onclick="ContextRefreshAsync">刷新</div>
+            <div class="el-pro-tabs-grow__ctx-item @(canSelfClose ? string.Empty : "is-disabled")"
+                 role="menuitem" tabindex="0" aria-disabled="@BoolText(!canSelfClose)"
+                 @onclick="ContextCloseSelfAsync">关闭</div>
+            <div class="el-pro-tabs-grow__ctx-sep" aria-hidden="true"></div>
+            <div class="el-pro-tabs-grow__ctx-item @(CanCloseLeft() ? string.Empty : "is-disabled")"
+                 role="menuitem" tabindex="0" aria-disabled="@BoolText(!CanCloseLeft())"
+                 @onclick="ContextCloseLeftAsync">关闭左侧</div>
+            <div class="el-pro-tabs-grow__ctx-item @(CanCloseRight() ? string.Empty : "is-disabled")"
+                 role="menuitem" tabindex="0" aria-disabled="@BoolText(!CanCloseRight())"
+                 @onclick="ContextCloseRightAsync">关闭右侧</div>
+            <div class="el-pro-tabs-grow__ctx-sep" aria-hidden="true"></div>
+            <div class="el-pro-tabs-grow__ctx-item @(CanCloseOthers() ? string.Empty : "is-disabled")"
+                 role="menuitem" tabindex="0" aria-disabled="@BoolText(!CanCloseOthers())"
+                 @onclick="ContextCloseOthersAsync">关闭其他</div>
+            <div class="el-pro-tabs-grow__ctx-item @(CanCloseAll() ? string.Empty : "is-disabled")"
+                 role="menuitem" tabindex="0" aria-disabled="@BoolText(!CanCloseAll())"
+                 @onclick="ContextCloseAllAsync">关闭全部</div>
+        </div>
+    }
+</div>

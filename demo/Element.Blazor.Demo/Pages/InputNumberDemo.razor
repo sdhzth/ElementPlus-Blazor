@@ -1,0 +1,39 @@
+@page "/input-number"
+@using ElementPlus
+
+<h1 class="demo-page-title">数字输入框 / ElInputNumber</h1>
+<p class="demo-page-sub">对齐官方：支持 @("@bind-Value")（decimal?）、Min / Max / Step、StepStrictly、Precision、ControlsPosition、Disabled、Size。</p>
+
+<div class="demo-section">
+    <h3>基础用法</h3>
+    <div class="demo-row">
+        <ElInputNumber Controls="true" @bind-Value="num1" Min="0" Max="10" Step="1" />
+        <ElInputNumber Controls="true" @bind-Value="num2" Min="-10" Max="10" Step="0.5m" />
+    </div>
+    <p class="demo-note">num1=@num1　num2=@num2</p>
+</div>
+
+<div class="demo-section">
+    <h3>严格步长 / 精度 / 控制按钮位置</h3>
+    <div class="demo-row">
+        <ElInputNumber Controls="true" @bind-Value="num1" StepStrictly="true" Step="2" />
+        <ElInputNumber Controls="true" @bind-Value="num3" Precision="2" Step="0.1m" />
+        <ElInputNumber Controls="true" @bind-Value="num1" ControlsPosition="right" />
+    </div>
+    <p class="demo-note">num3=@num3</p>
+</div>
+
+<div class="demo-section">
+    <h3>禁用与尺寸</h3>
+    <div class="demo-row">
+        <ElInputNumber Controls="true" @bind-Value="num1" Disabled="true" />
+        <ElInputNumber Controls="true" @bind-Value="num1" Size="InputSize.Large" />
+        <ElInputNumber Controls="true" @bind-Value="num1" Size="InputSize.Small" />
+    </div>
+</div>
+
+@code {
+    private decimal? num1 = 1;
+    private decimal? num2;
+    private decimal? num3 = 1.2m;
+}

@@ -1,0 +1,52 @@
+@page "/config-provider"
+@using ElementPlus
+
+<h1 class="demo-page-title">全局配置 / ElConfigProvider</h1>
+<p class="demo-page-sub">对齐官方：通过级联把全局配置下发给所有后代组件。支持 <code>Size</code>、<code>Button</code>（按钮全局配置）、<code>Locale</code>、<code>ZIndex</code>、<code>Namespace</code> 等。</p>
+
+<div class="demo-section">
+    <h3>统一组件尺寸（Size）</h3>
+    <div class="demo-row">
+        <ElButton Type="ButtonType.Primary">默认尺寸（对照）</ElButton>
+    </div>
+    <ElConfigProvider Size="ElementSize.Small">
+        <div class="demo-row">
+            <ElButton Type="ButtonType.Primary">小尺寸按钮</ElButton>
+            <ElButton>普通按钮</ElButton>
+            <ElButton Type="ButtonType.Text">文字按钮</ElButton>
+        </div>
+    </ElConfigProvider>
+    <ElConfigProvider Size="ElementSize.Large">
+        <div class="demo-row">
+            <ElButton Type="ButtonType.Primary">大尺寸按钮</ElButton>
+        </div>
+    </ElConfigProvider>
+</div>
+
+<div class="demo-section">
+    <h3>按钮全局配置（Button）</h3>
+    <ElConfigProvider Button="@(new ButtonConfigContext { Type = "primary", Plain = true })">
+        <div class="demo-row">
+            <ElButton>继承 primary + plain</ElButton>
+            <ElButton Type="ButtonType.Danger">局部覆盖 danger</ElButton>
+        </div>
+    </ElConfigProvider>
+    <ElConfigProvider Button="@(new ButtonConfigContext { AutoInsertSpace = true })">
+        <div class="demo-row">
+            <ElButton Content="确定" />
+            <ElButton Content="取消" />
+        </div>
+    </ElConfigProvider>
+    <p class="demo-note">第一组：子按钮未显式传 Type 时继承 <code>primary + plain</code>；第二组：开启 <code>AutoInsertSpace</code> 后两字按钮自动加宽。</p>
+</div>
+
+<div class="demo-section">
+    <h3>局部作用域</h3>
+    <p class="demo-note">ElConfigProvider 仅影响其内部子组件，外部组件不受影响——上面「默认尺寸（对照）」按钮未改变即是证明。</p>
+    <div class="demo-row">
+        <ElButton>外层按钮（不受上方配置影响）</ElButton>
+        <ElConfigProvider Size="ElementSize.Small">
+            <ElButton>内层按钮（小尺寸）</ElButton>
+        </ElConfigProvider>
+    </div>
+</div>

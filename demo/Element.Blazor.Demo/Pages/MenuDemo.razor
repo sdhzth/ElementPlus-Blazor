@@ -1,0 +1,130 @@
+@page "/menu"
+
+<div class="demo-section">
+    <h3>ElMenu 菜单（对齐 Element Plus Menu）</h3>
+    <p class="demo-page-sub">
+        官方属性：<code>mode</code>（vertical / horizontal）、<code>default-active</code>、<code>default-openeds</code>、
+        <code>unique-opened</code>、<code>menu-trigger</code>（hover / click）、<code>router</code>、<code>collapse</code>、
+        <code>collapse-transition</code>、<code>background-color</code> / <code>text-color</code> / <code>active-text-color</code>、
+        <code>show-timeout</code> / <code>hide-timeout</code>、<code>popper-offset</code>、
+        <code>ellipsis</code>（<b>默认 true</b>，与 EP <code>menu.ts:124</code> 一致：菜单项与子菜单标题的文字超长时省略号截断）；
+        官方事件 <code>select</code> / <code>open</code> / <code>close</code>；
+        官方 exposes <code>open</code> / <code>close</code> / <code>handleResize</code>（本库为 <code>OpenAsync</code> / <code>CloseAsync</code> / <code>HandleResizeAsync</code>）。
+        已知差异：EP 的 <code>ellipsis</code> 注释是 "available only in horizontal mode"（<code>menu.ts:122</code>），它做的是
+        「把溢出项折叠进『更多』弹层」（ResizeObserver 逐项测量），本库未实现折叠，而是把它实现为<b>文字级 CSS 截断</b>，
+        并且 vertical / horizontal 都生效；要退回旧行为（超长文字直接溢出容器）就写 <code>Ellipsis="false"</code>。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>竖向菜单（子菜单 + 分组 + 禁用项）</h3>
+    <ElMenu @ref="menuRef"
+            Mode="MenuMode.Vertical"
+            DefaultActive="1-1"
+            DefaultOpeneds="@(new[] { "1" })"
+            Style="max-width:240px;"
+            OnSelect="@(e => log = "select: " + e.Index)"
+            OnOpen="@(e => log = "open: " + e.Index)"
+            OnClose="@(e => log = "close: " + e.Index)">
+        <ElSubMenu Index="1" Label="Navigator One" Icon="el-icon-location">
+            <ElMenuItemGroup Title="Group One">
+                <ElMenuItem Index="1-1">item one</ElMenuItem>
+                <ElMenuItem Index="1-2">item two</ElMenuItem>
+            </ElMenuItemGroup>
+            <ElSubMenu Index="1-4" Label="item four">
+                <ElMenuItem Index="1-4-1">item one</ElMenuItem>
+            </ElSubMenu>
+        </ElSubMenu>
+        <ElSubMenu Index="2" Label="Navigator Two" Icon="el-icon-menu">
+            <ElMenuItem Index="2-1">item one</ElMenuItem>
+            <ElMenuItem Index="2-2">item two</ElMenuItem>
+        </ElSubMenu>
+        <ElMenuItem Index="3" Icon="el-icon-document" Disabled="true">Navigator Three（禁用）</ElMenuItem>
+        <ElMenuItem Index="4" Icon="el-icon-setting">一个很长很长很长的菜单项用于验证 ellipsis 截断</ElMenuItem>
+    </ElMenu>
+    <p class="demo-note">@log</p>
+</div>
+
+<div class="demo-section">
+    <h3>超长文字截断（左：默认 ellipsis=true；右：Ellipsis="false" 对照）</h3>
+    <p class="demo-page-sub">
+        两条菜单都是 <code>max-width:180px</code>，各含一个超长菜单项与一个超长子菜单标题。
+        左边文字被省略号截断且不再冲出边框；右边（关闭开关）保持旧行为 —— 文字直接溢出容器。
+        左边还挂了本库扩展：<b>鼠标移到行上</b>，若该行文字<b>确实被截断</b>（JS 量 <code>scrollWidth &gt; clientWidth</code>），
+        就用 <code>elTooltip</code> 在右侧浮出完整文字；未被截断的行悬停不会浮出任何东西。
+        EP 只在折叠态用 tooltip（<code>menu-item.vue:12-31</code>），非折叠的截断提示是本库自有口径。
+    </p>
+    <div class="demo-row" style="gap:24px; align-items:flex-start;">
+        <ElMenu Cls="ellipsis-on-demo" Mode="MenuMode.Vertical" Style="max-width:180px;">
+            <ElSubMenu Index="e1" Label="一个很长很长很长的子菜单标题" Icon="el-icon-folder">
+                <ElMenuItem Index="e1-1">子项</ElMenuItem>
+            </ElSubMenu>
+            <ElMenuItem Index="e2">一个很长很长很长的菜单项用于验证 ellipsis 截断</ElMenuItem>
+        </ElMenu>
+        <ElMenu Cls="ellipsis-off-demo" Ellipsis="false" Mode="MenuMode.Vertical" Style="max-width:180px;">
+            <ElSubMenu Index="f1" Label="一个很长很长很长的子菜单标题" Icon="el-icon-folder">
+                <ElMenuItem Index="f1-1">子项</ElMenuItem>
+            </ElSubMenu>
+            <ElMenuItem Index="f2">一个很长很长很长的菜单项用于验证 ellipsis 截断</ElMenuItem>
+        </ElMenu>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>折叠菜单（Collapse）</h3>
+    <div class="demo-row" style="gap:8px; align-items:flex-start;">
+        <ElButton Size="ButtonSize.Small" OnClick="@(() => collapsed = !collapsed)">@(collapsed ? "展开" : "折叠")</ElButton>
+        <ElMenu Cls="collapse-toggle-demo" Mode="MenuMode.Vertical" Collapse="@collapsed" CollapseTransition="true" Style="width:220px;">
+            <ElSubMenu Index="g1" Label="分组一" Icon="el-icon-folder">
+                <ElMenuItem Index="g1-1">子项一</ElMenuItem>
+                <ElMenuItem Index="g1-2">子项二</ElMenuItem>
+            </ElSubMenu>
+            <ElMenuItem Index="g2" Icon="el-icon-document">直接项</ElMenuItem>
+        </ElMenu>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>横向菜单 + 深色主题 + 自定义配色</h3>
+    <ElMenu Mode="MenuMode.Horizontal"
+            MenuTrigger="MenuTrigger.Hover"
+            DefaultActive="h1"
+            Theme="MenuTheme.Dark"
+            BackgroundColor="#545c64"
+            TextColor="#fff"
+            ActiveTextColor="#ffd04b"
+            Ellipsis="true">
+        <ElMenuItem Index="h1">处理中心</ElMenuItem>
+        <ElSubMenu Index="h2" Label="我的工作台">
+            <ElMenuItem Index="h2-1">选项一</ElMenuItem>
+            <ElMenuItem Index="h2-2">选项二</ElMenuItem>
+        </ElSubMenu>
+        <ElMenuItem Index="h3">订单管理</ElMenuItem>
+    </ElMenu>
+</div>
+
+<div class="demo-section">
+    <h3>手风琴模式（UniqueOpened）+ 编程式 open / close</h3>
+    <div class="demo-row" style="gap:8px; align-items:flex-start;">
+        <ElMenu @ref="accordionMenu" Mode="MenuMode.Vertical" UniqueOpened="true" Style="width:220px;">
+            <ElSubMenu Index="u1" Label="其一">
+                <ElMenuItem Index="u1-1">子项</ElMenuItem>
+            </ElSubMenu>
+            <ElSubMenu Index="u2" Label="其二">
+                <ElMenuItem Index="u2-1">子项</ElMenuItem>
+            </ElSubMenu>
+        </ElMenu>
+        <div class="demo-row" style="flex-direction:column; gap:6px;">
+            <ElButton Size="ButtonSize.Small" OnClick="@(() => accordionMenu.OpenAsync("u1"))">打开 u1</ElButton>
+            <ElButton Size="ButtonSize.Small" OnClick="@(() => accordionMenu.CloseAsync("u1"))">关闭 u1</ElButton>
+            <ElButton Size="ButtonSize.Small" OnClick="@(() => accordionMenu.OpenAsync("u2"))">打开 u2</ElButton>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool collapsed;
+    private string log = "(无事件)";
+    private ElMenu menuRef;
+    private ElMenu accordionMenu;
+}

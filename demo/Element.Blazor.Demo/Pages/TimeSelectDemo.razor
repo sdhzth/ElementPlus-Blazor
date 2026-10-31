@@ -1,0 +1,28 @@
+@page "/timeselect"
+@using ElementPlus
+
+<h1 class="demo-page-title">时间选择 / ElTimeSelect</h1>
+<p class="demo-page-sub">对齐官方：固定步长的时间下拉选择，支持 @("@bind-Value")（string）、Start / End / Step、MinTime / MaxTime、Clearable、Disabled、Size。</p>
+
+<div class="demo-section">
+    <h3>基础用法</h3>
+    <div class="demo-row">
+        <ElTimeSelect @bind-Value="value1" Placeholder="选择时间" />
+        <ElTimeSelect @bind-Value="value2" Start="08:30" End="18:30" Step="00:15" Placeholder="步长 15 分钟" />
+    </div>
+    <p class="demo-note">value1=@value1　value2=@value2</p>
+</div>
+
+<div class="demo-section">
+    <h3>禁用与尺寸</h3>
+    <div class="demo-row">
+        <ElTimeSelect @bind-Value="value1" Disabled="true" />
+        <ElTimeSelect @bind-Value="value1" Size="InputSize.Large" />
+        <ElTimeSelect @bind-Value="value1" Size="InputSize.Small" />
+    </div>
+</div>
+
+@code {
+    private string value1 = "";
+    private string value2 = "";
+}

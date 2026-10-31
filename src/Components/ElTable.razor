@@ -1,0 +1,652 @@
+@inherits ElementComponentBase
+@{
+    var styles = new List<string>();
+    var tableClsList = new List<string>();
+    tableClsList.Add("el-table");
+    if (Fit)
+    {
+        tableClsList.Add("el-table--fit");
+    }
+    if (Flexible)
+    {
+        tableClsList.Add("el-table--flexible");
+    }
+    tableClsList.Add("el-table--enable-row-hover");
+    tableClsList.Add("el-table--enable-row-transition");
+    if (Stripe)
+    {
+        tableClsList.Add("el-table--striped");
+    }
+    if (Border)
+    {
+        tableClsList.Add("el-table--border");
+    }
+    if (Resizable || (Headers != null && Headers.Any(x => x.Resizable)))
+    {
+        tableClsList.Add("is-resizable");
+    }
+    if (Loading)
+    {
+        tableClsList.Add("is-loading");
+    }
+    var tableSizeCssValue = EffectiveSize == InputSize.Large ? "large" : EffectiveSize == InputSize.Small ? "small" : null;
+    if (tableSizeCssValue != null)
+    {
+        tableClsList.Add($"el-table--{tableSizeCssValue}");
+    }
+
+    styles.Add("width:100%");
+    var fixedHeight = Height > 0 ? Height : MaxHeight;
+    if (fixedHeight > 0)
+    {
+        tableClsList.Add("el-table--scrollable-y");
+        styles.Add((Height > 0 ? "height:" : "max-height:") + fixedHeight + "px");
+    }
+    if (IsEmpty)
+    {
+        tableClsList.Add("is-empty");
+    }
+
+    styles.AddRange(Style?.Split(';') ?? new string[0]);
+
+    <div style="@string.Join(";", styles)" @ref="Container" class="@string.Join(" ", tableClsList)" role="table" aria-busy="@Loading" @onfocusout="OnTableFocusOutAsync">
+        @if (Loading)
+        {
+            <div class="el-loading-mask" style="background-color:@(LoadingBackground ?? "var(--el-mask-color)")">
+                <div class="el-loading-spinner">
+                    @if (string.IsNullOrWhiteSpace(LoadingIconClass))
+                    {
+                        <svg viewBox="25 25 50 50" class="circular">
+                            <circle cx="50" cy="50" r="20" fill="none" class="path"></circle>
+                        </svg>
+                    }
+                    else
+                    {
+                        <i class="@LoadingIconClass"></i>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(LoadingText))
+                    {
+                        <p class="el-loading-text">@LoadingText</p>
+                    }
+                </div>
+            </div>
+        }
+        @if (headerRendered)
+        {
+
+            Headers = Headers.OrderBy(x => x.SortNo).ToList();
+            var validColumnCount = Headers.Count();
+            @if (ShowHeader && !HideHeader)
+            {
+                @* 横向滚动同步由 dom.js 的 elementTableSyncScroll 纯 JS 镜像完成：
+                   用 Blazor 的 @onscroll 会让「每滚一次 = 整表重渲染一次」，行多时就是空白停滞。 *@
+                <div class="el-table__header-wrapper" @ref="headerElement">
+                    <table cellspacing="0" cellpadding="0" border="0" class="el-table__header" style="@(TableWidthStyle + (string.IsNullOrEmpty(TableLayout) ? "" : ";table-layout:" + TableLayout))">
+                    <colgroup>
+                        @if (HasSelectionColumn)
+                        {
+                            <col name="el-table_1_column_0" width="@SelectionColumnWidth" />
+                        }
+                        @for (int i = 1; i <= Headers.Count; i++)
+                        {
+                            var header = Headers.ElementAt(i - 1);
+                            if (header.Ignore)
+                            {
+                                continue;
+                            }
+                            @* 宽度来源：(显式 Width > MinWidth > 默认 80px) + 表头图标盒另算的加量
+                               （排序 24 / 筛选 18），表头与表体两张 table 走同一个方法才能对齐。
+                               详见 ElTable.razor.cs ResolveColumnWidth
+                               @key 用列序号而不是 header.Text：Blazor 的重复键检查只在更新 diff 里做
+                               （RenderTreeDiffBuilder.ThrowExceptionForDuplicateKey），宿主一张表里两列同名
+                               （zyweb 物料条码表 u_barcode/u_color 都叫「颜色」）时，第二次渲染整张表就抛
+                               「More than one sibling of element 'col' has the same key value」，用户侧只剩黄条。
+                               标题是给人看的文本、不是身份；下面分组表头那两条分支本来就用 @key="c{i}"。
+                               表体那张 table 的同名 <col> 一并改，两边必须同一套键。 *@
+                            <col name="el-table_1_column_@i" @key="@($"col{i}")" width="@ResolveColumnWidth(header)" />
+                        }
+                        @if (UsesTrailingFiller)
+                        {
+                            @* 尾部填充列（TrailingFiller，批次91）：<col> 故意不带 width ⇒ table-layout:fixed
+                               把「表宽 − Σ声明」全部给它，其余列精确等于声明值。表头表体两张 table 都要有，
+                               且都排在 gutter 之前，否则列序错位。详见 docs/table-trailing-filler.md。 *@
+                            <col name="el-table_1_column_filler" @key="@("colfiller")" />
+                        }
+                        <col name="gutter" width="0" />
+                    </colgroup>
+                    <thead class="has-gutter">
+                        @* 没有分组表头时走原来的单行路径（一个字节都不动），有分组才走下面的两行分支。 *@
+                        @if (!HasColumnGroups)
+                        {
+                        <tr class="@GetHeaderRowClass()" style="@StyleToString(GetHeaderRowStyle())" role="row">
+                            @if (HasSelectionColumn)
+                            {
+                                <th colspan="1" rowspan="1" class="el-table_1_column_0 el-table__cell el-table-column--selection is-leaf" role="columnheader">
+                                    <div class="cell">
+                                        @if (SelectionMultiple)
+                                        {
+                                            <ElCheckbox TValue="Boolean" @ref="chkAll" Name="selectAll" Status="selectAllStatus" StatusChanged="ChangeAllStatus"></ElCheckbox>
+                                        }
+                                    </div>
+                                </th>
+                            }
+                            @for (int i = 1; i <= Headers.Count; i++)
+                            {
+                                var header = Headers.ElementAt(i - 1);
+                                if (header.Ignore)
+                                {
+                                    continue;
+                                }
+                                <th colspan="1" rowspan="1" @key="@($"th{i}")" class="@MergeHeaderCellClass(header, i, GetHeaderCellClass(header, i))" style="@StyleToString(MergeCellStyle(header, null, 0, i))" role="columnheader"
+                                    aria-sort="@(header.SortOrder == TableSortOrder.Ascending ? "ascending" : header.SortOrder == TableSortOrder.Descending ? "descending" : "none")"
+                                    @onclick="e => OnHeaderCellClickAsync(header, i)">
+                                    <div class="cell">
+                                        @* 文字必须是 .cell 的直接子节点，caret-wrapper 里只放两个箭头 —— 对齐
+                                           EP 2.14.0 table-header/index.ts（.cell 的子项先是 column.label，再是
+                                           只含 sort-caret 的 caret-wrapper）。库 CSS 给 .caret-wrapper 的是
+                                           width:24px / height:34px / flex-direction:column，把文字放进去会被
+                                           挤成一字一行、再被 .cell{overflow:hidden} 裁掉。 *@
+                                        @if (header.HeaderContent != null)
+                                                {
+                                                    @header.HeaderContent
+                                                }
+                                                else
+                                                {
+                                                    @header.Text
+                                                }
+                                        @if (header.Sortable)
+                                        {
+                                            <span class="caret-wrapper" @onclick="e => ToggleSortAsync(header)" @onclick:stopPropagation role="button" tabindex="0" aria-label="@SortLabelOf(header)">
+                                                <span class="sort-caret ascending"></span>
+                                                <span class="sort-caret descending"></span>
+                                            </span>
+                                        }
+                                        @if (HasFilterTrigger(header))
+                                        {
+                                            @* 面板不由这里渲染：漏斗是 .cell(overflow:hidden) 的子孙，面板写在这里
+                                               会被整条裁掉（「点了没反应」的真因）。这里只留触发器，面板由表格在
+                                               表体后面按 @key 渲染一份，坐标用漏斗的视口矩形钉成 position:fixed。 *@
+                                            <span class="el-table__column-filter-trigger @(IsFilterPanelOpen(header) ? "is-open" : null)"
+                                                  tabindex="0" role="button" aria-label="@FilterLabelOf(header)"
+                                                  aria-expanded="@(IsFilterPanelOpen(header) ? "true" : "false")"
+                                                  @ref="header.FilterTriggerElement"
+                                                  @onclick="e => ToggleFilterPanelAsync(header)" @onclick:stopPropagation>
+                                                <i class="el-icon-arrow-down"></i>
+                                            </span>
+                                        }
+                                    </div>
+                                    @* 列宽拖拽手柄（本库扩展，消费方批次110uu）：必须是 th 的直接子级、不能塞进
+                                       .cell —— .cell 自带 overflow:hidden。dom.js 的 elementTableColumnResizeInit
+                                       负责绑定拖拽；选择列（宽度钉死）/尾填充列/gutter 不渲染手柄。 *@
+                                    @if (IsResizableColumn(header))
+                                    {
+                                        <span class="el-table__column-resize-handle" aria-hidden="true"></span>
+                                    }
+                                </th>
+                            }
+                            @if (UsesTrailingFiller)
+                            {
+                                @* is-leaf 不是装饰：本仓表头那条 1px 下划线只挂在 th.is-leaf 上（wwwroot/css/index.css
+                                   的 `.el-table th.is-leaf, .el-table th.el-table__cell.is-leaf, .el-table td.el-table__cell
+                                   {border-bottom:var(--el-table-border)}`），尾格漏了它 → 表头横线在 1125 处断掉、
+                                   右边 454px 一片空白没有底线（实测 _tools/filler_line_f1.out）。 *@
+                                <th colspan="1" rowspan="1" @key="@("thfiller")" class="el-table__cell el-table-column--filler is-leaf" role="columnheader"><div class="cell"></div></th>
+                            }
+                            <th class="gutter" style="width: 0px; display: none;"></th>
+                        </tr>
+                        }
+                        else
+                        {
+                            @* 两层表头：第一行是分组（colspan=可见子列数）和跨两行的顶层列，第二行只放各组的孩子。
+                               colgroup、表体、取数、排序、筛选全都按 Headers 里的叶子列算，分组只影响表头这两行，
+                               所以既有单行表头的表格行为不受影响。叶子单元格沿用上面单行分支的同一套类名/事件。 *@
+                            var topHeaders = TopLevelHeaders();
+                            <tr class="@GetHeaderRowClass() is-group" style="@StyleToString(GetHeaderRowStyle())" role="row">
+                                @if (HasSelectionColumn)
+                                {
+                                    <th colspan="1" rowspan="2" class="el-table_1_column_0 el-table__cell el-table-column--selection is-leaf" role="columnheader">
+                                        <div class="cell">
+                                            @if (SelectionMultiple)
+                                            {
+                                                <ElCheckbox TValue="Boolean" @ref="chkAll" Name="selectAll" Status="selectAllStatus" StatusChanged="ChangeAllStatus"></ElCheckbox>
+                                            }
+                                        </div>
+                                    </th>
+                                }
+                                @foreach (var top in topHeaders)
+                                {
+                                    var anchorIndex = LeafColumnIndex(top.IsGroup ? top.Children.First(x => !x.Ignore) : top);
+                                    if (top.IsGroup)
+                                    {
+                                        @* 键用列序号而非标题：交叉报表各分组的子列标题会重复（数量/金额），
+                                           标题做键会在同一 <tr> 里撞车。 *@
+                                        <th colspan="@top.Children.Count(x => !x.Ignore)" rowspan="1" @key="@($"g{anchorIndex}")" class="@MergeHeaderCellClass(top, anchorIndex, GetGroupHeaderCellClass(top, anchorIndex))" style="@StyleToString(MergeCellStyle(top, null, 0, anchorIndex))" role="columnheader">
+                                            <div class="cell">@top.Text</div>
+                                        </th>
+                                    }
+                                    else
+                                    {
+                                        var header = top;
+                                        var i = anchorIndex;
+                                        var rowspan = 2;
+                                        <th colspan="1" rowspan="@rowspan" @key="@($"c{i}")" class="@MergeHeaderCellClass(header, i, GetHeaderCellClass(header, i))" style="@StyleToString(MergeCellStyle(header, null, 0, i))" role="columnheader"
+                                            aria-sort="@(header.SortOrder == TableSortOrder.Ascending ? "ascending" : header.SortOrder == TableSortOrder.Descending ? "descending" : "none")"
+                                            @onclick="e => OnHeaderCellClickAsync(header, i)">
+                                            <div class="cell">
+                                                @if (header.HeaderContent != null)
+                                                {
+                                                    @header.HeaderContent
+                                                }
+                                                else
+                                                {
+                                                    @header.Text
+                                                }
+                                                @if (header.Sortable)
+                                                {
+                                                    <span class="caret-wrapper" @onclick="e => ToggleSortAsync(header)" @onclick:stopPropagation role="button" tabindex="0" aria-label="@SortLabelOf(header)">
+                                                        <span class="sort-caret ascending"></span>
+                                                        <span class="sort-caret descending"></span>
+                                                    </span>
+                                                }
+                                                @if (HasFilterTrigger(header))
+                                                {
+                                                    <span class="el-table__column-filter-trigger @(IsFilterPanelOpen(header) ? "is-open" : null)"
+                                                          tabindex="0" role="button" aria-label="@FilterLabelOf(header)"
+                                                          aria-expanded="@(IsFilterPanelOpen(header) ? "true" : "false")"
+                                                          @ref="header.FilterTriggerElement"
+                                                          @onclick="e => ToggleFilterPanelAsync(header)" @onclick:stopPropagation>
+                                                        <i class="el-icon-arrow-down"></i>
+                                                    </span>
+                                                }
+                                            </div>
+                                            @if (IsResizableColumn(header))
+                                            {
+                                                <span class="el-table__column-resize-handle" aria-hidden="true"></span>
+                                            }
+                                        </th>
+                                    }
+                                }
+                                @if (UsesTrailingFiller)
+                                {
+                                    @* 分组表头：尾列和「跨两行的顶层列」同构，所以挂在第一行、rowspan=2，
+                                       第二行不再补格子（补了会把这一列在表头里占两格、和 colgroup 错位）。
+                                       rowspan=2 时它的下缘正好是整个表头的下缘，所以同样要 is-leaf 才接得上那条横线。 *@
+                                    <th colspan="1" rowspan="2" @key="@("thfiller")" class="el-table__cell el-table-column--filler is-leaf" role="columnheader"><div class="cell"></div></th>
+                                }
+                                <th class="gutter" style="width: 0px; display: none;"></th>
+                            </tr>
+                            <tr class="@GetHeaderRowClass()" style="@StyleToString(GetHeaderRowStyle())" role="row">
+                                @foreach (var group in topHeaders.Where(x => x.IsGroup))
+                                {
+                                    @foreach (var header in group.Children.Where(x => !x.Ignore))
+                                    {
+                                        var i = LeafColumnIndex(header);
+                                        var rowspan = 1;
+                                        <th colspan="1" rowspan="@rowspan" @key="@($"c{i}")" class="@MergeHeaderCellClass(header, i, GetHeaderCellClass(header, i))" style="@StyleToString(MergeCellStyle(header, null, 0, i))" role="columnheader"
+                                            aria-sort="@(header.SortOrder == TableSortOrder.Ascending ? "ascending" : header.SortOrder == TableSortOrder.Descending ? "descending" : "none")"
+                                            @onclick="e => OnHeaderCellClickAsync(header, i)">
+                                            <div class="cell">
+                                                @if (header.HeaderContent != null)
+                                                {
+                                                    @header.HeaderContent
+                                                }
+                                                else
+                                                {
+                                                    @header.Text
+                                                }
+                                                @if (header.Sortable)
+                                                {
+                                                    <span class="caret-wrapper" @onclick="e => ToggleSortAsync(header)" @onclick:stopPropagation role="button" tabindex="0" aria-label="@SortLabelOf(header)">
+                                                        <span class="sort-caret ascending"></span>
+                                                        <span class="sort-caret descending"></span>
+                                                    </span>
+                                                }
+                                                @if (HasFilterTrigger(header))
+                                                {
+                                                    <span class="el-table__column-filter-trigger @(IsFilterPanelOpen(header) ? "is-open" : null)"
+                                                          tabindex="0" role="button" aria-label="@FilterLabelOf(header)"
+                                                          aria-expanded="@(IsFilterPanelOpen(header) ? "true" : "false")"
+                                                          @ref="header.FilterTriggerElement"
+                                                          @onclick="e => ToggleFilterPanelAsync(header)" @onclick:stopPropagation>
+                                                        <i class="el-icon-arrow-down"></i>
+                                                    </span>
+                                                }
+                                            </div>
+                                            @if (IsResizableColumn(header))
+                                            {
+                                                <span class="el-table__column-resize-handle" aria-hidden="true"></span>
+                                            }
+                                        </th>
+                                    }
+                                }
+                                <th class="gutter" style="width: 0px; display: none;"></th>
+                            </tr>
+                        }
+                    </thead>
+                    </table>
+                </div>
+            }
+
+            var bodyStyleList = new List<string>();
+            if (fixedHeight > 0)
+            {
+                var bodyHeight = Math.Max(0, fixedHeight - (ShowHeader ? headerHeight : 0));
+                bodyStyleList.Add((Height > 0 ? "height:" : "max-height:") + bodyHeight + "px");
+            }
+            <div class="el-table__body-wrapper @ScrollClass" style="@string.Join(";", bodyStyleList)" @ref="bodyWrapperElement">
+                <table cellspacing="0" cellpadding="0" border="0" class="el-table__body" style="@(TableWidthStyle + (string.IsNullOrEmpty(TableLayout) ? "" : ";table-layout:" + TableLayout))">
+                    <colgroup>
+                        @if (HasSelectionColumn)
+                        {
+                            <col name="el-table_1_column_0" width="@SelectionColumnWidth" />
+                        }
+                        @for (int i = 1; i <= Headers.Count; i++)
+                        {
+                            var header = Headers.ElementAt(i - 1);
+                            if (header.Ignore)
+                            {
+                                continue;
+                            }
+                            @* 宽度来源：(显式 Width > MinWidth > 默认 80px) + 表头图标盒另算的加量
+                               （排序 24 / 筛选 18），表头与表体两张 table 走同一个方法才能对齐。
+                               详见 ElTable.razor.cs ResolveColumnWidth *@
+                            <col name="el-table_1_column_@i" @key="@($"col{i}")" width="@ResolveColumnWidth(header)" />
+                        }
+                        @if (UsesTrailingFiller)
+                        {
+                            @* 与表头那张 table 的尾列一一对应（同一根不带 width 的 <col>），两边必须同一套键。 *@
+                            <col name="el-table_1_column_filler" @key="@("colfiller")" />
+                        }
+                    </colgroup>
+                    <tbody>
+                        @{ var pageRows = PageRows; }
+                        @for (int i = 0; i < pageRows.Count; i++)
+                        {
+                            var clsList = new List<string>();
+                            clsList.Add("el-table__row");
+                            if (Stripe && i % 2 == 1)
+                            {
+                                clsList.Add("el-table__row--striped");
+                            }
+                            var row = pageRows.ElementAt(i);
+                            @* 单元格内容交给 ElOverflowTooltip 的 ChildContent（延迟委托）后要等父片段跑完
+                               才求值，@for 的计数器 i 那时已是最后一行的下标（Index 列实测三行全成 "4"）。
+                               循环体内复制一份，子片段只用这份。 *@
+                            var cellRowIndex = i;
+                            @* current-row 只由 GetRowClass 产出：EP 口径是 highlight-current-row 关着就不高亮 *@
+                            if (hiddenRows.Contains(row))
+                            {
+                                continue;
+                            }
+                            var treeRow = row as TreeItemBase;
+                            if (treeRow != null)
+                            {
+                                clsList.Add("el-table__row--level-0");
+                            }
+                            var rowId = treeRow?.Id ?? 0;
+                            @* 键盘处理器只在可编辑表上挂载：Blazor 在事件处理后无条件 StateHasChanged，
+                               非可编辑表里这两个处理器本来就 return，挂着只会让「每敲一个键整表重渲染一次」
+                               —— 单元格里单向 Value= 的编辑器会被按旧值打回（③ 输入打不进去的真因）。 *@
+                            <tr @key="row" class="@(string.Join(" ", clsList) + " " + GetRowClass(row, i))" style="@StyleToString(GetRowStyle(row, i))" @onclick="async e => { await RowClick.InvokeAsync(row); await SetCurrentRowAsync(row); }" @ondblclick="e=>BeginEditAsync(row, e)" @attributes="GetRowKeyboardAttributes(row)" role="row">
+                                @if (HasSelectionColumn)
+                                {
+                                    <td rowspan="1" colspan="1" class="el-table_1_column_0 el-table__cell el-table-column--selection">
+                                        <div class="cell">
+                                            <ElCheckbox TValue="Boolean" OnRenderCompleted="chk => OnRowCheckBoxRenderCompleted(row, (ElCheckbox<bool>)chk)" Name="@($"chk{i}")" Status="SelectedRows.Contains(row) ? Status.Checked : Status.UnChecked" StatusChanged="(status => ChangeRowStatus(status, row))"></ElCheckbox>
+                                        </div>
+                                    </td>
+                                }
+                                @for (int j = 1; j <= Headers.Count; j++)
+                                {
+                                    var header = Headers.ElementAt(j - 1);
+                                    if (row == editingRow)
+                                    {
+                                        header.RawValue = row;
+                                    }
+                                    if (header.Ignore)
+                                    {
+                                        continue;
+                                    }
+                                    @* span-method：返回 (0,0) 表示该单元格被前面单元格合并覆盖、不渲染 *@
+                                    var __span = GetSpan(row, header, i, j - 1);
+                                    if (__span.Rowspan == 0 && __span.Colspan == 0)
+                                    {
+                                        continue;
+                                    }
+                                    if (IsEditable && header.IsEditable && editingRow == row && header.EditorRenderConfig != null && !header.EditorRenderConfig.RawInfoHasSet)
+                                    {
+                                        header.EditorRenderConfig.RawInfoHasSet = true;
+                                        header.EditorRenderConfig.RawValue = header.EvalRaw?.Invoke(row) ?? null;
+                                        header.EditorRenderConfig.RawLabel = header.Eval?.Invoke(row) ?? null;
+                                        header.EditorRenderConfig.EditingValue = header.EditorRenderConfig.RawValue;
+                                    }
+                                    if (header.IsTree)
+                                    {
+                                        if (treeRow == null)
+                                        {
+                                            throw new ElementException("ElTableTreeColumn 要求实体继承 " + nameof(TreeItemBase) + " 类型");
+                                        }
+                                        @* 箭头的判据对齐 EP 2.14.0：`config.ts:249` 要 `!treeNode.noLazyChildren`，
+                                           而 treeNode 只在 `store/tree.ts:52-67 normalize()` 走到「children 是非空数组」
+                                           （或 lazy 模式）时才建 —— 本地数据里没有孩子的那一行根本不画箭头。
+                                           以前写成 `HasChildren || 真有孩子`，字段优先，于是宿主给一个叶子节点误标
+                                           HasChildren 就留下一个「点了没反应」的死箭头（用户 2026-10-10 指的那两行）。
+                                           只有懒加载（设了 Url）才继续认这个字段：那一刻子节点还没取回来，
+                                           加载完拿到空数组时 FetchChildrenAsync 会把字段置回 false，箭头随之消失
+                                           （等价 EP render-helper.ts:234 的 `noLazyChildren = !(cur.children.length)`）。 *@
+                                        var hasActualChild = rows.Cast<TreeItemBase>().Any(x => x.ParentId == rowId);
+                                        var hasChild = hasActualChild || (!string.IsNullOrWhiteSpace(Url) && treeRow.HasChildren);
+                                        <td rowspan="@__span.Rowspan" @key="@($"td{j}")" colspan="@__span.Colspan" class="@MergeCellClass(header, row, i, j, GetBodyCellClass(header, j))" style="@StyleToString(MergeCellStyle(header, row, i, j))" @onclick="e => OnCellClickAsync(row, header, i, j - 1)">
+                                            <ElOverflowTooltip Enabled="@CellOverflowEnabled(header)" Class="@CellOverflowClass(header)"
+                                                               ClipStyle="@CellOverflowStyle(header)" TriggerStyle="display:block"
+                                                               Placement="top" Effect="dark">
+                                                @if (hasChild)
+                                                {
+                                                    <span class="el-table__indent" style="padding-left: @(treeRow.Level*16)px;"></span>
+                                                    <div class="el-table__expand-icon el-table__expand-icon--expanded" @onclick="e=>ToggleTreeAsync(row)">
+                                                        @if (treeRow.IsLoading)
+                                                        {
+                                                            <i class="el-icon-loading"></i>
+                                                        }
+                                                        else
+                                                        {
+                                                            <i class="el-icon-arrow-@(treeRow.Direction ?? "right")"></i>
+                                                        }
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <span class="el-table__indent" style="padding-left: @((treeRow.Level+1)*16)px;"></span>
+                                                }
+                                                @if (header.Template != null)
+                                                {
+                                                    @header.Template(row)
+                                                }
+                                                else if (UseCellFormatter(header))
+                                                {
+                                                    @FormattedCellFragment(header, row, cellRowIndex)
+                                                }
+                                                else if (header.Eval != null)
+                                                {
+                                                    @header.Eval(row)
+                                                }
+                                            </ElOverflowTooltip>
+                                        </td>
+                                    }
+                                    else
+                                    {
+                                        <td rowspan="@__span.Rowspan" @key="@($"td{j}")" colspan="@__span.Colspan" class="@MergeCellClass(header, row, i, j, GetBodyCellClass(header, j, row))" style="@StyleToString(MergeCellStyle(header, row, i, j))" @onclick="e => OnCellClickAsync(row, header, i, j - 1)" @attributes="GetEditingCellAttributes(row, header)">
+                                            @* show-overflow-tooltip（EP 契约，默认关）：开着时 .cell 换成不换行 +
+                                               定宽（EP table-column/render-helper.ts:193-200），悬停实测被裁才浮全文。
+                                               关着时这里就是一个普通的 <div class="cell">，DOM 与改动前一致。 *@
+                                            <ElOverflowTooltip Enabled="@CellOverflowEnabled(header)" Class="@CellOverflowClass(header)"
+                                                               ClipStyle="@CellOverflowStyle(header)" TriggerStyle="display:block"
+                                                               Placement="top" Effect="dark">
+                                                @if (row == editingRow && CanEdit(header))
+                                                {
+                                                    @if (!header.IsCheckBox)
+                                                    {
+                                                        <ElDynamicComponent Component="header.EditorRender" Config="header.EditorRenderConfig"></ElDynamicComponent>
+                                                    }
+                                                }
+                        else
+                        {
+                            if (header.Type == "index")
+                            {
+                                @(header.IndexMethod != null ? header.IndexMethod(cellRowIndex) : (object)(cellRowIndex + 1))
+                            }
+                            else if (header.IsCheckBox)
+                            {
+                                <ElCheckbox TValue="Boolean" Status="Convert.ToBoolean(header.Eval(row)) ? Status.Checked : Status.UnChecked" IsDisabled="true"></ElCheckbox>
+                            }
+                                                    else if (header.Template != null)
+                                                    {
+                                                        @header.Template(row)
+                                                    }
+                                                    else if (UseCellFormatter(header))
+                                                    {
+                                                        @FormattedCellFragment(header, row, cellRowIndex)
+                                                    }
+                                                    else if (header.Eval != null)
+                                                    {
+                                                        if (EnableMarkupString)
+                                                        {
+                                                            @(new MarkupString(header.Eval(row)?.ToString()))
+                                                        }
+                                                        else
+                                                        {
+                                                            @header.Eval(row)
+                                                        }
+                                                    }
+                                                }
+                                            </ElOverflowTooltip>
+                                                    </td>
+                                                }
+                                            }
+                                                @if (UsesTrailingFiller)
+                                                {
+                                                    @* 尾列格子：空的，只负责把行铺到容器右缘（斑马线、悬停底色随之连续）。
+                                                       内衬/边框在 CSS 里归零，Σ>容器时它塌成 0 宽、不撑出滚动条。 *@
+                                                    <td rowspan="1" colspan="1" @key="@("tdfiller")" class="el-table__cell el-table-column--filler"><div class="cell"></div></td>
+                                                }
+                                                </tr>
+                                            }
+                                                @if (IsEditable && editingRow == null)
+                                                {
+                                                    <tr @onkeyup="e=> { saveAction = SaveAction.Create; _ = SaveTableAsync(e); }" @ref="editingRowEl">
+                                                        @if (HasSelectionColumn)
+                                                        {
+                                                            <td rowspan="1" colspan="1" class="el-table_1_column_0 el-table__cell">
+                                                                <div class="cell">
+
+                                                                </div>
+                                                            </td>
+                                                        }
+                                                        @for (int j = 0; j < Headers.Count - 1; j++)
+                                                        {
+                                                            var header = Headers.ElementAt(j);
+                                                            if (header.Ignore)
+                                                            {
+                                                                continue;
+                                                            }
+                                                            if (CanEdit(header))
+                                                            {
+                                                                <td rowspan="1" colspan="1" class="el-table_1_column_0 el-table__cell">
+                                                                    <div class="cell">
+                                                                        <ElDynamicComponent Component="header.EditorRender" Config="header.EditorRenderConfig"></ElDynamicComponent>
+                                                                    </div>
+                                                                </td>
+                                                            }
+                                                            else
+                                                            {
+                                                                <td rowspan="1" colspan="1" class="el-table_1_column_0 el-table__cell">
+                                                                    <div class="cell">
+                                                                    </div>
+                                                                </td>
+                                                            }
+                                                        }
+
+                                                        <td rowspan="1" colspan="1" class="el-table_1_column_0 el-table__cell">
+                                                            <div class="cell">
+                                                                <ElButton Type="ButtonType.Primary" Size="ButtonSize.Small" OnClick="SaveTableAsync" @ref="saveAddButton">保存</ElButton>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        @if (ShowSummary)
+                                        {
+                                            var __summary = GetSummaryCells();
+                                            <tfoot>
+                                                <tr class="el-table__footer">
+                                                    @if (HasSelectionColumn)
+                                                    {
+                                                        <td class="el-table_1_column_0 el-table__cell" rowspan="1" colspan="1"><div class="cell"></div></td>
+                                                    }
+                                                    @for (int j = 1; j <= Headers.Count; j++)
+                                                    {
+                                                        var header = Headers.ElementAt(j - 1);
+                                                        if (header.Ignore)
+                                                        {
+                                                            continue;
+                                                        }
+                                                        var __sum = __summary.ContainsKey(header) ? __summary[header] : null;
+                                                        <td class="@MergeCellClass(header, null, -1, j, "el-table__cell")" rowspan="1" colspan="1">
+                                                            <div class="cell">@__sum</div>
+                                                        </td>
+                                                    }
+                                                    @if (UsesTrailingFiller)
+                                                    {
+                                                        @* 合计行也在 body 那张 table 里，列数必须和 colgroup 对上（对不上时浏览器补空格子，
+                                                           但边框/底色就不跟上面一行了）。 *@
+                                                        <td class="el-table__cell el-table-column--filler" rowspan="1" colspan="1"><div class="cell"></div></td>
+                                                    }
+                                                </tr>
+                                            </tfoot>
+                                        }
+                                        </table>
+                                        @if (IsEmpty)
+                                        {
+                                            <div class="el-table__empty-block" style="@EmptyBlockStyle" role="row">
+                                                <div class="el-table__empty-text">
+                                                    @if (Empty != null)
+                                                    {
+                                                        @Empty
+                                                    }
+                                                    else
+                                                    {
+                                                        @(EffectiveEmptyText)
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="el-table__column-resize-proxy" style="display: none;"></div>
+                                    @if (openFilterHeader != null)
+                                    {
+                                        @* 面板挂在表体之后、由表格按 @key 现造：它是 position:fixed 的浮层，
+                                           放这里只借 DOM 位置，不受 .cell / 表头包装的 overflow 裁剪。
+                                           遮罩兼「点外面收起」（EP 用 clickoutside 指令，本仓没有那套 popper 跟随），
+                                           滚轮也直接收起 —— 面板是打开时一次定标的，页面一滚就会和漏斗错位。 *@
+                                        <div class="el-table-filter__backdrop" @onclick="CloseFilterPanel" @onwheel="CloseFilterPanel"></div>
+                                        <ElTableFilterPanel @key="filterPanelRenderKey" Header="@openFilterHeader" PanelStyle="@filterPanelStyle"
+                                                            Committed="OnFilterPanelCommittedAsync" Closed="CloseFilterPanel"></ElTableFilterPanel>
+                                    }
+                                    @if (EnablePagination)
+                                    {
+                                        if (Math.Ceiling((float)EffectiveTotal / PageSize) > 1 || !NoPaginationOnSinglePage)
+                                        {
+                                            <div style="margin-top:20px;margin-bottom:20px;text-align:right;">
+                                                <ElPagination Total="EffectiveTotal" ShowPageCount="ShowPageCount" PageSize="PageSize" CurrentPageChanged="CurrentPageChangedAsync"></ElPagination>
+                                            </div>
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    <CascadingValue Value="@this">
+                                        @ChildContent
+                                    </CascadingValue>
+                                }
+                            </div>
+                        }

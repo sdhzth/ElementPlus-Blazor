@@ -1,0 +1,76 @@
+@page "/tour"
+@using ElementPlus
+@using Microsoft.AspNetCore.Components
+
+<h1 class="demo-page-title">引导 Tour / ElTour</h1>
+<p class="demo-page-sub">对齐官方：Steps（TourStep 列表）、Target（CSS 选择器定位）、遮罩镂空高亮（gap.offset / gap.radius）、箭头贴边、Placement、Mask、ShowArrow、ShowClose、NextText / PrevText / FinishText，以及扩展的 ScrollIntoView。</p>
+
+<div class="demo-section">
+    <h3>基础用法</h3>
+    <div class="demo-row">
+        <button class="el-button el-button--primary" @onclick="StartTour">开始引导</button>
+        <span class="demo-note">ESC 关闭，左 / 右方向键切步（右方向键在最后一步＝完成）。点遮罩暗处不会关闭，与官方一致。</span>
+    </div>
+    <div id="tour-target-1" class="demo-tour-box">第一步目标区域</div>
+    <div id="tour-target-2" class="demo-tour-box is-narrow">第二步目标（窄块，右侧放得下面板）</div>
+    <div class="demo-row" style="margin-top:12px">
+        <button id="tour-target-3" class="el-button" @onclick="Ping">第三步目标（镂空里可直接点击）</button>
+        <span class="demo-note">已点击 @clickedCount 次</span>
+    </div>
+    <div class="demo-tour-spacer">把这一屏滚进可视区，第三步的镂空洞会跟着目标一起走。</div>
+</div>
+
+<ElTour @bind-Value="tourVisible" Steps="tourSteps" Placement="bottom" Gap="@(new TourGap { Offset = 6, Radius = 4 })" />
+
+<div class="demo-section">
+    <h3>组件级位置兜底（Placement）</h3>
+    <p class="demo-note">通过组件级 <c>Placement="bottom"</c> 设置所有步骤的默认弹出位置；单个 <c>TourStep.Placement</c> 设置时会覆盖它（对齐官方 <c>placement</c>，2.4.2+）。首屏放不下时面板会自动翻到目标另一侧，箭头跟着换边。</p>
+    <p class="demo-note"><c>Gap.Offset</c> 决定镂空洞从目标矩形四周各外扩多少像素（官方默认 6），<c>Gap.Radius</c> 是洞的圆角（官方默认 2）。</p>
+</div>
+
+@code {
+    private bool tourVisible;
+    private int clickedCount;
+    private List<TourStep> tourSteps = new();
+
+    private void StartTour() => tourVisible = true;
+
+    private void Ping() => clickedCount++;
+
+    protected override void OnInitialized()
+    {
+        tourSteps = new List<TourStep>
+        {
+            new TourStep { Target = "#tour-target-1", Title = "欢迎", Content = b => b.AddContent(0, "这是第一步的说明文字，指向第一个目标区域。") },
+            new TourStep { Target = "#tour-target-2", Title = "换个方向", Placement = "right", Content = b => b.AddContent(0, "这一步用 Placement=right，面板与箭头都贴在目标右侧。") },
+            new TourStep { Target = "#tour-target-3", Title = "目标仍可点击", Placement = "top", Content = b => b.AddContent(0, "官方 target-area-clickable 默认开启：镂空洞里没有遮罩像素，直接点这里那个按钮就能生效。") },
+            // 官方 useTarget 取不到 reference 时：遮罩整块铺开（没有洞）、面板退回视口正中、不出箭头
+            new TourStep { Title = "没有目标的一步", Content = b => b.AddContent(0, "这一步没有设 Target，所以没有镂空洞，面板居中显示 —— 与官方 content.vue 的无 reference 分支一致。") }
+        };
+    }
+}
+
+<style>
+    .demo-tour-box {
+        margin-top: 12px;
+        padding: 24px;
+        border: 1px dashed var(--el-border-color, #dcdfe6);
+        border-radius: 6px;
+        background: #fff;
+    }
+
+    /* 第二步用 Placement=right：目标必须是窄块，否则 520px 的面板在右侧放不下，
+       flip 会把它翻到左边，演示就看不出 right 这个档位了。 */
+    .demo-tour-box.is-narrow {
+        display: inline-block;
+        width: 280px;
+    }
+
+    .demo-tour-spacer {
+        margin-top: 24px;
+        padding: 48px 24px;
+        border: 1px dashed var(--el-border-color, #dcdfe6);
+        border-radius: 6px;
+        color: var(--el-text-color-secondary, #909399);
+    }
+</style>

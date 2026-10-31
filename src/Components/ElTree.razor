@@ -1,0 +1,55 @@
+@inherits ElementComponentBase
+
+@if (ShowSearch)
+{
+    <div class="el-tree__search">
+        <ElInput TValue="string" Value="@searchText" ValueChanged="@OnSearchTextChanged"
+                 Placeholder="@SearchPlaceholder" Clearable="true" />
+    </div>
+}
+@if (items == null)
+{
+    <CascadingValue Value="this">
+        @ChildContent
+    </CascadingValue>
+    @* 真正“无数据”的场景（无数据源、无声明式子节点、也未配置远程 Url）才显示空状态占位，
+       避免远程加载中（items 暂为 null）或声明式树（ChildContent 非空）被误显示“无数据”。 *@
+    @if (ChildContent == null && string.IsNullOrWhiteSpace(Url))
+    {
+        @* 空态文字必须包在 .el-tree__empty-block 里（EP 口径）：文字是 absolute + translate(-50%,-50%)，
+           居中基准是那个有 min-height 的 block。少了这层，基准会塌成 0 高容器，文字就压到树搜索框上。 *@
+        <div class="el-tree__empty-block">
+            <div class="el-tree__empty-text">@EffectiveEmptyText</div>
+        </div>
+    }
+}
+else
+{
+    <div id="@Id" role="tree" aria-label="@AriaLabel" class="@TreeClass" style="@Style" @attributes="Attributes">
+        @{
+            foreach (var rootNode in VisibleRootNodes)
+            {
+                @RenderTreeNode(rootNode)
+            }
+
+            @if (VisibleRootNodes.Count == 0)
+            {
+                @* 同上：过滤到 0 个节点时也要有 block 这层，否则空态文字压在容器顶上 *@
+                <div class="el-tree__empty-block">
+                    <div class="el-tree__empty-text">
+                        @if (EmptyContent != null)
+                        {
+                            @EmptyContent
+                        }
+                        else
+                        {
+                            @EffectiveEmptyText
+                        }
+                    </div>
+                </div>
+            }
+
+            <div class="el-tree__drop-indicator" style="display: none;"></div>
+        }
+    </div>
+}

@@ -1,0 +1,185 @@
+@page "/carousel"
+@using ElementPlus
+
+<div class="demo-page">
+    <h2>ElCarousel 走马灯（对齐 Element Plus Carousel）</h2>
+    <p class="demo-note">
+        结合 <code>ElCarousel</code> 与 <code>ElCarouselItem</code> 即可使用。支持的官方属性：
+        <code>Height</code> / <code>InitialIndex</code> / <code>Trigger</code>(hover·click) / <code>Autoplay</code> / <code>Interval</code> /
+        <code>IndicatorPosition</code>(inside·outside·none) / <code>Arrow</code>(hover·always·never) / <code>Type</code>(card) / <code>CardScale</code> /
+        <code>Loop</code> / <code>Direction</code>(horizontal·vertical) / <code>PauseOnHover</code> / <code>MotionBlur</code>。
+        暴露方法 <code>SetActiveItem(下标或 Name)</code> / <code>Prev()</code> / <code>Next()</code> / <code>ActiveIndex</code>。
+        本库扩展：<code>ImageFit</code>、<code>IndicatorClass</code>/<code>ArrowClass</code>、内置图片预览 <code>PreviewOnClick</code> 等（见末尾）。
+        演示图片是本地资源（<code>wwwroot/images/carousel/</code>），离线可用。
+    </p>
+
+    <div class="demo-section">
+        <h3>基础用法（指示器 hover 触发，默认）</h3>
+        <ElCarousel Height="280px">
+            @for (var i = 0; i < Slides.Length; i++)
+            {
+                var idx = i;
+                <ElCarouselItem>
+                    <img class="demo-carousel-img" src="@Slides[idx]" alt="@Alts[idx]" />
+                </ElCarouselItem>
+            }
+        </ElCarousel>
+    </div>
+
+    <div class="demo-section">
+        <h3>指示器 click 触发（Trigger="CarouselTrigger.Click"）</h3>
+        <ElCarousel Height="200px" Trigger="CarouselTrigger.Click">
+            @for (var i = 0; i < Slides.Length; i++)
+            {
+                var idx = i;
+                <ElCarouselItem>
+                    <img class="demo-carousel-img" src="@Slides[idx]" alt="@Alts[idx]" />
+                </ElCarouselItem>
+            }
+        </ElCarousel>
+    </div>
+
+    <div class="demo-section">
+        <h3>指示器位置 outside（IndicatorPosition="CarouselIndicatorPosition.Outside"）</h3>
+        <ElCarousel Height="200px" IndicatorPosition="CarouselIndicatorPosition.Outside">
+            @for (var i = 0; i < Slides.Length; i++)
+            {
+                var idx = i;
+                <ElCarouselItem>
+                    <img class="demo-carousel-img" src="@Slides[idx]" alt="@Alts[idx]" />
+                </ElCarouselItem>
+            }
+        </ElCarousel>
+    </div>
+
+    <div class="demo-section">
+        <h3>切换箭头常驻（Arrow="CarouselArrow.Always"，间隔 5s）</h3>
+        <ElCarousel Height="200px" Arrow="CarouselArrow.Always" Interval="5000">
+            @for (var i = 0; i < Slides.Length; i++)
+            {
+                var idx = i;
+                <ElCarouselItem>
+                    <img class="demo-carousel-img" src="@Slides[idx]" alt="@Alts[idx]" />
+                </ElCarouselItem>
+            }
+        </ElCarousel>
+    </div>
+
+    <div class="demo-section">
+        <h3>垂直方向（Direction="CarouselDirection.Vertical"，关闭自动播放）</h3>
+        <ElCarousel Height="220px" Direction="CarouselDirection.Vertical" Autoplay="false">
+            @for (var i = 0; i < Slides.Length; i++)
+            {
+                var idx = i;
+                <ElCarouselItem>
+                    <img class="demo-carousel-img" src="@Slides[idx]" alt="@Alts[idx]" />
+                </ElCarouselItem>
+            }
+        </ElCarousel>
+    </div>
+
+    <div class="demo-section">
+        <h3>卡片模式（Type="CarouselType.Card"，可点击两侧切换）</h3>
+        <ElCarousel Height="220px" Type="CarouselType.Card" Autoplay="false">
+            @for (var i = 0; i < 6; i++)
+            {
+                var idx = i;
+                <ElCarouselItem>
+                    <img class="demo-carousel-img" src="@Slides[idx % Slides.Length]" alt="@Alts[idx % Slides.Length]" />
+                </ElCarouselItem>
+            }
+        </ElCarousel>
+    </div>
+
+    <div class="demo-section">
+        <h3>动态模糊（MotionBlur="true"）</h3>
+        <ElCarousel Height="220px" Type="CarouselType.Card" MotionBlur="true" Autoplay="false">
+            @for (var i = 0; i < 6; i++)
+            {
+                var idx = i;
+                <ElCarouselItem>
+                    <img class="demo-carousel-img" src="@Slides[idx % Slides.Length]" alt="@Alts[idx % Slides.Length]" />
+                </ElCarouselItem>
+            }
+        </ElCarousel>
+    </div>
+
+    <div class="demo-section">
+        <h3>自动高度（Height="auto"，各页高度不同）</h3>
+        <ElCarousel Height="auto" Autoplay="false">
+            <ElCarouselItem><div class="auto-h">height 100px</div></ElCarouselItem>
+            <ElCarouselItem><div class="auto-h" style="height:200px;">height 200px</div></ElCarouselItem>
+            <ElCarouselItem><div class="auto-h" style="height:300px;">height 300px</div></ElCarouselItem>
+        </ElCarousel>
+    </div>
+
+    <div class="demo-section">
+        <h3>指示器带文本（ElCarouselItem 的 Label）</h3>
+        <ElCarousel Height="200px">
+            <ElCarouselItem Label="山湖"><img class="demo-carousel-img" src="@Slides[0]" alt="@Alts[0]" /></ElCarouselItem>
+            <ElCarouselItem Label="夜景"><img class="demo-carousel-img" src="@Slides[1]" alt="@Alts[1]" /></ElCarouselItem>
+            <ElCarouselItem Label="林道"><img class="demo-carousel-img" src="@Slides[2]" alt="@Alts[2]" /></ElCarouselItem>
+            <ElCarouselItem Label="海岸"><img class="demo-carousel-img" src="@Slides[3]" alt="@Alts[3]" /></ElCarouselItem>
+        </ElCarousel>
+    </div>
+
+    <div class="demo-section">
+        <h3>关闭循环（Loop="false"，到边界停住，箭头自动隐藏）</h3>
+        <ElCarousel Height="200px" Loop="false" Arrow="CarouselArrow.Always">
+            @for (var i = 0; i < Slides.Length; i++)
+            {
+                var idx = i;
+                <ElCarouselItem>
+                    <img class="demo-carousel-img" src="@Slides[idx]" alt="@Alts[idx]" />
+                </ElCarouselItem>
+            }
+        </ElCarousel>
+    </div>
+
+    <div class="demo-section">
+        <h3>编程式切换（@@ref 调用 SetActiveItem / Prev / Next）</h3>
+        <ElCarousel @ref="carouselRef" Height="200px">
+            <ElCarouselItem Name="a"><img class="demo-carousel-img" src="@Slides[0]" alt="@Alts[0]" /></ElCarouselItem>
+            <ElCarouselItem Name="b"><img class="demo-carousel-img" src="@Slides[1]" alt="@Alts[1]" /></ElCarouselItem>
+            <ElCarouselItem Name="c"><img class="demo-carousel-img" src="@Slides[2]" alt="@Alts[2]" /></ElCarouselItem>
+            <ElCarouselItem Name="d"><img class="demo-carousel-img" src="@Slides[3]" alt="@Alts[3]" /></ElCarouselItem>
+        </ElCarousel>
+        <div class="demo-row" style="margin-top:12px;">
+            <ElButton Size="ButtonSize.Small" OnClick="() => carouselRef.Prev()">上一张 Prev</ElButton>
+            <ElButton Size="ButtonSize.Small" OnClick="() => carouselRef.Next()">下一张 Next</ElButton>
+            <ElButton Size="ButtonSize.Small" OnClick="() => carouselRef.SetActiveItem(3)">跳到第 4 张(下标3)</ElButton>
+            <ElButton Size="ButtonSize.Small" OnClick="SetToC">按 Name 跳到 C</ElButton>
+            <span class="demo-note" style="margin:0;">当前激活下标：@carouselRef?.ActiveIndex</span>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h3>本库扩展：单击图片放大预览（PreviewOnClick="true"）</h3>
+        <ElCarousel Height="280px" PreviewOnClick="true" Arrow="CarouselArrow.Always">
+            @for (var i = 0; i < Slides.Length; i++)
+            {
+                var idx = i;
+                <ElCarouselItem>
+                    <img class="demo-carousel-img" src="@Slides[idx]" alt="@Alts[idx]" />
+                </ElCarouselItem>
+            }
+        </ElCarousel>
+        <p class="demo-note">单击轮播项内的图片即可打开内置 lightbox（纯文本项单击无反应）。</p>
+    </div>
+</div>
+
+@code {
+    private ElCarousel carouselRef;
+
+    private void SetToC() => carouselRef?.SetActiveItem("c");
+
+    private static readonly string[] Slides =
+    {
+        "images/carousel/mountain-lake.jpg",
+        "images/carousel/city-night.jpg",
+        "images/carousel/forest-road.jpg",
+        "images/carousel/sea-cliff.jpg"
+    };
+
+    private static readonly string[] Alts = { "山湖日出", "城市夜景", "森林公路", "海岸灯塔" };
+}

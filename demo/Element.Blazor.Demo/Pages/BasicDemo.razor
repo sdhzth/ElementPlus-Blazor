@@ -1,0 +1,407 @@
+@page "/basic"
+@using ElementPlus.Lang
+@inject ILang Lang
+
+<h1 class="demo-page-title">基础组件（带 Mock 数据）</h1>
+<p class="demo-page-sub">按钮、链接、文本、图标、分割线、间距、栅格与容器布局等基础组件示例。</p>
+
+<div class="demo-section">
+    <h3>ElButton 按钮</h3>
+    <div class="demo-row">
+        <ElButton>默认</ElButton>
+        <ElButton Type="ButtonType.Primary">主要</ElButton>
+        <ElButton Type="ButtonType.Success">成功</ElButton>
+        <ElButton Type="ButtonType.Info">信息</ElButton>
+        <ElButton Type="ButtonType.Warning">警告</ElButton>
+        <ElButton Type="ButtonType.Danger">危险</ElButton>
+    </div>
+    <div class="demo-row" style="margin-top:12px;">
+        <ElButton Type="ButtonType.Primary" Plain="true">朴素</ElButton>
+        <ElButton Type="ButtonType.Primary" Round="true">圆角</ElButton>
+        <ElButton Type="ButtonType.Primary" Circle="true" Icon="el-icon-search" />
+        <ElButton Type="ButtonType.Primary" Icon="el-icon-search">搜索</ElButton>
+        <ElButton Disabled="true">禁用</ElButton>
+        <ElButton Type="ButtonType.Primary" Loading="true">加载中</ElButton>
+        <ElButton Link="true">文字链接</ElButton>
+    </div>
+    <div class="demo-row" style="margin-top:12px;">
+        <ElButton Size="ButtonSize.Large">大号</ElButton>
+        <ElButton Size="ButtonSize.Default">默认</ElButton>
+        <ElButton Size="ButtonSize.Small">小号</ElButton>
+    </div>
+    <div class="demo-row" style="margin-top:12px;">
+        <ElButton Cls="epbtn-text" Text="true">文字按钮</ElButton>
+        <ElButton Cls="epbtn-text-bg" Text="true" Bg="true">文字按钮(带底色)</ElButton>
+        <ElButton Cls="epbtn-text-primary" Type="ButtonType.Primary" Text="true">文字按钮</ElButton>
+        <ElButton Cls="epbtn-type-text" Type="ButtonType.Text">type=text</ElButton>
+        <ElButton Cls="epbtn-link" Link="true">链接按钮</ElButton>
+        <ElButton Cls="epbtn-link-primary" Type="ButtonType.Primary" Link="true">链接按钮</ElButton>
+        <ElButton Cls="epbtn-dashed" Dashed="true">虚线按钮</ElButton>
+    </div>
+    <div class="demo-row" style="margin-top:12px;">
+        <ElButton Cls="epbtn-round-large" Size="ButtonSize.Large" Round="true">大号圆角</ElButton>
+        <ElButton Cls="epbtn-round-small" Size="ButtonSize.Small" Round="true">小号圆角</ElButton>
+        <ElButton Cls="epbtn-circle-large" Size="ButtonSize.Large" Circle="true" Icon="el-icon-search" />
+        <ElButton Cls="epbtn-circle-small" Size="ButtonSize.Small" Circle="true" Icon="el-icon-search" />
+        <ElButton Cls="epbtn-icon-large" Size="ButtonSize.Large" Icon="el-icon-search">搜索</ElButton>
+        <ElButton Cls="epbtn-icon-small" Size="ButtonSize.Small" Icon="el-icon-search">搜索</ElButton>
+    </div>
+    <div class="demo-row" style="margin-top:12px;">
+        <ElButton Cls="epbtn-space" AutoInsertSpace="true" Content="确定" />
+        <ElButton Cls="epbtn-nospace" Content="确定" />
+        <ElButton Cls="epbtn-loading-icon" Loading="true" LoadingIcon="el-icon-loading">提交中</ElButton>
+        <ElButton Cls="epbtn-disabled" Disabled="true">禁用</ElButton>
+        <ElButton Cls="epbtn-text-disabled" Text="true" Disabled="true">禁用文字</ElButton>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>ElButtonGroup 按钮组</h3>
+    <ElButtonGroup>
+        <ElButton>左</ElButton>
+        <ElButton>中</ElButton>
+        <ElButton>右</ElButton>
+    </ElButtonGroup>
+</div>
+
+<div class="demo-section">
+    <h3>ElLink 链接 / ElText 文本</h3>
+    <div class="demo-row">
+        <ElLink Href="/all">默认链接</ElLink>
+        <ElLink Type="LinkType.Primary" Href="/all">主要</ElLink>
+        <ElLink Type="LinkType.Success">成功</ElLink>
+        <ElLink Type="LinkType.Warning">警告</ElLink>
+        <ElLink Type="LinkType.Danger">危险</ElLink>
+        <ElLink Disabled="true">禁用</ElLink>
+    </div>
+    <div class="demo-row" style="margin-top:12px;">
+        <ElText>默认文本</ElText>
+        <ElText Type="TextType.Primary">主要文本</ElText>
+        <ElText Type="TextType.Success">成功文本</ElText>
+        <ElText Type="TextType.Warning">警告文本</ElText>
+        <ElText Type="TextType.Danger">危险文本</ElText>
+        <ElText Size="TextSize.Large">大号</ElText>
+        <ElText Size="TextSize.Small">小号</ElText>
+    </div>
+
+    <div class="demo-row" style="margin-top:12px;">
+        <span id="eltext-truncated" style="width:180px;display:inline-block;">
+            <ElText Truncated="true">这是一段很长的文本用于验证单行省略号省略号省略号省略号</ElText>
+        </span>
+        <ElText Tag="p" LineClamp="2" Style="width:200px;" id="eltext-clamp">第一行内容用于验证多行截断第一行内容用于验证多行截断第一行内容用于验证多行截断</ElText>
+        <ElText Truncated="true" LineClamp="2" Style="width:200px;" id="eltext-both">同时设置 truncated 与 lineClamp 时应按两行截断而不是单行不换行截断</ElText>
+        @* 截断悬停看全文是本库扩展：EP 的 text 只给原生 title（text.vue:42-71）。
+           EllipsisTooltip="false" 就退回 EP 行为，所以下面这条悬停是浏览器自己弹的提示，没有 .el-tooltip__popper。 *@
+        <span id="eltext-title" style="width:180px;display:inline-block;">
+            <ElText Truncated="true" EllipsisTooltip="false">关掉本库浮层扩展时退回 EP 的原生 title</ElText>
+        </span>
+        <ElText Tag="strong" Type="TextType.Info" Size="TextSize.Small" class="eltext-custom-cls" id="eltext-attrs">自定义 class 合并</ElText>
+        <ElText Type="TextType.Danger" id="eltext-danger">危险文本</ElText>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>ElIcon 图标</h3>
+    <div class="demo-row" style="font-size:22px;">
+        <ElIcon Name="el-icon-search" />
+        <ElIcon Name="el-icon-edit" />
+        <ElIcon Name="el-icon-delete" />
+        <ElIcon Name="el-icon-setting" />
+        <ElIcon Name="el-icon-star-on" Color="#e6a23c" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>ElDivider 分割线</h3>
+    <ElDivider />
+    <ElDivider ContentPosition="DividerContentPosition.Left">左侧标题</ElDivider>
+    <ElDivider ContentPosition="DividerContentPosition.Center">居中标题</ElDivider>
+    <ElDivider ContentPosition="DividerContentPosition.Right">右侧标题</ElDivider>
+</div>
+
+<div class="demo-section">
+    <h3>ElSpace 间距</h3>
+    <ElSpace>
+        <ElButton>一</ElButton>
+        <ElButton>二</ElButton>
+        <ElButton>三</ElButton>
+    </ElSpace>
+</div>
+
+<div class="demo-section">
+    <h3>ElRow / ElCol 栅格</h3>
+    <ElRow Gutter="12">
+        <ElCol Span="8"><div class="demo-grid-cell">Span 8</div></ElCol>
+        <ElCol Span="8"><div class="demo-grid-cell">Span 8</div></ElCol>
+        <ElCol Span="8"><div class="demo-grid-cell">Span 8</div></ElCol>
+    </ElRow>
+    <ElRow Gutter="12" Style="margin-top:10px;">
+        <ElCol Span="6"><div class="demo-grid-cell">6</div></ElCol>
+        <ElCol Span="12"><div class="demo-grid-cell">12</div></ElCol>
+        <ElCol Span="6"><div class="demo-grid-cell">6</div></ElCol>
+    </ElRow>
+</div>
+
+<div class="demo-section">
+    <h3>ElContainer / ElHeader / ElAside / ElMain / ElFooter 容器布局</h3>
+    <ElContainer Direction="ContainerDirection.Horizontal" Style="height:190px;border:1px solid #dcdfe6;border-radius:6px;overflow:hidden;">
+        <ElAside Width="150px">
+            <div class="demo-grid-cell" style="height:100%;">Aside 侧栏</div>
+        </ElAside>
+        <ElContainer>
+            <ElHeader Height="46px">
+                <div class="demo-grid-cell" style="height:100%;">Header 顶栏</div>
+            </ElHeader>
+            <ElMain>
+                <div class="demo-grid-cell" style="height:100%;">Main 主区域</div>
+            </ElMain>
+            <ElFooter Height="40px">
+                <div class="demo-grid-cell" style="height:100%;">Footer 底栏</div>
+            </ElFooter>
+        </ElContainer>
+    </ElContainer>
+</div>
+
+<div class="demo-section">
+    <h3>ElScrollbar 滚动条</h3>
+    <ElScrollbar Height="140px">
+        @for (var i = 1; i <= 12; i++)
+        {
+            <p class="demo-note">第 @i 行内容 —— 用于演示自定义滚动条。</p>
+        }
+    </ElScrollbar>
+</div>
+
+<div class="demo-section">
+    <h3>ElWatermark 水印</h3>
+    <ElWatermark Content="某某市人民医院" ContentList="watermarkLines">
+        <div style="height:160px;padding:12px;border:1px dashed #dcdfe6;border-radius:6px;">
+            <p>此处为受保护内容区域，水印覆盖其上。</p>
+            <p>患者：Kevin Carter（Mock 数据）</p>
+        </div>
+    </ElWatermark>
+</div>
+
+<div class="demo-section">
+    <h3>ElBadge + ElAvatar 角标与头像</h3>
+    <div class="demo-row">
+        <ElBadge Value="3"><ElAvatar><text>医</text></ElAvatar></ElBadge>
+        <ElBadge Value="12" Type="BadgeType.Danger"><ElAvatar><text>张</text></ElAvatar></ElBadge>
+        <ElBadge Value="7" Type="BadgeType.Success"><ElAvatar><text>李</text></ElAvatar></ElBadge>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>ElInputNumber 数字输入框（清除图标：悬停显示 / 只读）</h3>
+    <div class="demo-row" style="align-items:center;">
+        <ElInputNumber Controls="true" @bind-Value="@c4Num" Min="0" Max="100" Step="1" Clearable="true" id="c4-num" />
+        <span>当前值：@c4Num（悬停才出现清除图标）</span>
+    </div>
+    <div class="demo-row" style="align-items:center;">
+        <ElInputNumber Controls="true" @bind-Value="@c4ReadonlyNum" Min="0" Max="100" Readonly="true" id="c4-num-ro" />
+        <span>Readonly="true" 当前值：@c4ReadonlyNum（只读：禁止输入与步进）</span>
+    </div>
+    @* 常驻清除图标：ShowClearIcon 不依赖 Clearable 单独生效（对齐本轮修好的开关语义） *@
+    <div class="demo-row" style="align-items:center;">
+        <ElInputNumber Controls="true" @bind-Value="@c4AlwaysClearNum" Min="0" Max="100" ShowClearIcon="true" id="c4-num-always-clear" />
+        <span>ShowClearIcon="true" 当前值：@c4AlwaysClearNum（常驻显示清除图标，无需悬停）</span>
+    </div>
+    @* value-on-clear：清空不是清成 null，而是落到下限 min（EP 同名属性） *@
+    <div class="demo-row" style="align-items:center;">
+        <ElInputNumber Controls="true" @bind-Value="@c4OnClearNum" Min="5" Max="100" ShowClearIcon="true" ValueOnClear="min" id="c4-num-onclear" />
+        <span>ValueOnClear="min"（Min=5）当前值：@c4OnClearNum —— 点清除会落到 5 而不是空</span>
+    </div>
+    @* align：EP 2.14 契约，默认 center（与基底 CSS 一致，不传则零观感变化） *@
+    <div class="demo-row" style="align-items:center;">
+        <ElInputNumber Controls="true" @bind-Value="@c4AlignLeft" Align="left" Min="0" Max="9999999" id="c4-num-align-left" style="width:160px;" />
+        <ElInputNumber Controls="true" @bind-Value="@c4AlignRight" Align="right" Min="0" Max="9999999" id="c4-num-align-right" style="width:160px;" />
+        <span>Align="left" / "right"：@c4AlignLeft / @c4AlignRight（不传时居中）</span>
+    </div>
+    @* decrease-icon / increase-icon 插槽（EP 同名插槽）：整体替换默认图标 *@
+    <div class="demo-row" style="align-items:center;">
+        <ElInputNumber Controls="true" @bind-Value="@c4IconNum" Min="0" Max="100" id="c4-num-icons">
+            <DecreaseIcon><i class="el-icon-arrow-left" aria-hidden="true"></i></DecreaseIcon>
+            <IncreaseIcon><i class="el-icon-arrow-right" aria-hidden="true"></i></IncreaseIcon>
+        </ElInputNumber>
+        <span>自定义图标插槽：@c4IconNum（默认是 minus / plus）</span>
+    </div>
+    @* Formatter / Parser（EP 同款：字符串进字符串出）：显示带单位，输入时还原成数字 *@
+    <div class="demo-row" style="align-items:center;">
+        <ElInputNumber Controls="true" @bind-Value="@c4FmtNum" Min="0" Max="100000" id="c4-num-formatter"
+                       Formatter="@FormatPercent" Parser="@ParsePercent" />
+        <span>Formatter/Parser：@c4FmtNum（显示带 " %"，输入 2,500 % 也能识别成 2500）</span>
+    </div>
+    @* 库级词条（i18n）：步进按钮的 aria-label 取 el.inputNumber.* ；切语言只影响可访问性文本与下面这行 *@
+    <div class="demo-row" style="align-items:center;">
+        <ElInputNumber Controls="true" @bind-Value="@c4LangNum" Min="0" Max="100" id="c4-num-lang-target" style="width:160px;" />
+        <ElButton Size="ButtonSize.Small" OnClick='() => SwitchLangAsync("zh-CN")'>中文标签</ElButton>
+        <ElButton Size="ButtonSize.Small" OnClick='() => SwitchLangAsync("en-US")'>English labels</ElButton>
+        <span id="c4-num-lang-state">@Lang.CurrentLang：@Lang.T("el.inputNumber.decrease", "decrease") / @Lang.T("el.inputNumber.increase", "increase")</span>
+    </div>
+    @* 下拉族文案也走词条：占位文字未选中时可见，切语言应当立刻跟着变 *@
+    <div class="demo-row" id="c4-lang-select-row" style="align-items:center;">
+        <ElSelect @bind-Value="@c4LangSelect" style="width:160px;">
+            <ElOption Value="@("apple")" Text="@("苹果")" />
+            <ElOption Value="@("pear")" Text="@("梨")" />
+        </ElSelect>
+        <span id="c4-lang-select-state">@Lang.T("el.select.placeholder", "请选择") / @Lang.T("el.select.noData", "无数据")</span>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>ElTag 标签（关闭图标 / 主题 / 尺寸自检）</h3>
+    <div class="demo-row">
+        <ElTag Type="TagType.Success" Closable="true" id="c4-tag-close">可关闭</ElTag>
+        <ElTag Type="TagType.Danger" Theme="TagTheme.Dark" id="c4-tag-dark">Dark</ElTag>
+        <ElTag Type="TagType.Warning" Theme="TagTheme.Plain" id="c4-tag-plain">Plain</ElTag>
+        <ElTag Type="TagType.Info" Size="TagSize.Small" id="c4-tag-small">Small</ElTag>
+        <ElTag Type="TagType.Primary" Round="true" id="c4-tag-round">Round</ElTag>
+        <ElTag Icon="el-icon-star-on" id="c4-tag-icon">带图标</ElTag>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>ElCard 卡片（Header / Body / Footer / Shadow / 分隔线 / 分段高度与底色自检）</h3>
+    <ElCard Shadow="ShadowShowType.Always" Style="width:360px;" id="c4-card"
+            Header="@c4CardHeader" Footer="@c4CardFooter">
+        卡片正文内容。
+    </ElCard>
+
+    <div class="demo-row" style="margin-top:16px;flex-wrap:wrap;align-items:center;">
+        <label style="font-size:13px;color:#606266;display:inline-flex;align-items:center;">
+            <input type="checkbox" id="c4-card-header-divider-on" @bind="c4CardShowHeaderDivider" style="vertical-align:middle;" />
+            <span style="margin-left:6px;">Header 分隔线</span>
+        </label>
+        <label style="font-size:13px;color:#606266;display:inline-flex;align-items:center;margin-left:14px;">
+            线色
+            <input type="color" id="c4-card-header-divider-color" @bind="c4CardHeaderDividerColor" style="width:44px;height:28px;margin-left:6px;padding:0;vertical-align:middle;" />
+        </label>
+        <label style="font-size:13px;color:#606266;display:inline-flex;align-items:center;margin-left:14px;">
+            线粗
+            <input type="number" id="c4-card-header-divider-width" @bind="c4CardHeaderDividerWidth" min="0" max="10" step="1" style="width:56px;margin-left:6px;" />
+            <span style="margin-left:4px;">px</span>
+        </label>
+    </div>
+
+    <div class="demo-row" style="margin-top:10px;flex-wrap:wrap;align-items:center;">
+        <label style="font-size:13px;color:#606266;display:inline-flex;align-items:center;">
+            <input type="checkbox" id="c4-card-footer-divider-on" @bind="c4CardShowFooterDivider" style="vertical-align:middle;" />
+            <span style="margin-left:6px;">Footer 分隔线</span>
+        </label>
+        <label style="font-size:13px;color:#606266;display:inline-flex;align-items:center;margin-left:14px;">
+            线色
+            <input type="color" id="c4-card-footer-divider-color" @bind="c4CardFooterDividerColor" style="width:44px;height:28px;margin-left:6px;padding:0;vertical-align:middle;" />
+        </label>
+        <label style="font-size:13px;color:#606266;display:inline-flex;align-items:center;margin-left:14px;">
+            线粗
+            <input type="number" id="c4-card-footer-divider-width" @bind="c4CardFooterDividerWidth" min="0" max="10" step="1" style="width:56px;margin-left:6px;" />
+            <span style="margin-left:4px;">px</span>
+        </label>
+    </div>
+
+    <div class="demo-row" style="margin-top:10px;flex-wrap:wrap;align-items:center;">
+        <label style="font-size:13px;color:#606266;display:inline-flex;align-items:center;">
+            Header 高
+            <input type="text" id="c4-card-header-height" @bind="c4CardHeaderHeight" placeholder="如 60 / 4rem" style="width:96px;margin-left:6px;" />
+        </label>
+        <label style="font-size:13px;color:#606266;display:inline-flex;align-items:center;margin-left:14px;">
+            Body 高
+            <input type="text" id="c4-card-body-height" @bind="c4CardBodyHeight" placeholder="如 120px" style="width:96px;margin-left:6px;" />
+        </label>
+        <label style="font-size:13px;color:#606266;display:inline-flex;align-items:center;margin-left:14px;">
+            Footer 高
+            <input type="text" id="c4-card-footer-height" @bind="c4CardFooterHeight" placeholder="如 48" style="width:96px;margin-left:6px;" />
+        </label>
+    </div>
+
+    <div class="demo-row" style="margin-top:10px;flex-wrap:wrap;align-items:center;">
+        <label style="font-size:13px;color:#606266;display:inline-flex;align-items:center;">
+            <input type="checkbox" id="c4-card-header-bg-on" @bind="c4CardHeaderBgOn" style="vertical-align:middle;" />
+            <span style="margin-left:6px;">Header 底色</span>
+            <input type="color" id="c4-card-header-bg" @bind="c4CardHeaderBg" style="width:44px;height:28px;margin-left:6px;padding:0;vertical-align:middle;" />
+        </label>
+        <label style="font-size:13px;color:#606266;display:inline-flex;align-items:center;margin-left:14px;">
+            <input type="checkbox" id="c4-card-body-bg-on" @bind="c4CardBodyBgOn" style="vertical-align:middle;" />
+            <span style="margin-left:6px;">Body 底色</span>
+            <input type="color" id="c4-card-body-bg" @bind="c4CardBodyBg" style="width:44px;height:28px;margin-left:6px;padding:0;vertical-align:middle;" />
+        </label>
+        <label style="font-size:13px;color:#606266;display:inline-flex;align-items:center;margin-left:14px;">
+            <input type="checkbox" id="c4-card-footer-bg-on" @bind="c4CardFooterBgOn" style="vertical-align:middle;" />
+            <span style="margin-left:6px;">Footer 底色</span>
+            <input type="color" id="c4-card-footer-bg" @bind="c4CardFooterBg" style="width:44px;height:28px;margin-left:6px;padding:0;vertical-align:middle;" />
+        </label>
+    </div>
+
+    <ElCard Shadow="ShadowShowType.Always" Style="width:360px;margin-top:16px;" id="c4-card-tunable"
+            Header="@c4CardHeader" Footer="@c4CardFooter"
+            ShowHeaderDivider="@c4CardShowHeaderDivider"
+            ShowFooterDivider="@c4CardShowFooterDivider"
+            HeaderDividerColor="@c4CardHeaderDividerColor"
+            FooterDividerColor="@c4CardFooterDividerColor"
+            HeaderDividerWidth="@c4CardHeaderDividerWidth"
+            FooterDividerWidth="@c4CardFooterDividerWidth"
+            HeaderHeight="@c4CardHeaderHeight"
+            BodyHeight="@c4CardBodyHeight"
+            FooterHeight="@c4CardFooterHeight"
+            HeaderBackgroundColor="@(c4CardHeaderBgOn ? c4CardHeaderBg : null)"
+            BodyBackgroundColor="@(c4CardBodyBgOn ? c4CardBodyBg : null)"
+            FooterBackgroundColor="@(c4CardFooterBgOn ? c4CardFooterBg : null)">
+        卡片正文内容。
+    </ElCard>
+</div>
+
+<div class="demo-section">
+    <h3>ElDialog 对话框（LockScroll / 关闭 / 标题居中自检）</h3>
+    <ElButton OnClick="() => c4Dialog = true">打开对话框</ElButton>
+    <ElDialog ModelValue="@c4Dialog" ModelValueChanged="v => c4Dialog = v" Title="患者信息" Width="420px" Center="true" LockScroll="true" id="c4-dialog"
+              Footer="@c4DialogFooter">
+        <p>对话框正文内容。</p>
+    </ElDialog>
+</div>
+
+@code {
+    private List<string> watermarkLines = new List<string> { "某某市人民医院", "内部资料" };
+    private decimal? c4Num = 5;
+    private decimal? c4AlwaysClearNum = 42;
+    private decimal? c4OnClearNum = 60;
+    private decimal? c4AlignLeft = 1234567;
+    private decimal? c4AlignRight = 1234567;
+    private decimal? c4IconNum = 8;
+
+    private decimal? c4LangNum = 12;
+    private string c4LangSelect;
+
+    /// <summary>
+    /// 切换库级词条语言。<see cref="ElementLang"/> 是 Scoped 服务，页面与组件拿到的是同一个实例，
+    /// 所以取词结果一变、本页重渲染后，<c>ElInputNumber</c> 的 aria-label 就会跟着变。
+    /// </summary>
+    private async Task SwitchLangAsync(string lang)
+    {
+        await Lang.SetLangAsync(lang);
+        StateHasChanged();
+    }
+    private decimal? c4FmtNum = 12.5m;
+
+    private static string FormatPercent(string text) => string.IsNullOrEmpty(text) ? text : text.Replace(",", "") + " %";
+    private static string ParsePercent(string text) => text?.Replace(" %", "").Replace(",", "");
+    private decimal? c4ReadonlyNum = 33;
+    private bool c4Dialog = false;
+    private RenderFragment c4CardHeader => @<div>卡片标题</div>;
+    private RenderFragment c4CardFooter => @<div><ElButton Size="ButtonSize.Small">确定</ElButton></div>;
+    private bool c4CardShowHeaderDivider = true;
+    private bool c4CardShowFooterDivider = true;
+    private string c4CardHeaderDividerColor = "#ebeef5";
+    private string c4CardFooterDividerColor = "#ebeef5";
+    private int c4CardHeaderDividerWidth = 1;
+    private int c4CardFooterDividerWidth = 1;
+    private string c4CardHeaderHeight = "";
+    private string c4CardBodyHeight = "";
+    private string c4CardFooterHeight = "";
+    private bool c4CardHeaderBgOn;
+    private bool c4CardBodyBgOn;
+    private bool c4CardFooterBgOn;
+    private string c4CardHeaderBg = "#fff1f0";
+    private string c4CardBodyBg = "#f0f9ff";
+    private string c4CardFooterBg = "#fafafa";
+    private RenderFragment c4DialogFooter => @<div><ElButton Size="ButtonSize.Small" OnClick="() => c4Dialog = false">关闭</ElButton></div>;
+}

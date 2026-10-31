@@ -1,0 +1,21 @@
+﻿@typeparam TValue
+@{
+    var clsBuilder = HtmlPropertyBuilder.CreateCssClassBuilder()
+        .Add("el-select-dropdown__item")
+        .AddIf(EffectiveDisabled, "is-disabled")
+        .AddIf(IsSelected, "selected")
+        .AddIf(IsHover, "hover");
+    var isHidden = !IsVisible ? "display:none;" : string.Empty;
+}
+<li class="@clsBuilder.ToString()" style="@isHidden" @onclick="SelectItemAsync" role="option" aria-selected="@AriaSelected" aria-disabled="@AriaDisabled" tabindex="@(EffectiveDisabled ? -1 : 0)">
+    <span>
+        @if (!string.IsNullOrWhiteSpace(Text))
+        {
+            @Text
+        }
+        else
+        {
+            @ChildContent
+        }
+    </span>
+</li>

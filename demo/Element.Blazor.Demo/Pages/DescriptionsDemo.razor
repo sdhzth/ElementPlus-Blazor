@@ -1,0 +1,163 @@
+@page "/descriptions"
+@using ElementPlus
+
+<div class="demo-page">
+    <h2>ElDescriptions 描述列表（对齐 Element Plus Descriptions）</h2>
+    <p class="demo-note">
+        以列表形式展示多个字段。对齐官方 <a href="https://element-plus.org/zh-CN/component/descriptions" target="_blank">Descriptions</a>：
+        支持 <code>Border</code>（边框）、<code>Column</code>（每行项目数）、<code>Direction</code>（horizontal / vertical）、
+        <code>Size</code>（large / default / small）、<code>Title</code> / <code>TitleContent</code>（标题）、<code>Extra</code>（右上操作区），
+        以及子项 <code>ElDescriptionsItem</code> 的 <code>Label</code> / <code>LabelContent</code>（标签）、<code>Span</code>（跨列）、<code>RowSpan</code>（跨行，2.8.1）、
+        <code>Align</code> / <code>LabelAlign</code>（对齐）、<code>Width</code> / <code>MinWidth</code> / <code>LabelWidth</code>（列宽，2.8.8）、
+        <code>ClassName</code> / <code>LabelClassName</code>（自定义类名）。
+    </p>
+
+    <div class="demo-section">
+        <h3>基础用法（无边框，默认每行 3 项）</h3>
+        <ElDescriptions Title="User Info">
+            <ElDescriptionsItem Label="Username">kooriookami</ElDescriptionsItem>
+            <ElDescriptionsItem Label="Telephone">18100000000</ElDescriptionsItem>
+            <ElDescriptionsItem Label="Place">Suzhou</ElDescriptionsItem>
+            <ElDescriptionsItem Label="Remarks">
+                <span class="el-tag el-tag--info el-tag--plain">School</span>
+            </ElDescriptionsItem>
+            <ElDescriptionsItem Label="Address">No.1188, Wuzhong Avenue, Wuzhong District, Suzhou, Jiangsu Province</ElDescriptionsItem>
+        </ElDescriptions>
+    </div>
+
+    <div class="demo-section">
+        <h3>不同尺寸（带边框：Large / Default / Small）</h3>
+        <div class="demo-row demo-row-wrap" style="align-items:flex-start;">
+            <ElDescriptions Title="With border (Large)" Border Size="ElementSize.Large" Style="width:360px;">
+                <ElDescriptionsItem Label="Username">kooriookami</ElDescriptionsItem>
+                <ElDescriptionsItem Label="Telephone">18100000000</ElDescriptionsItem>
+                <ElDescriptionsItem Label="Place">Suzhou</ElDescriptionsItem>
+            </ElDescriptions>
+            <ElDescriptions Title="With border (Default)" Border Style="width:360px;">
+                <ElDescriptionsItem Label="Username">kooriookami</ElDescriptionsItem>
+                <ElDescriptionsItem Label="Telephone">18100000000</ElDescriptionsItem>
+                <ElDescriptionsItem Label="Place">Suzhou</ElDescriptionsItem>
+            </ElDescriptions>
+            <ElDescriptions Title="With border (Small)" Border Size="ElementSize.Small" Style="width:360px;">
+                <ElDescriptionsItem Label="Username">kooriookami</ElDescriptionsItem>
+                <ElDescriptionsItem Label="Telephone">18100000000</ElDescriptionsItem>
+                <ElDescriptionsItem Label="Place">Suzhou</ElDescriptionsItem>
+            </ElDescriptions>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h3>垂直列表（Direction=Vertical，带边框 / 不带边框）</h3>
+        <div class="demo-row demo-row-wrap" style="align-items:flex-start;">
+            <ElDescriptions Title="Vertical with border" Border Direction="DescriptionsDirection.Vertical" Style="width:360px;">
+                <ElDescriptionsItem Label="Username">kooriookami</ElDescriptionsItem>
+                <ElDescriptionsItem Label="Telephone">18100000000</ElDescriptionsItem>
+                <ElDescriptionsItem Label="Place">Suzhou</ElDescriptionsItem>
+                <ElDescriptionsItem Label="Remarks">School</ElDescriptionsItem>
+                <ElDescriptionsItem Label="Address">No.1188, Wuzhong Avenue</ElDescriptionsItem>
+            </ElDescriptions>
+            <ElDescriptions Title="Vertical without border" Direction="DescriptionsDirection.Vertical" Style="width:360px;">
+                <ElDescriptionsItem Label="Username">kooriookami</ElDescriptionsItem>
+                <ElDescriptionsItem Label="Telephone">18100000000</ElDescriptionsItem>
+                <ElDescriptionsItem Label="Place">Suzhou</ElDescriptionsItem>
+                <ElDescriptionsItem Label="Remarks">School</ElDescriptionsItem>
+                <ElDescriptionsItem Label="Address">No.1188, Wuzhong Avenue</ElDescriptionsItem>
+            </ElDescriptions>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h3>一行包含数量（Column=2 / Column=4）</h3>
+        <p class="demo-note">Column 控制每行渲染几项；超出自动折行。</p>
+        <ElDescriptions Title="Column = 2" Column="2" Border Style="margin-bottom:18px;">
+            <ElDescriptionsItem Label="Username">kooriookami</ElDescriptionsItem>
+            <ElDescriptionsItem Label="Telephone">18100000000</ElDescriptionsItem>
+            <ElDescriptionsItem Label="Place">Suzhou</ElDescriptionsItem>
+            <ElDescriptionsItem Label="Remarks">School</ElDescriptionsItem>
+        </ElDescriptions>
+        <ElDescriptions Title="Column = 4" Column="4" Border>
+            <ElDescriptionsItem Label="A">a</ElDescriptionsItem>
+            <ElDescriptionsItem Label="B">b</ElDescriptionsItem>
+            <ElDescriptionsItem Label="C">c</ElDescriptionsItem>
+            <ElDescriptionsItem Label="D">d</ElDescriptionsItem>
+            <ElDescriptionsItem Label="E">e</ElDescriptionsItem>
+            <ElDescriptionsItem Label="F">f</ElDescriptionsItem>
+        </ElDescriptions>
+    </div>
+
+    <div class="demo-section">
+        <h3>单元格跨列（Span=2，2.8.1 前的列跨）</h3>
+        <ElDescriptions Title="Span demo" Border>
+            <ElDescriptionsItem Label="Photo"><div style="width:60px;height:60px;background:#c6e2ff;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#409eff;">IMG</div></ElDescriptionsItem>
+            <ElDescriptionsItem Label="Username" Span="2">kooriookami</ElDescriptionsItem>
+            <ElDescriptionsItem Label="Telephone">18100000000</ElDescriptionsItem>
+            <ElDescriptionsItem Label="Place">Suzhou</ElDescriptionsItem>
+            <ElDescriptionsItem Label="Remarks" Span="2">School</ElDescriptionsItem>
+            <ElDescriptionsItem Label="Address" Span="3">No.1188, Wuzhong Avenue, Wuzhong District, Suzhou, Jiangsu Province</ElDescriptionsItem>
+        </ElDescriptions>
+    </div>
+
+    <div class="demo-section">
+        <h3>单元格跨行（RowSpan=2，2.8.1 新增）</h3>
+        <ElDescriptions Title="RowSpan demo" Border>
+            <ElDescriptionsItem Label="Photo" RowSpan="2">
+                <div style="width:60px;height:60px;background:#c6e2ff;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#409eff;">IMG</div>
+            </ElDescriptionsItem>
+            <ElDescriptionsItem Label="Username">kooriookami</ElDescriptionsItem>
+            <ElDescriptionsItem Label="Telephone">18100000000</ElDescriptionsItem>
+            <ElDescriptionsItem Label="Place">Suzhou</ElDescriptionsItem>
+            <ElDescriptionsItem Label="Remarks">School</ElDescriptionsItem>
+            <ElDescriptionsItem Label="Address">No.1188, Wuzhong Avenue</ElDescriptionsItem>
+        </ElDescriptions>
+    </div>
+
+    <div class="demo-section">
+        <h3>对齐方式（Align / LabelAlign：left / center / right）</h3>
+        <ElDescriptions Title="Align demo" Border>
+            <ElDescriptionsItem Label="Left（默认）" Align="DescriptionsAlign.Left">kooriookami</ElDescriptionsItem>
+            <ElDescriptionsItem Label="Center" Align="DescriptionsAlign.Center">kooriookami</ElDescriptionsItem>
+            <ElDescriptionsItem Label="Right" Align="DescriptionsAlign.Right">kooriookami</ElDescriptionsItem>
+            <ElDescriptionsItem Label="LabelCenter" LabelAlign="DescriptionsAlign.Center">标签居中、内容左对齐</ElDescriptionsItem>
+            <ElDescriptionsItem Label="LabelRight" LabelAlign="DescriptionsAlign.Right">标签右对齐、内容左对齐</ElDescriptionsItem>
+            <ElDescriptionsItem Label="AllRight" Align="DescriptionsAlign.Right" LabelAlign="DescriptionsAlign.Right">全右对齐</ElDescriptionsItem>
+        </ElDescriptions>
+    </div>
+
+    <div class="demo-section">
+        <h3>标签宽度与列宽（LabelWidth / Width / MinWidth，2.8.8）</h3>
+        <p class="demo-note">
+            <code>LabelWidth</code> 统一设置所有标签列宽（子项 LabelWidth 优先级更高）；<code>Width</code> / <code>MinWidth</code> 控制内容列宽。
+        </p>
+        <ElDescriptions Title="Width demo" Border LabelWidth="120px">
+            <ElDescriptionsItem Label="Username">kooriookami</ElDescriptionsItem>
+            <ElDescriptionsItem Label="Telephone" MinWidth="160px">18100000000</ElDescriptionsItem>
+            <ElDescriptionsItem Label="Place" LabelWidth="160px">Suzhou</ElDescriptionsItem>
+        </ElDescriptions>
+    </div>
+
+    <div class="demo-section">
+        <h3>插槽：标题 / 操作区 / 标签自定义</h3>
+        <ElDescriptions>
+            <TitleContent><strong style="color:#409eff;">自定义标题（TitleContent 插槽）</strong></TitleContent>
+            <Extra><ElButton Size="ButtonSize.Small">操作</ElButton></Extra>
+            <ChildContent>
+                <ElDescriptionsItem>
+                    <LabelContent><span style="color:#67c23a;font-weight:700;">自定义标签</span></LabelContent>
+                    <ChildContent>kooriookami</ChildContent>
+                </ElDescriptionsItem>
+                <ElDescriptionsItem Label="Telephone">18100000000</ElDescriptionsItem>
+                <ElDescriptionsItem Label="Place">Suzhou</ElDescriptionsItem>
+            </ChildContent>
+        </ElDescriptions>
+    </div>
+
+    <div class="demo-section">
+        <h3>冒号（Colon：默认关闭，对齐 EP 官方无冒号）</h3>
+        <p class="demo-note">库默认 <code>Colon="false"</code>（与官方一致，不加冒号）。如需昵称式冒号可显式开启。</p>
+        <ElDescriptions Title="With colon" Colon="true" Border>
+            <ElDescriptionsItem Label="Username">kooriookami</ElDescriptionsItem>
+            <ElDescriptionsItem Label="Telephone">18100000000</ElDescriptionsItem>
+            <ElDescriptionsItem Label="Place">Suzhou</ElDescriptionsItem>
+        </ElDescriptions>
+    </div>
+</div>

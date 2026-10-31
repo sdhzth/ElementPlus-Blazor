@@ -1,0 +1,21 @@
+@inherits ElementComponentBase
+@{
+    var cls = HtmlPropertyBuilder.CreateCssClassBuilder()
+        .Add("el-light-grow")
+        .Add($"el-light-grow--{Color.ToString().ToLowerInvariant()}")
+        .AddIf(IsFlash, "is-flash")
+        .AddIf(IsFlat, "is-flat")
+        .Add(Cls);
+
+    var style = HtmlPropertyBuilder.CreateCssStyleBuilder()
+        .AddIf(Size >= 8, $"--el-light-size:{Size}px")
+        .Add(Style);
+}
+<span class="@cls.ToString()" style="@style.ToString()" role="img" aria-label="@(Text ?? Color.ToString())">
+    <i class="el-light-grow__dot"></i>
+    @if (!string.IsNullOrWhiteSpace(Text))
+    {
+        <span class="el-light-grow__label">@Text</span>
+    }
+    @ChildContent
+</span>

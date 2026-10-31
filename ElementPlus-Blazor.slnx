@@ -1,0 +1,46 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="arm64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/SolutionItems/">
+    <File Path=".dockerignore" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="CHANGELOG.md" />
+    <File Path="CONTRIBUTING.md" />
+    <File Path="docker-compose.yml" />
+    <File Path="Dockerfile" />
+    <File Path="docs/element-plus-alignment.md" />
+    <File Path="LICENSE" />
+    <File Path="LOGO.loading.svg" />
+    <File Path="LOGO.png" />
+    <File Path="LOGO.svg" />
+    <File Path="LOGO.wordmark.svg" />
+    <File Path="nuget.config" />
+    <File Path="README.en.md" />
+    <File Path="README.md" />
+    <File Path="RELEASE_TEMPLATE.md" />
+    <File Path="ROADMAP.md" />
+  </Folder>
+  <Folder Name="/Components/">
+    <Project Path="src/Components/Element.csproj" />
+    <Project Path="src/Markdown/Element.Markdown.csproj" />
+    <Project Path="src/X/Element.X.csproj" />
+  </Folder>
+  <Folder Name="/demo/">
+    <File Path="demo/demos.json" />
+    <File Path="demo/README.md" />
+    <Project Path="demo/Element.Blazor.Demo/Element.Blazor.Demo.csproj" />
+  </Folder>
+  <Folder Name="/community/">
+    <File Path="community/README.md" />
+    <File Path="community/src/BlazorCommunity.sln" />
+  </Folder>
+  <Project Path="src/VSExtension/Element.VSExtension.csproj">
+    <Platform Solution="*|arm64" Project="arm64" />
+    <Platform Solution="*|x86" Project="x86" />
+    <Build Solution="*|Any CPU" Project="false" />
+  </Project>
+</Solution>

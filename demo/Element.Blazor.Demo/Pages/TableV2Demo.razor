@@ -1,0 +1,280 @@
+@page "/tablev2"
+
+<h1 class="demo-page-title">虚拟化表格 TableV2（对齐 Element Plus）</h1>
+<p class="demo-page-sub">虚拟滚动、树形数据、排序事件、粘性固定行、页脚/遮罩插槽、scrollTo* 编程滚动。</p>
+
+<div class="demo-section" id="sec-tv2-basic">
+    <h3>基础用法（400 行虚拟滚动）</h3>
+    <ElTableV2 DataSource="bigData"
+               Columns="baseColumns"
+               Height="320px"
+               RowKey="Id"
+               Stripe="true"
+               ScrollThrottleMs="150"
+               OnScroll="OnV2Scroll" />
+    <p class="demo-note">滚动日志：@scrollLog —— 仅渲染可视区域 + 预渲染（Cache）内的行。<br />
+        注意：OnScroll 回调会触发本页重渲染，故这里设了 <code>ScrollThrottleMs="150"</code> 节流；
+        不节流时高频回调会把「滚动 → 显示」拖出可见卡顿。</p>
+</div>
+
+<div class="demo-section" id="sec-tv2-sort">
+    <h3>列排序（column-sort 事件，由调用方排序数据）</h3>
+    <ElTableV2 DataSource="sortedProducts"
+               Columns="sortColumns"
+               Height="240px"
+               RowKey="Id"
+               SortBy="@sortBy"
+               SortByChanged="OnSortByChanged"
+               ColumnSort="OnColumnSort" />
+    <p class="demo-note">当前排序：@(sortBy == null ? "无" : sortBy.Key + " / " + sortBy.Order) —— 点击表头循环 升序 → 降序。</p>
+</div>
+
+<div class="demo-section" id="sec-tv2-tree">
+    <h3>树形数据（expand-column-key + indent-size + default-expand-row-keys）</h3>
+    <ElTableV2 DataSource="treeData"
+               Columns="treeColumns"
+               Height="240px"
+               RowHeight="40"
+               HeaderHeight="44"
+               RowKey="Id"
+               ExpandColumnKey="Name"
+               IndentSize="16"
+               DefaultExpandRowKeys="new object[] { 1 }"
+               ExpandedRowsChange="OnTreeExpand" />
+    <p class="demo-note">@treeLog（初始默认展开节点 1）。</p>
+</div>
+
+<div class="demo-section" id="sec-tv2-expand">
+    <h3>展开行（ExpandContent 插槽 + expand-column-key）</h3>
+    <ElTableV2 DataSource="MockData.BigProducts.Take(20).ToList()"
+               Columns="expandColumns"
+               Height="240px"
+               RowKey="Id"
+               ExpandColumnKey="Name"
+               ExpandContent="ExpandRowContent" />
+</div>
+
+<div class="demo-section" id="sec-tv2-fixed">
+    <h3>粘性固定行（fixed-data）</h3>
+    <ElTableV2 DataSource="MockData.BigProducts"
+               Columns="baseColumns"
+               Height="240px"
+               RowKey="Id"
+               FixedData="fixedRows" />
+    <p class="demo-note">顶部「今日汇总」行钉在表头下方，随数据滚动保持可见。</p>
+</div>
+
+<div class="demo-section" id="sec-tv2-fixedcol">
+    <h3>固定列（column.fixed = left / right）</h3>
+    <ElTableV2 DataSource="MockData.BigProducts"
+               Columns="fixedColumns"
+               Height="240px"
+               Width="100%"
+               RowKey="Id" />
+</div>
+
+<div class="demo-section" id="sec-tv2-summary">
+    <h3>汇总行 + 页脚插槽（footer）</h3>
+    <ElTableV2 DataSource="MockData.BigProducts.Take(8).ToList()"
+               Columns="baseColumns"
+               Height="280px"
+               RowKey="Id"
+               ShowSummary="true"
+               FooterContent="FooterText" />
+</div>
+
+<div class="demo-section" id="sec-tv2-program">
+    <h3>编程滚动（scrollTo / scrollToTop / scrollToRow exposes）</h3>
+    <div class="demo-row">
+        <ElButton Type="ButtonType.Primary" Size="ButtonSize.Small" OnClick="() => v2Ref.ScrollToRowAsync(100)">滚到第 100 行</ElButton>
+        <ElButton Type="ButtonType.Primary" Size="ButtonSize.Small" OnClick="() => v2Ref.ScrollToTopAsync()">回到顶部</ElButton>
+        <ElButton Type="ButtonType.Primary" Size="ButtonSize.Small" OnClick="() => v2Ref.ScrollToLeftAsync(200)">横向滚动</ElButton>
+    </div>
+    <ElTableV2 @ref="v2Ref"
+               DataSource="bigData"
+               Columns="baseColumns"
+               Height="240px"
+               RowKey="Id" />
+</div>
+
+<div class="demo-section" id="sec-tv2-empty">
+    <h3>空数据 / 遮罩插槽（overlay）</h3>
+    <div class="demo-row" style="align-items:flex-start">
+        <ElTableV2 DataSource="emptyList" Columns="baseColumns" Height="160px" Width="420px" />
+        <ElTableV2 DataSource="emptyList" Columns="baseColumns" Height="160px" Width="420px"
+                   OverlayContent="OverlayText" />
+    </div>
+</div>
+
+<div class="demo-section" id="sec-tv2-ellipsis">
+    <h3>截断单元格悬停看全文（EllipsisTooltip，本库扩展）</h3>
+    <p class="demo-page-sub">
+        EP 的 table-v2 单元格只挂原生 <code>title</code>（components/cell.tsx:14），本仓照抄；
+        <code>EllipsisTooltip="true"</code> 是本库扩展，改浮 elTooltip 并把原生 title 让位（免得两层提示叠着）。
+        列级 <code>EllipsisTooltip="false"</code> 可单独退回原生 title —— 下面第二列「名称（列级关掉）」就是这样。
+    </p>
+    <ElTableV2 DataSource="ellipsisRows"
+               Columns="ellipsisColumns"
+               Height="200px"
+               RowKey="Id"
+               EllipsisTooltip="true" />
+    <p class="demo-note">同样一段长文字：第一列悬停浮 elTooltip，第二列由列级开关退回浏览器原生 title；「单价」列文字放得下，两样都不弹。</p>
+</div>
+
+@code {
+    private ElTableV2 v2Ref;
+
+    private List<Product> ellipsisRows = new()
+    {
+        new Product { Id = 1, Name = "一次性使用无菌注射器（带针，20ml 成人体）", Category = "耗材", Price = 1.20m, Stock = 3200 },
+        new Product { Id = 2, Name = "0.9% 氯化钠注射液（玻璃瓶 500ml）", Category = "西药", Price = 3.50m, Stock = 820 },
+        new Product { Id = 3, Name = "注射用头孢曲松钠（1g 进口分包装）", Category = "西药", Price = 12.80m, Stock = 96 }
+    };
+
+    private IList<TableV2Column> ellipsisColumns = new List<TableV2Column>
+    {
+        new TableV2Column { Key = "Name", Property = "Name", Title = "名称", Width = "160" },
+        new TableV2Column { Key = "NameCopy", Property = "Name", Title = "名称（列级关掉＝原生 title）", Width = "160", EllipsisTooltip = false },
+        new TableV2Column { Key = "Price", Property = "Price", Title = "单价", Width = "90", Align = "right" }
+    };
+    private string scrollLog = "未滚动";
+    private string treeLog = "初始默认展开节点 1";
+    private TableV2SortBy sortBy;
+    private List<Product> emptyList = new List<Product>();
+
+    private List<Product> bigData = MockData.BigProducts.Concat(MockData.BigProducts).ToList();
+
+    private List<Product> sortedProducts = new List<Product>(MockData.BigProducts.Take(10));
+
+    private List<Product> fixedRows = new List<Product>
+    {
+        new Product { Id = 0, Name = "今日汇总", Category = "—", Price = 0m, Stock = 0 }
+    };
+
+    private List<Tv2Node> treeData = new List<Tv2Node>
+    {
+        new Tv2Node { Id = 1, Name = "抗感染类", Children = new List<Tv2Node>
+        {
+            new Tv2Node { Id = 11, Name = "青霉素" },
+            new Tv2Node { Id = 12, Name = "头孢曲松" }
+        }},
+        new Tv2Node { Id = 2, Name = "营养类", Children = new List<Tv2Node>
+        {
+            new Tv2Node { Id = 21, Name = "氨基酸" },
+            new Tv2Node { Id = 22, Name = "脂肪乳", Children = new List<Tv2Node>
+            {
+                new Tv2Node { Id = 221, Name = "中长链脂肪乳" }
+            }}
+        }},
+        new Tv2Node { Id = 3, Name = "耗材类" }
+    };
+
+    private class Tv2Node
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public List<Tv2Node> Children { get; set; }
+    }
+
+    private IList<TableV2Column> baseColumns = new List<TableV2Column>
+    {
+        new TableV2Column { Key = "Id", Property = "Id", Title = "编号", Width = "80", Align = "center" },
+        new TableV2Column { Key = "Name", Property = "Name", Title = "名称", Width = "160" },
+        new TableV2Column { Key = "Category", Property = "Category", Title = "类别", Width = "100" },
+        new TableV2Column { Key = "Price", Property = "Price", Title = "单价(元)", Width = "100", Align = "right" },
+        new TableV2Column { Key = "Stock", Property = "Stock", Title = "库存", Width = "80", Align = "right" }
+    };
+
+    private IList<TableV2Column> sortColumns = new List<TableV2Column>
+    {
+        new TableV2Column { Key = "Id", Property = "Id", Title = "编号", Width = "80", Sortable = true },
+        new TableV2Column { Key = "Name", Property = "Name", Title = "名称", Width = "160", Sortable = true },
+        new TableV2Column { Key = "Price", Property = "Price", Title = "单价(元)", Width = "120", Sortable = true, Align = "right" }
+    };
+
+    private IList<TableV2Column> treeColumns = new List<TableV2Column>
+    {
+        new TableV2Column { Key = "Name", Property = "Name", Title = "目录" },
+        new TableV2Column { Key = "Id", Property = "Id", Title = "ID", Width = "80", Align = "center" }
+    };
+
+    private IList<TableV2Column> expandColumns = new List<TableV2Column>
+    {
+        new TableV2Column { Key = "Name", Property = "Name", Title = "名称", Width = "180" },
+        new TableV2Column { Key = "Category", Property = "Category", Title = "类别", Width = "100" },
+        new TableV2Column { Key = "Price", Property = "Price", Title = "单价(元)", Width = "100", Align = "right" }
+    };
+
+    private IList<TableV2Column> fixedColumns = new List<TableV2Column>
+    {
+        new TableV2Column { Key = "Id", Property = "Id", Title = "编号", Width = "70", Fixed = "left" },
+        new TableV2Column { Key = "Name", Property = "Name", Title = "名称", Width = "160" },
+        new TableV2Column { Key = "Category", Property = "Category", Title = "类别", Width = "100" },
+        new TableV2Column { Key = "Price", Property = "Price", Title = "单价(元)", Width = "100", Align = "right" },
+        new TableV2Column { Key = "Stock", Property = "Stock", Title = "库存", Width = "90", Align = "right" },
+        new TableV2Column { Key = "CreatedAt", Property = "CreatedAt", Title = "入库日期", Width = "130" },
+        new TableV2Column { Key = "Ops", Property = "Name", Title = "操作", Width = "90", Fixed = "right", Align = "center" }
+    };
+
+    private RenderFragment<object> ExpandRowContent => row => builder =>
+    {
+        var p = (Product)row;
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "style", "padding:8px 4px;color:#606266");
+        builder.AddContent(2, $"「{p.Name}」详情：库存 {p.Stock}，单价 {p.Price} 元，{p.Category}");
+        builder.CloseElement();
+    };
+
+    private RenderFragment FooterText => builder => builder.AddContent(0, "共 8 条记录 · 页脚插槽内容");
+
+    private RenderFragment OverlayText => builder => builder.AddContent(0, "自定义遮罩（overlay 插槽）");
+
+    private void OnV2Scroll(int top)
+    {
+        scrollLog = $"scrollTop={top}px";
+    }
+
+    private void OnTreeExpand(IEnumerable<object> keys)
+    {
+        treeLog = $"已展开 {keys.Count()} 个节点";
+    }
+
+    private void OnSortByChanged(TableV2SortBy value)
+    {
+        sortBy = value;
+    }
+
+    private void OnColumnSort(TableV2ColumnSortArgs args)
+    {
+        sortBy = new TableV2SortBy(args.Key, args.Order);
+        sortedProducts = MockData.BigProducts.Take(10).ToList();
+        if (args.Order == TableV2SortOrder.Asc)
+        {
+            sortedProducts = SortByField(sortedProducts, args.Key, true);
+        }
+        else if (args.Order == TableV2SortOrder.Desc)
+        {
+            sortedProducts = SortByField(sortedProducts, args.Key, false);
+        }
+    }
+
+    private static List<Product> SortByField(List<Product> source, string key, bool asc)
+    {
+        IEnumerable<Product> result = key switch
+        {
+            "Id" => source.OrderBy(x => x.Id),
+            "Price" => source.OrderBy(x => x.Price),
+            _ => source.OrderBy(x => x.Name)
+        };
+        if (!asc)
+        {
+            result = key switch
+            {
+                "Id" => source.OrderByDescending(x => x.Id),
+                "Price" => source.OrderByDescending(x => x.Price),
+                _ => source.OrderByDescending(x => x.Name)
+            };
+        }
+        return result.ToList();
+    }
+}

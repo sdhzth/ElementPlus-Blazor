@@ -1,0 +1,124 @@
+@page "/timeline"
+@using ElementPlus
+
+<h3>ElTimeline / ElTimelineItem 官方对齐演示</h3>
+<p class="demo-page-sub">覆盖基础、节点类型/颜色/尺寸/空心、自定义 dot、时间戳 top/bottom、center 垂直居中、reverse 逆序、mode 四态（start/end/alternate/alternate-reverse）。</p>
+
+<div id="timeline-demo">
+
+    <div class="demo-section">
+        <h4>① 基础用法（默认 Start 模式，节点默认 normal 尺寸）</h4>
+        <ElTimeline>
+            <ElTimelineItem Timestamp="2018-04-15"><text>Event start</text></ElTimelineItem>
+            <ElTimelineItem Timestamp="2018-04-13"><text>Approved</text></ElTimelineItem>
+            <ElTimelineItem Timestamp="2018-04-11"><text>Success</text></ElTimelineItem>
+        </ElTimeline>
+    </div>
+
+    <div class="demo-section">
+        <h4>② 自定义节点（类型色 / 颜色 / 尺寸 / 空心 / 图标 / 隐藏时间戳）</h4>
+        <ElTimeline>
+            <ElTimelineItem Timestamp="2018-04-12 20:46" Type="primary" Size="large" Icon="edit">
+                <text>Custom icon + large + primary</text>
+            </ElTimelineItem>
+            <ElTimelineItem Timestamp="2018-04-03 20:46" Color="#0bbd87">
+                <text>Custom color</text>
+            </ElTimelineItem>
+            <ElTimelineItem Timestamp="2018-04-03 20:46" Size="large">
+                <text>Custom size large</text>
+            </ElTimelineItem>
+            <ElTimelineItem Timestamp="2018-04-03 20:46" Type="primary" Hollow="true">
+                <text>Custom hollow</text>
+            </ElTimelineItem>
+            <ElTimelineItem HideTimestamp="true">
+                <text>Hidden timestamp</text>
+            </ElTimelineItem>
+            <ElTimelineItem Timestamp="2018-04-03 20:46" Dot="@CustomDot">
+                <text>Custom dot slot</text>
+            </ElTimelineItem>
+        </ElTimeline>
+    </div>
+
+    <div class="demo-section">
+        <h4>③ 时间戳置于内容之上（Placement=Top）</h4>
+        <ElTimeline>
+            <ElTimelineItem Timestamp="2018/4/12" Placement="TimelinePlacement.Top">
+                <text>Update Github template</text>
+            </ElTimelineItem>
+            <ElTimelineItem Timestamp="2018/4/3" Placement="TimelinePlacement.Top">
+                <text>Another commit</text>
+            </ElTimelineItem>
+        </ElTimeline>
+    </div>
+
+    <div class="demo-section">
+        <h4>④ 垂直居中（Center）</h4>
+        <ElTimeline>
+            <ElTimelineItem Timestamp="2018/4/12" Center="true" Placement="TimelinePlacement.Top">
+                <text>Centered node item</text>
+            </ElTimelineItem>
+            <ElTimelineItem Timestamp="2018/4/3" Center="true" Placement="TimelinePlacement.Top">
+                <text>Centered node item 2</text>
+            </ElTimelineItem>
+            <ElTimelineItem Timestamp="2018/4/2" Center="true">
+                <text>Centered node item 3</text>
+            </ElTimelineItem>
+        </ElTimeline>
+    </div>
+
+    <div class="demo-section">
+        <h4>⑤ 逆序（Reverse）</h4>
+        <ElTimeline Reverse="true">
+            <ElTimelineItem Timestamp="2018-04-15"><text>Event start（应显示在最下方）</text></ElTimelineItem>
+            <ElTimelineItem Timestamp="2018-04-13"><text>Approved</text></ElTimelineItem>
+            <ElTimelineItem Timestamp="2018-04-11"><text>Success（应显示在最上方）</text></ElTimelineItem>
+        </ElTimeline>
+    </div>
+
+    <div class="demo-section">
+        <h4>⑥ 模式：End（内容在左 / 轴线在右）</h4>
+        <ElTimeline Mode="TimelineMode.End">
+            <ElTimelineItem Timestamp="2018-04-15"><text>Event start</text></ElTimelineItem>
+            <ElTimelineItem Timestamp="2018-04-13"><text>Approved</text></ElTimelineItem>
+            <ElTimelineItem Timestamp="2018-04-11"><text>Success</text></ElTimelineItem>
+        </ElTimeline>
+    </div>
+
+    <div class="demo-section">
+        <h4>⑦ 模式：Alternate（奇数项在右、偶数项在左，轴线居中）</h4>
+        <ElTimeline Mode="TimelineMode.Alternate">
+            <ElTimelineItem Timestamp="2018-04-15" Type="primary"><text>Event start</text></ElTimelineItem>
+            <ElTimelineItem Timestamp="2018-04-13" Type="success"><text>Approved</text></ElTimelineItem>
+            <ElTimelineItem Timestamp="2018-04-11" Type="warning"><text>Success</text></ElTimelineItem>
+            <ElTimelineItem Timestamp="2018-04-09" Type="danger"><text>Error</text></ElTimelineItem>
+        </ElTimeline>
+    </div>
+
+    <div class="demo-section">
+        <h4>⑧ 模式：AlternateReverse（奇数项在左、偶数项在右）</h4>
+        <ElTimeline Mode="TimelineMode.AlternateReverse">
+            <ElTimelineItem Timestamp="2018-04-15" Type="primary"><text>Event start</text></ElTimelineItem>
+            <ElTimelineItem Timestamp="2018-04-13" Type="success"><text>Approved</text></ElTimelineItem>
+            <ElTimelineItem Timestamp="2018-04-11" Type="warning"><text>Success</text></ElTimelineItem>
+            <ElTimelineItem Timestamp="2018-04-09" Type="danger"><text>Error</text></ElTimelineItem>
+        </ElTimeline>
+    </div>
+
+    <div class="demo-section">
+        <h4>⑨ 扩展功能保留：Pending / Horizontal</h4>
+        <ElTimeline Pending="true">
+            <ElTimelineItem Timestamp="2018-04-15"><text>Event start</text></ElTimelineItem>
+            <ElTimelineItem Timestamp="2018-04-13"><text>Approved</text></ElTimelineItem>
+        </ElTimeline>
+    </div>
+
+</div>
+
+@code {
+    private RenderFragment CustomDot => __builder =>
+    {
+        __builder.OpenElement(0, "div");
+        __builder.AddAttribute(1, "style", "width:14px;height:14px;border-radius:50%;background:#7b61ff;box-shadow:0 0 0 3px rgba(123,97,255,.25)");
+        __builder.CloseElement();
+    };
+}

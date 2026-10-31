@@ -1,0 +1,75 @@
+@page "/popover"
+@using ElementPlus
+
+<h1 class="demo-page-title">ElPopover 弹出框（对齐 Element Plus Popover）</h1>
+<p class="demo-page-sub">
+    点击/悬停/聚焦触发的弹出面板，可承载富文本与交互内容。支持标题、多种方位、dark/light 主题与参考元素插槽。
+</p>
+
+<div class="demo-section">
+    <h3>触发方式</h3>
+    <div class="demo-row demo-row-wrap">
+        <ElPopover Title="标题" Content="这是一段内容，这是一段内容。" Placement="top">
+            <Reference><ElButton>hover 触发</ElButton></Reference>
+        </ElPopover>
+        <ElPopover Title="标题" Content="点击触发的弹出框。" Trigger="PopperTrigger.Click" Placement="top">
+            <Reference><ElButton>click 触发</ElButton></Reference>
+        </ElPopover>
+        <ElPopover Title="标题" Content="聚焦触发的弹出框。" Trigger="PopperTrigger.Focus" Placement="top">
+            <Reference><ElButton>focus 触发</ElButton></Reference>
+        </ElPopover>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>主题与内容插槽</h3>
+    <div class="demo-row demo-row-wrap">
+        <ElPopover Title="浅色主题" Effect="light" Width="220" Placement="bottom">
+            <ContentTemplate>
+                <div>浅色（light）弹出框内容。</div>
+            </ContentTemplate>
+            <Reference><ElButton>light</ElButton></Reference>
+        </ElPopover>
+        <ElPopover Title="深色主题" Effect="dark" Width="220" Placement="bottom">
+            <ContentTemplate>
+                <div>深色（dark）弹出框内容。</div>
+            </ContentTemplate>
+            <Reference><ElButton>dark</ElButton></Reference>
+        </ElPopover>
+        <ElPopover @ref="opPopover" Title="操作面板" Width="240" Trigger="PopperTrigger.Click" Placement="bottom">
+            <ContentTemplate>
+                <div>
+                    <p>选择一项操作：</p>
+                    <ElButton Size="ButtonSize.Small" Type="ButtonType.Primary" OnClick="ConfirmOperation">确认</ElButton>
+                    <ElButton Size="ButtonSize.Small" OnClick="CancelOperation">取消</ElButton>
+                </div>
+            </ContentTemplate>
+            <Footer><span class="demo-note">footer 插槽</span></Footer>
+            <Reference><ElButton>带操作面板</ElButton></Reference>
+        </ElPopover>
+    </div>
+    <p class="demo-note" id="popover-op-result">最近一次操作：@opResult</p>
+</div>
+
+@code {
+    private ElPopover opPopover;
+    private string opResult = "还没选";
+    private int opConfirmCount;
+
+    // 操作面板这两个按钮原来一个 OnClick 都没挂，所以「点了没反应」是真的没接。
+    // 这里把它们接成面板的正常用法：选定/放弃都收面板，并把结果回显在下方，
+    // 这样浏览器里一次点击就能看到状态变化（不用靠肉眼盯面板有没有关）。
+    // 触发方式同时改成 Click：hover 触发的面板把鼠标移向按钮时容易先离开参考元素。
+    private async Task ConfirmOperation()
+    {
+        opConfirmCount++;
+        opResult = $"确认（第 {opConfirmCount} 次）";
+        await opPopover.HideAsync();
+    }
+
+    private async Task CancelOperation()
+    {
+        opResult = "取消";
+        await opPopover.HideAsync();
+    }
+}

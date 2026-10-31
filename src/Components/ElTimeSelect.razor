@@ -1,0 +1,30 @@
+@inherits ElementFieldComponentBase<string>
+
+<div class="@wrapperClsBuilder.ToString()"
+     style="@Style"
+     @ref="timeSelectElement"
+     role="combobox"
+     aria-haspopup="listbox"
+     aria-label="@AriaLabel"
+     aria-expanded="@AriaExpanded"
+     aria-disabled="@AriaDisabled"
+     aria-controls="@DropDownId"
+     aria-activedescendant="@ActiveDescendantId"
+     tabindex="@(IsTimeSelectDisabled ? -1 : 0)"
+     @onclick="OnTimeSelectClickAsync"
+     @onkeydown="OnKeyDownAsync">
+    <ElInput TValue="string"
+             Value="@Value"
+             Placeholder="@Placeholder"
+             Disabled="@IsTimeSelectDisabled"
+             Readonly="@(!Editable)"
+             Clearable="@Clearable"
+             PrefixIcon="@PrefixIcon"
+             Loading="@Loading"`n             SuffixIcon="@(Loading ? LoadingIcon : SuffixIconClass)"
+             Size="@EffectiveSize"
+             ValidateEvent="false"
+             OnClear="OnInputClearAsync"
+             OnFocus="OnInputFocusAsync"
+             OnBlur="OnInputBlurAsync">
+    </ElInput>
+</div>

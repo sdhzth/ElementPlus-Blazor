@@ -1,0 +1,39 @@
+@page "/input-tag"
+@using ElementPlus
+
+<h1 class="demo-page-title">标签输入 / ElInputTag</h1>
+<p class="demo-page-sub">对齐官方：支持 @("@bind-Value")（标签集合）、Max、AllowDuplicates、TriggerKeys、Draggable、Clearable、Size，以及扩展的 CollapseTags。</p>
+
+<div class="demo-section">
+    <h3>基础用法</h3>
+    <div class="demo-row">
+        <ElInputTag @bind-Value="tags1" Placeholder="输入后回车添加" Clearable="true" />
+    </div>
+    <p class="demo-note">当前标签：@string.Join(", ", tags1)</p>
+</div>
+
+<div class="demo-section">
+    <h3>上限 / 不允许重复 / 可拖拽排序</h3>
+    <div class="demo-row">
+        <ElInputTag @bind-Value="tags2" Max="3" Placeholder="最多 3 个" />
+        <ElInputTag @bind-Value="tags3" AllowDuplicates="false" Draggable="true" Placeholder="可拖拽排序" />
+    </div>
+    <p class="demo-note">tags2：@string.Join(", ", tags2)　|　tags3：@string.Join(", ", tags3)</p>
+</div>
+
+<div class="demo-section">
+    <h3>Effect（标签主题）</h3>
+    <div class="demo-row">
+        <ElInputTag @bind-Value="tags4" Effect="TagEffect.Light" Placeholder="light（默认）" />
+        <ElInputTag @bind-Value="tags4" Effect="TagEffect.Dark" Placeholder="dark" />
+        <ElInputTag @bind-Value="tags4" Effect="TagEffect.Plain" Placeholder="plain" />
+    </div>
+    <p class="demo-note">三种主题对应 el-tag--light / el-tag--dark / el-tag--plain。</p>
+</div>
+
+@code {
+    private IList<string> tags1 = new List<string> { "标签一", "标签二" };
+    private IList<string> tags2 = new List<string>();
+    private IList<string> tags3 = new List<string> { "A", "B", "C" };
+    private IList<string> tags4 = new List<string> { "示例" };
+}

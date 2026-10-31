@@ -1,0 +1,20 @@
+@inherits ElementComponentBase
+
+@* 该组件作为 ElRibbon 的 Menu 参数内容，在点击「开始」页签时以非模态层的形式弹出。 *@
+<div class="demo-ribbon-menu">
+    <div class="demo-ribbon-menu__title">文件</div>
+    <button type="button" class="demo-ribbon-menu__item" @onclick="OnPick">新建文档</button>
+    <button type="button" class="demo-ribbon-menu__item" @onclick="OnPick">打开…</button>
+    <button type="button" class="demo-ribbon-menu__item" @onclick="OnPick">保存</button>
+    <button type="button" class="demo-ribbon-menu__item" @onclick="OnPick">另存为…</button>
+    <div class="demo-ribbon-menu__sep"></div>
+    <button type="button" class="demo-ribbon-menu__item" @onclick="OnPick">打印</button>
+    <button type="button" class="demo-ribbon-menu__item" @onclick="OnPick">导出 PDF</button>
+</div>
+
+@code {
+    // 仅作演示：点击菜单项不执行实际业务，由外层遮罩（点击空白处）关闭菜单层。
+    private void OnPick()
+    {
+    }
+}

@@ -1,0 +1,92 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>ElementPlus</RootNamespace>
+    <AssemblyName>ElementPlus</AssemblyName>
+    <ApplicationIcon />
+    <OutputType>Library</OutputType>
+    <PackageId>Element-Plus</PackageId>
+    <Title>Element-Plus</Title>
+    <Version>0.11.0</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>Smart</Authors>
+    <IsPackable>true</IsPackable>
+    <Description>Element-Plus is an independent Blazor UI component library aligned with the Element Plus 2.14 design language, published by Smart.</Description>
+    <RepositoryUrl>https://github.com/Element-Plus-Blazor/Element-Plus-Blazor/</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/Element-Plus-Blazor/</PackageProjectUrl>
+    <RazorLangVersion>3.0</RazorLangVersion>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>PACKAGE_README.md</PackageReadmeFile>
+    <Company>Element-Plus</Company>
+    <PackageIcon>LOGO.png</PackageIcon>
+    <PackageTags>blazor;components;razor;ui;element;element-plus;element-plus;net10</PackageTags>
+    <PackageReleaseNotes>Element-Plus 0.10 line aligns public Razor components with Element Plus-style El* naming and targets .NET 10. Independent package line published by Smart.</PackageReleaseNotes>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <Deterministic>true</Deterministic>
+    <DebugType>portable</DebugType>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <NoWarn>$(NoWarn);1591;1701;1702;CS0108;CS1573;BL0005;BL0007</NoWarn>
+    <EnableSourceLink>false</EnableSourceLink>
+    <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>obj\Debug\net10.0\Element.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>obj\Release\net10.0\Element.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="PopupRenders\**" />
+    <Content Remove="PopupRenders\**" />
+    <EmbeddedResource Remove="PopupRenders\**" />
+    <None Remove="PopupRenders\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LOGO.png">
+      <Pack>true</Pack>
+      <PackagePath></PackagePath>
+    </None>
+    <None Include="..\..\LICENSE">
+      <Pack>true</Pack>
+      <PackagePath></PackagePath>
+    </None>
+    <None Include="..\..\PACKAGE_README.md">
+      <Pack>true</Pack>
+      <PackagePath></PackagePath>
+    </None>
+    <None Include="wwwroot\css\fonts\element-icons.ttf" />
+    <None Include="wwwroot\css\fonts\element-icons.woff" />
+    <None Include="wwwroot\js\dom.js" />
+    <None Include="wwwroot\js\ofd\ofd.umd.min.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Castle.Core.AsyncInterceptor" Version="2.1.0" />
+    <PackageReference Include="CompareNETObjects" Version="4.79.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components" Version="10.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.8" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.8" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.300" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="wwwroot\lang\en-US.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\lang\zh-CN.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

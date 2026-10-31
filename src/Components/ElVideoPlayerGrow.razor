@@ -1,0 +1,104 @@
+@inherits ElementComponentBase
+
+<div class="@ContainerClass" style="@ContainerStyle" id="@_uid">
+    <div class="el-video-player-grow__body" style="@BodyStyle">
+        <video @ref="_videoRef"
+               id="@(_uid)-video"
+               class="el-video-player-grow__video"
+               poster="@Poster"
+               autoplay="@(AutoPlay ? "autoplay" : null)"
+               loop="@_loop"
+               muted="@Muted"
+               playsinline
+               @onclick="TogglePlay">
+            @if (!_useMseLib && !_manualSrc)
+            {
+                @foreach (var s in _resolvedSources)
+                {
+                    <source src="@s.Url" type="@(string.IsNullOrEmpty(s.Type) ? null : s.Type)" />
+                }
+            }
+        </video>
+
+        @if (_isWaiting)
+        {
+            <div class="el-video-player-grow__loading"><i class="el-icon-loading"></i></div>
+        }
+
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <div class="el-video-player-grow__error">
+                <i class="el-icon-warning-outline"></i>
+                <span>@ErrorMessage</span>
+            </div>
+        }
+
+        @if (Controls)
+        {
+            <div class="el-video-player-grow__controls">
+                <button type="button" class="el-video-player-grow__btn" @onclick="TogglePlay" title="播放/暂停">
+                    <i class="@(_isPlaying ? "el-icon-video-pause" : "el-icon-video-play")"></i>
+                </button>
+
+                @if (ShowLoop)
+                {
+                    <button type="button" class="el-video-player-grow__btn @(_loop ? "is-active" : "")" @onclick="ToggleLoop" title="循环播放">
+                        <i class="el-icon-refresh"></i>
+                    </button>
+                }
+
+                <span class="el-video-player-grow__time">@FormatTime(_currentTime) / @DurationText</span>
+
+                <div class="el-video-player-grow__progress" id="@(_uid)-progress" @onpointerdown="OnProgressPointerDown" title="拖拽定位">
+                    <div class="el-video-player-grow__progress-bg"></div>
+                    <div class="el-video-player-grow__progress-buffered" style="width:@BufferedPercent%"></div>
+                    <div class="el-video-player-grow__progress-played" style="width:@PlayedPercent%"></div>
+                    <div class="el-video-player-grow__progress-thumb" style="left:@PlayedPercent%"></div>
+                </div>
+
+                @if (ShowVolume)
+                {
+                    <button type="button" class="el-video-player-grow__btn" @onclick="ToggleMute" title="静音">
+                        <i class="@(_isMuted || _volume == 0 ? "el-icon-turn-off-microphone" : "el-icon-microphone")"></i>
+                    </button>
+                    <div class="el-video-player-grow__volume" id="@(_uid)-volume" @onpointerdown="OnVolumePointerDown" title="音量">
+                        <div class="el-video-player-grow__volume-bg"></div>
+                        <div class="el-video-player-grow__volume-inner" style="width:@VolumePercent%"></div>
+                    </div>
+                }
+
+                @if (ShowPlaybackRate && PlaybackRates != null && PlaybackRates.Length > 0)
+                {
+                    <div class="el-video-player-grow__rate">
+                        <button type="button" class="el-video-player-grow__btn el-video-player-grow__rate-label" @onclick="ToggleRateMenu" title="倍速">
+                            @_playbackRate.ToString("0.##")x
+                        </button>
+                        @if (_rateMenuOpen)
+                        {
+                            <ul class="el-video-player-grow__rate-menu">
+                                @foreach (var rate in PlaybackRates)
+                                {
+                                    <li class="@(_playbackRate == rate ? "is-active" : "")" @onclick="() => SetRate(rate)">@rate.ToString("0.##")x</li>
+                                }
+                            </ul>
+                        }
+                    </div>
+                }
+
+                @if (ShowPiP)
+                {
+                    <button type="button" class="el-video-player-grow__btn" @onclick="TogglePiP" title="画中画">
+                        <i class="@(_isPiP ? "el-icon-close" : "el-icon-copy-document")"></i>
+                    </button>
+                }
+
+                @if (ShowFullscreen)
+                {
+                    <button type="button" class="el-video-player-grow__btn" @onclick="ToggleFullscreen" title="全屏">
+                        <i class="@(_isFullscreen ? "el-icon-aim" : "el-icon-full-screen")"></i>
+                    </button>
+                }
+            </div>
+        }
+    </div>
+</div>

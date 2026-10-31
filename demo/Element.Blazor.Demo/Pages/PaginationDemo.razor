@@ -1,0 +1,92 @@
+@page "/pagination"
+
+<div class="demo-section">
+    <h3>ElPagination 分页（对齐 Element Plus Pagination）</h3>
+    <p class="demo-page-sub">
+        在官方属性/事件/插槽基础上，保留本库既有扩展能力（跳页框开关 <code>ShowJumper</code> / <code>ShowJumperControls</code>、<code>JumperPrefix</code>/<code>JumperSuffix</code>、<code>TotalText</code>、<code>Id</code>/<code>AriaLabel</code> 等）。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>基础用法（prev, pager, next）</h3>
+    <ElPagination Total="100" PageSize="10" CurrentPage="1" Layout="prev, pager, next" />
+</div>
+
+<div class="demo-section">
+    <h3>带背景色 + 总条数 + 每页条数 + 跳页</h3>
+    <ElPagination Total="@total" PageSize="@pageSize" CurrentPage="@currentPage"
+                  Layout="total, sizes, prev, pager, next, jumper"
+                  PageSizes="@(new[] { 10, 20, 50, 100 })"
+                  Background="true"
+                  CurrentPageChanged="(p) => currentPage = p"
+                  PageSizeChanged="(s) => pageSize = s"
+                  PageCountChanged="@(c => pcMsg = $"PageCountChanged → 共 {c} 页")" />
+    <p class="demo-note">当前第 @currentPage 页 / 共 @((int)Math.Ceiling(total / (double)pageSize)) 页 ｜ @pcMsg</p>
+</div>
+
+<div class="demo-section">
+    <h3>小型分页（Size="Small"）</h3>
+    <ElPagination Total="50" PageSize="10" Layout="prev, pager, next" Size="ElementSize.Small" />
+</div>
+
+<div class="demo-section">
+    <h3>只有一页时隐藏（HideOnSinglePage）</h3>
+    <div class="demo-row" style="align-items:center; gap:8px;">
+        <span style="font-size:13px;">HideOnSinglePage</span>
+        <ElSwitch @bind-Value="hideSingle" />
+    </div>
+    <ElPagination Total="5" PageSize="10" HideOnSinglePage="@hideSingle" Layout="prev, pager, next, jumper" />
+</div>
+
+<div class="demo-section">
+    <h3>layout 含 "->"：其后所有元素整体靠右</h3>
+    <ElPagination Total="@total" PageSize="10" Layout="prev, pager, next, ->, total, sizes, jumper"
+                  PageSizes="@(new[] { 10, 20, 50 })" />
+</div>
+
+<div class="demo-section">
+    <h3>自定义 slot（layout 含 slot 标记）</h3>
+    <ElPagination Total="@total" PageSize="10" Layout="prev, pager, next, ->, slot">
+        <SlotContent><span style="color:#409eff; font-weight:600;">共 @total 条记录</span></SlotContent>
+    </ElPagination>
+</div>
+
+<div class="demo-section">
+    <h3>自定义 total / prev / next 插槽</h3>
+    <ElPagination Total="@total" PageSize="10" Layout="prev, pager, next, total">
+        <TotalContent><strong style="color:#67c23a;">总 @total 条</strong></TotalContent>
+        <PrevContent><span>上一页</span></PrevContent>
+        <NextContent><span>下一页</span></NextContent>
+    </ElPagination>
+</div>
+
+<div class="demo-section">
+    <h3>用 PageCount 代替 Total（不需 page-sizes 切换时）</h3>
+    <ElPagination PageCount="20" PageSize="10" Layout="prev, pager, next" />
+</div>
+
+<div class="demo-section">
+    <h3>最大页码按钮数 PagerCount=9（pager-count）</h3>
+    <ElPagination Total="500" PageSize="10" PagerCount="9" CurrentPage="20" Layout="prev, pager, next" />
+</div>
+
+<div class="demo-section">
+    <h3>事件：prev-click / next-click / change</h3>
+    <ElPagination Total="@total" PageSize="10" CurrentPage="@currentPage"
+                  Layout="prev, pager, next"
+                  PrevClick="OnPrev" NextClick="OnNext" Change="OnChange" />
+    <p class="demo-note">@log</p>
+</div>
+
+@code {
+    int currentPage = 1;
+    int pageSize = 10;
+    int total = 1000;
+    bool hideSingle = false;
+    string log = "（点击上一页 / 下一页查看事件触发）";
+    string pcMsg = "（切换每页条数，或改 Total，看 page-count 变化）";
+
+    void OnPrev(int p) => log = $"prev-click → 当前第 {p} 页";
+    void OnNext(int p) => log = $"next-click → 当前第 {p} 页";
+    void OnChange((int CurrentPage, int PageSize) e) => log = $"change → currentPage={e.CurrentPage}, pageSize={e.PageSize}";
+}

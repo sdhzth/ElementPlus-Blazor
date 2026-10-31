@@ -1,0 +1,131 @@
+@page "/slider"
+@using ElementPlus
+
+<h1 class="demo-page-title">滑块 / ElSlider</h1>
+<p class="demo-page-sub">
+    对齐 Element Plus 官方文档：model-value / min / max / step / show-stops / show-input / show-input-controls /
+    size / input-size / show-tooltip / format-tooltip / range / vertical / height / aria-label / range-start-label /
+    range-end-label / format-value-text / tooltip-class / placement / marks / validate-event / persistent /
+    <code>step="mark"</code>（<code>StepToMark</code>）。
+    <code>label</code> 官方已标记 deprecated，按约定不接入，请用 <code>AriaLabel</code>。
+</p>
+
+<div class="demo-section">
+    <h3>基础用法 / 离散值</h3>
+    <div class="demo-row" style="flex-direction:column;align-items:stretch;max-width:420px">
+        <ElSlider @bind-Value="value1" />
+        <ElSlider @bind-Value="value2" ShowStops="true" Step="10" Max="100" />
+        <ElSlider @bind-Value="value2" ShowTooltip="false" />
+    </div>
+    <p class="demo-note">value1=@value1　value2=@value2（第三条 Hide Tooltip，对应官方 <code>show-tooltip=false</code>）</p>
+</div>
+
+<div class="demo-section">
+    <h3>格式化 Tooltip / 自定义提示类与位置</h3>
+    <div class="demo-row" style="flex-direction:column;align-items:stretch;max-width:420px">
+        <ElSlider @bind-Value="value1" FormatTooltip="@(v => $"{v}%")" />
+        <ElSlider @bind-Value="value1" Placement="bottom" TooltipClass="demo-slider-tip" />
+    </div>
+    <p class="demo-note">第二条对应官方「位置」示例：<code>placement="bottom"</code> + <code>tooltip-class</code>。</p>
+</div>
+
+<div class="demo-section">
+    <h3>不同尺寸（size）</h3>
+    <div class="demo-row" style="flex-direction:column;align-items:stretch;max-width:420px">
+        <ElSlider @bind-Value="value1" Size="InputSize.Large" />
+        <ElSlider @bind-Value="value1" />
+        <ElSlider @bind-Value="value1" Size="InputSize.Small" />
+    </div>
+    <p class="demo-note">large / default / small 对应官方 40px / 32px / 24px 包装器高度。</p>
+</div>
+
+<div class="demo-section">
+    <h3>带输入框</h3>
+    <div class="demo-row" style="flex-direction:column;align-items:stretch;max-width:420px">
+        <ElSlider @bind-Value="value1" ShowInput="true" />
+        <ElSlider @bind-Value="value1" ShowInput="true" ShowInputControls="false" />
+        <ElSlider @bind-Value="value1" ShowInput="true" Size="InputSize.Small" />
+    </div>
+    <p class="demo-note">第三条：未显式指定 <code>InputSize</code> 时，输入框尺寸自动继承 <code>Size</code>（对齐官方 <code>inputSize || size</code>）。</p>
+</div>
+
+<div class="demo-section">
+    <h3>范围选择</h3>
+    <div class="demo-row" style="flex-direction:column;align-items:stretch;max-width:420px">
+        <ElSlider @bind-RangeValue="range1" Range="true" />
+        <ElSlider @bind-RangeValue="range2" Range="true" ShowStops="true" Step="10"
+                  RangeStartLabel="最小值" RangeEndLabel="最大值" />
+    </div>
+    <p class="demo-note">range1=@string.Join(" ~ ", range1)　range2=@string.Join(" ~ ", range2)</p>
+</div>
+
+<div class="demo-section">
+    <h3>垂直模式（vertical + height）</h3>
+    <div class="demo-row" style="height:220px;align-items:stretch">
+        <ElSlider @bind-Value="value1" Vertical="true" Height="180" />
+        <ElSlider @bind-Value="value2" Vertical="true" Height="180" ShowStops="true" Step="20" />
+        <ElSlider @bind-RangeValue="range1" Range="true" Vertical="true" Height="180" />
+    </div>
+    <p class="demo-note">value1=@value1　value2=@value2　range1=@string.Join(" ~ ", range1)</p>
+</div>
+
+<div class="demo-section">
+    <h3>显示标记（marks）</h3>
+    <div class="demo-row" style="flex-direction:column;align-items:stretch;max-width:460px">
+        <ElSlider @bind-Value="temperature" Marks="temperatureMarks" ShowStops="true" Step="1" Max="37" />
+        <ElSlider @bind-Value="percent" Marks="percentMarks" FormatTooltip="@(v => $"{v}%")" />
+    </div>
+    <p class="demo-note">temperature=@temperature　percent=@percent（每个 mark 可单独设 Style，如 37°C 标红）</p>
+</div>
+
+<div class="demo-section">
+    <h3>限制值为刻度（step="mark"）</h3>
+    <div class="demo-row" style="flex-direction:column;align-items:stretch;max-width:460px">
+        <ElSlider @bind-Value="snapped" Marks="centimeterMarks" StepToMark="true" />
+    </div>
+    <p class="demo-note">
+        snapped=@snapped　拖动只会落在 0 / 10 / 25 / 50 / 75 / 100 上；按官方规则此时
+        <code>show-input</code> 与 <code>show-stops</code> 自动失效。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>禁用</h3>
+    <div class="demo-row" style="max-width:420px">
+        <ElSlider @bind-Value="value1" Disabled="true" />
+    </div>
+</div>
+
+@code {
+    private double value1 = 30;
+    private double value2 = 50;
+    private double temperature = 20;
+    private double percent = 30;
+    private double snapped = 25;
+    private IList<double> range1 = new List<double> { 20, 60 };
+    private IList<double> range2 = new List<double> { 10, 40 };
+
+    private IEnumerable<SliderMark> temperatureMarks = new List<SliderMark>
+    {
+        new SliderMark { Value = 0, Label = "0°C" },
+        new SliderMark { Value = 8, Label = "8°C" },
+        new SliderMark { Value = 37, Label = "37°C", Style = "color:#f56c6c;" }
+    };
+
+    private IEnumerable<SliderMark> percentMarks = new List<SliderMark>
+    {
+        new SliderMark { Value = 0, Label = "0%" },
+        new SliderMark { Value = 50, Label = "50%" },
+        new SliderMark { Value = 100, Label = "100%" }
+    };
+
+    private IEnumerable<SliderMark> centimeterMarks = new List<SliderMark>
+    {
+        new SliderMark { Value = 0, Label = "0cm" },
+        new SliderMark { Value = 10, Label = "10cm" },
+        new SliderMark { Value = 25, Label = "25cm" },
+        new SliderMark { Value = 50, Label = "50cm" },
+        new SliderMark { Value = 75, Label = "75cm" },
+        new SliderMark { Value = 100, Label = "100cm" }
+    };
+}

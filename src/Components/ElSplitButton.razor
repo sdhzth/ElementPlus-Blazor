@@ -1,0 +1,20 @@
+@inherits ElementComponentBase
+@if (Visible)
+{
+    <style>
+        .el-split-button__image { width: 1em; height: 1em; object-fit: contain; vertical-align: -0.125em; }
+    </style>
+    <div id="@EffectiveId" class="@RootClass" style="@Style" @ref="Target" @attributes="Attributes">
+        <ElButtonGroup>
+            <ElButton Type="@Type" Size="@Size" Plain="@Plain" Round="@Round" Link="@Link" Bg="@Bg" Dashed="@Dashed" Dark="@Dark" Color="@Color"
+                      Disabled="@Disabled" Loading="@IsBusy" Icon="@IconValue" IconContent="@IconContentValue" Content="@MainText"
+                      NativeType="@NativeType" Tabindex="@(IsDisabled ? -1 : Tabindex)"
+                      OnClick="OnMainClickAsync" id="@MainId" aria-label="@MainAriaLabel">@ButtonContent</ElButton><ElButton @ref="caretButton"
+                    Cls="@CaretCls" Type="@Type" Size="@Size" Plain="@Plain" Round="@Round" Link="@Link" Bg="@Bg" Dashed="@Dashed" Dark="@Dark" Color="@Color"
+                    Disabled="@IsDisabled" Icon="@DropDownIconValue" NativeType="@NativeType" Tabindex="@(IsDisabled ? -1 : Tabindex)"
+                    OnClick="OnCaretClickAsync" id="@CaretId"
+                    aria-label="@OpenAriaLabel" aria-haspopup="menu" aria-controls="@MenuId" aria-expanded="@(IsOpen ? "true" : "false")"
+                    @onkeydown="OnCaretKeyDownAsync" />
+        </ElButtonGroup>
+    </div>
+}

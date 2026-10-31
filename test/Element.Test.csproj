@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFramework>net10.0</TargetFramework>
+	  <RootNamespace>ElementPlus.Test</RootNamespace>
+	  <AssemblyName>ElementPlus.Test</AssemblyName>
+
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Element.ComponentTests\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="7.0.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.1" />
+    <PackageReference Include="PuppeteerSharp" Version="9.0.2" />
+    <PackageReference Include="xunit" Version="2.4.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector" Version="3.2.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\template\Admin\Admin.ClientRender\Element.Admin.ClientRender.csproj" />
+    <ProjectReference Include="..\template\Admin\Admin.ServerRender\Element.Admin.ServerRender.csproj" />
+    <ProjectReference Include="..\template\Samples\Admin\Admin.Sample.ClientRender.PWA\Element.Admin.Sample.ClientRender.PWA.csproj" />
+    <ProjectReference Include="..\template\Samples\Admin\Admin.Sample.ServerRender\Element.Admin.Sample.ServerRender.csproj" />
+    <ProjectReference Include="..\template\Samples\Renders\ClientRender.PWA\Element.ClientRender.PWA.csproj" />
+    <ProjectReference Include="..\template\Samples\Renders\ClientRender\Element.ClientRender.csproj" />
+  </ItemGroup>
+
+</Project>

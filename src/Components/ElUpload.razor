@@ -1,0 +1,126 @@
+@inherits ElementFieldComponentBase<IFileModel[]>
+
+<input type="hidden" @ref="hdnField" value="@HiddenValue" />
+
+@if (EffectiveListType == UploadListType.PictureCard)
+{
+    @if (ShowFileList)
+    {
+        @UploadList
+    }
+    <div class="@UploadTriggerClass" aria-label="@AriaLabel" aria-describedby="@AriaDescribedBy"
+         onclick="window.upload(this)"
+         ondragover="event.preventDefault()"
+         ondrop="window.uploadDrop(event, this)"
+         aria-disabled="@UploadDisabledText">
+        @if (ChildContent == null)
+        {
+            <i class="el-icon-plus"></i>
+        }
+        else
+        {
+            @ChildContent
+        }
+        @UploadInput
+    </div>
+}
+else
+{
+    <div class="@UploadTriggerClass" aria-label="@AriaLabel" aria-describedby="@AriaDescribedBy"
+         onclick="window.upload(this)"
+         ondragover="event.preventDefault()"
+         ondrop="window.uploadDrop(event, this)"
+         aria-disabled="@UploadDisabledText">
+        @if (Drag)
+        {
+            <div class="@($"el-upload-dragger {DragClass}")">
+                @if (ChildContent == null)
+                {
+                    <i class="el-icon-upload"></i>
+                    <div class="el-upload__text">Drop file here or <em>click to upload</em></div>
+                }
+                else
+                {
+                    @ChildContent
+                }
+            </div>
+        }
+        else if (ChildContent == null)
+        {
+            <ElButton Size="@ButtonSize.Small" Type="ButtonType.Primary" Disabled="@UploadDisabled">
+                Upload
+            </ElButton>
+        }
+        else
+        {
+            @ChildContent
+        }
+        @UploadInput
+    </div>
+    @UploadTip
+    @if (ShowFileList)
+    {
+        @UploadList
+    }
+}
+
+@code {
+    private RenderFragment UploadInput => builder =>
+    {
+        var seq = 0;
+        builder.OpenElement(seq++, "input");
+        builder.AddAttribute(seq++, "type", "file");
+        builder.AddAttribute(seq++, "name", FileFieldName);
+        builder.AddAttribute(seq++, "multiple", Multiple);
+        builder.AddAttribute(seq++, "disabled", UploadDisabled);
+        builder.AddAttribute(seq++, "accept", Accept);
+        if (!string.IsNullOrEmpty(CrossOrigin))
+        {
+            builder.AddAttribute(seq++, "crossorigin", CrossOrigin);
+        }
+        builder.AddAttribute(seq++, "class", "el-upload__input");
+        builder.AddAttribute(seq++, "onchange", EventCallback.Factory.Create(this, ScanFileAsync));
+        builder.AddElementReferenceCapture(seq++, reference => Input = reference);
+        builder.CloseElement();
+    };
+
+    private RenderFragment UploadTip => builder =>
+    {
+        if (Tip == null)
+        {
+            return;
+        }
+
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", $"el-upload__tip {TipClass}");
+        builder.AddContent(2, Tip);
+        builder.CloseElement();
+    };
+
+    private RenderFragment UploadList => builder =>
+    {
+        var seq = 0;
+        builder.OpenElement(seq++, "ul");
+        builder.AddAttribute(seq++, "class", $"el-upload-list el-upload-list--{ListTypeName}");
+        foreach (var file in Files.Cast<UploadModel>())
+        {
+            builder.OpenElement(seq++, "li");
+            builder.AddAttribute(seq++, "tabindex", "0");
+            builder.AddAttribute(seq++, "class", GetFileItemClass(file));
+            if (FileTemplate != null)
+            {
+                builder.AddContent(seq++, FileTemplate(file));
+            }
+            else if (EffectiveListType == UploadListType.PictureCard)
+            {
+                BuildPictureCardItem(builder, file, ref seq);
+            }
+            else
+            {
+                BuildTextOrPictureItem(builder, file, ref seq);
+            }
+            builder.CloseElement();
+        }
+        builder.CloseElement();
+    };
+}

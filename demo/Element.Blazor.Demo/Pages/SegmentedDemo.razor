@@ -1,0 +1,58 @@
+@page "/segmented"
+@using ElementPlus
+
+<h1 class="demo-page-title">分段控制器 / ElSegmented</h1>
+<p class="demo-page-sub">对齐官方：支持 @("@bind-Value")、Options（SegmentedOption）、Disabled、Block、Size、Direction、ButtonType，常用于视图切换。</p>
+
+<div class="demo-section">
+    <h3>基础用法</h3>
+    <div class="demo-row">
+        <ElSegmented @bind-Value="value1" Options="options" />
+    </div>
+    <p class="demo-note">当前：@value1</p>
+</div>
+
+<div class="demo-section">
+    <h3>尺寸 / 禁用 / 块级</h3>
+    <div class="demo-row">
+        <ElSegmented @bind-Value="value1" Options="options" Size="ElementSize.Large" />
+        <ElSegmented @bind-Value="value1" Options="options" Size="ElementSize.Small" />
+        <ElSegmented @bind-Value="value2" Options="options" Disabled="true" />
+        <ElSegmented @bind-Value="value1" Options="options" Block="true" />
+    </div>
+    <p class="demo-note">value2=@value2</p>
+</div>
+
+<div class="demo-section">
+    <h3>ValidateEvent（切换时是否触发表单重校验）</h3>
+    <ElForm Model="@model">
+        <ElFormItem TValue="string" Name="Period" Label="统计周期" Required="true">
+            <ElSegmented TValue="string" @bind-Value="model.Period" Options="options" ValidateEvent="true" />
+        </ElFormItem>
+        <ElFormItem TValue="string" Name="Mode" Label="展示方式" Required="true">
+            <ElSegmented TValue="string" @bind-Value="model.Mode" Options="options" ValidateEvent="false" />
+        </ElFormItem>
+    </ElForm>
+    <p class="demo-note">ValidateEvent=true（周期）：切换后表单立即重新校验并清除/刷新错误态；false（方式）：只改值，不触发校验。</p>
+</div>
+
+@code {
+    private string value1 = "day";
+    private string value2 = "week";
+
+    private SegFormModel model = new SegFormModel();
+
+    private class SegFormModel
+    {
+        public string Period { get; set; } = "day";
+        public string Mode { get; set; } = "week";
+    }
+
+    private List<SegmentedOption> options = new List<SegmentedOption>
+    {
+        new SegmentedOption { Label = "日", Value = "day" },
+        new SegmentedOption { Label = "周", Value = "week" },
+        new SegmentedOption { Label = "月", Value = "month" },
+        new SegmentedOption { Label = "年", Value = "year", Disabled = true }
+    };
+}

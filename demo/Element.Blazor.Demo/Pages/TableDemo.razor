@@ -1,0 +1,1009 @@
+@page "/table"
+@inherits ElementDialogBase
+
+<h1 class="demo-page-title">ElTable 进阶：可编辑表格 & 自定义模板列</h1>
+<p class="demo-page-sub">
+    ElTable 自带行内编辑能力（<code>IsEditable</code>）；单元格渲染则可完全交给 <code>ChildContent</code> / <code>ElTableTemplateColumn</code> 接管。本页两个 demo 分开演示。
+</p>
+
+<div class="demo-section">
+    <h3>① 可编辑表格（IsEditable + OnSave）</h3>
+    <p class="demo-page-sub">
+        <b>编辑</b>：<kbd>双击</kbd>某一行进入编辑（或点「操作」列的「编辑」按钮），改完后点该行「操作」列的<b>保存</b>提交；<kbd>Enter</kbd> 在可编辑单元格之间移动，不会触发保存。
+        <b>新增</b>：填写表体最后一行的输入框，点「保存」提交 —— <b>请把可编辑列都填齐全</b>（留空的数值列在转换时会抛异常）。
+        <br />
+        <b>单元格编辑器</b>：默认按属性类型推断（string/数字→<code>ElInput</code>、bool→<code>ElSwitch</code>、DateTime→<code>ElDatePicker</code>）；
+        也可以在列上用 <code>Editor</code> 显式指定 —— 本页「类别」用 <code>ElSelect</code>、「供应商」用 <code>ElDropDownTableGrow</code>（下拉里是一张带搜索/分页的表格）、「上架时间」用 <code>ElDateTimePicker</code>（日期 + 时间滚轮）。
+        「上架时间」还开了 <code>EditorCloseOnDatePick</code>（本库扩展）：日历里点一天就提交并收起面板，不必再点「确定」；不开这个参数时对齐官方 EP —— 点日期即写值但面板留着好继续拨时间。
+        <b>删除</b>：「操作」列的「删除」会先弹确认框。
+    </p>
+    <p class="demo-page-sub">
+        组件<b>不会</b>自己改动数据源：编辑值经 <code>OnSave(TableSaveEventArgs)</code> 抛出，本页在回调里按 <code>e.Action</code>（Create / Update / Delete）写回本地列表，再调用表格 <code>Refresh()</code> 重绘。
+    </p>
+
+    <CascadingValue Name="Page" Value="this">
+        <ElTable @ref="editTable" DataSource="products" IsEditable="true" AutoGenerateColumns="false"
+                 HasSelectionColumn="false" Border="true" OnSave="OnProductSave">
+            <ElTableColumn Property="Id" Text="ID" Width="60" IsEditable="false" />
+            <ElTableColumn Property="Name" Text="名称" Width="150" OnHeaderClick="OnNameHeaderClick" />
+            <ElTableColumn Property="Category" Text="类别（ElSelect）" Width="150"
+                           Editor="typeof(ElSelect<string>)"
+                           EditorDataSource="MockData.Categories"
+                           EditorValueField="Value" EditorTextField="Text" />
+            <ElTableColumn Property="Supplier" Text="供应商（ElDropDownTableGrow）" Width="190"
+                           Editor="typeof(ElDropDownTableGrow)"
+                           EditorDataSource="MockData.Suppliers"
+                           EditorValueField="Code" EditorTextField="Name">
+                <EditorColumns>
+                    <ElTableColumn Property="Code" Text="编码" Width="70" />
+                    <ElTableColumn Property="Name" Text="供应商" Width="150" />
+                    <ElTableColumn Property="Contact" Text="联系人" Width="80" />
+                </EditorColumns>
+                <ChildContent Context="cellRow">
+                    @SupplierDisplayText(cellRow)
+                </ChildContent>
+            </ElTableColumn>
+            <ElTableColumn Property="Price" Text="单价(元)" Width="100" />
+            <ElTableColumn Property="Stock" Text="库存" Width="90" />
+            <ElTableColumn Property="OnSale" Text="上架" Width="80" />
+            <ElTableColumn Property="CreatedAt" Text="上架时间（ElDateTimePicker）" Width="220"
+                           Editor="typeof(ElDateTimePicker)" EditorCloseOnDatePick="true" />
+        </ElTable>
+    </CascadingValue>
+
+    <p class="demo-note">保存结果：@lastAction</p>
+    <p class="demo-note">表头点击事件（仅「名称」列设置了 OnHeaderClick）：@headerClickMsg</p>
+    <p class="demo-page-sub">当前共 @products.Count 条。</p>
+</div>
+
+<div class="demo-section">
+    <h3>② 自定义模板列（ChildContent / ElTableTemplateColumn）</h3>
+    <p class="demo-page-sub">
+        任意 <code>ElTableColumn</code> 都能写 <code>ChildContent</code> 来接管<b>显示</b>（<code>@@context</code> 是当前行对象）；不需要绑定字段的纯展示列用 <code>ElTableTemplateColumn</code>（无需 <code>Property</code>）。
+        下面演示：双行复合单元格、金额格式化 + 右对齐、库存进度条 + 阈值配色、状态标签，以及带按钮的操作列。
+    </p>
+
+    <ElTable DataSource="rows" AutoGenerateColumns="false" HasSelectionColumn="false" Border="true">
+        <ElTableColumn Type="index" Text="#" Width="60" />
+        <ElTableColumn Property="Name" Text="名称（复合单元格）" Width="230">
+            <div>
+                <div style="font-weight:600;">@(((Product)context).Name)</div>
+                <div style="font-size:12px;color:#909399;">@(((Product)context).Category) · @(((Product)context).CreatedAt.ToString("yyyy-MM-dd"))</div>
+            </div>
+        </ElTableColumn>
+        <ElTableColumn Property="Price" Text="单价" Width="120" Align="right">
+            <span style="font-variant-numeric:tabular-nums;">¥ @(((Product)context).Price.ToString("N2"))</span>
+        </ElTableColumn>
+        <ElTableColumn Property="Stock" Text="库存（进度条）" Width="190">
+            @{
+                var stockRow = (Product)context;
+                <div style="display:flex;align-items:center;">
+                    <div style="flex:1;height:6px;background:#ebeef5;border-radius:3px;overflow:hidden;margin-right:8px;">
+                        <div style="height:100%;width:@BarWidth(stockRow.Stock)%;background:@BarColor(stockRow.Stock);"></div>
+                    </div>
+                    <span style="min-width:44px;text-align:right;">@stockRow.Stock</span>
+                </div>
+            }
+        </ElTableColumn>
+        <ElTableColumn Property="OnSale" Text="状态（条件渲染）" Width="130">
+            @if (((Product)context).OnSale)
+            {
+                <span style="color:#67c23a;font-weight:600;">✓ 在售</span>
+            }
+            else
+            {
+                <span style="color:#909399;">— 下架</span>
+            }
+        </ElTableColumn>
+        <ElTableTemplateColumn Text="操作" Width="120">
+            @{
+                var opRow = (Product)context;
+                <ElButton Size="ButtonSize.Small" OnClick="@(e => ShowDetail(opRow))">详情</ElButton>
+            }
+        </ElTableTemplateColumn>
+    </ElTable>
+
+    <p class="demo-note" id="tpl-detail">@detailText</p>
+</div>
+
+<DynEditTable />
+
+<div class="demo-section">
+    <h3>④ 树形表格（ElTableTreeColumn + 层级数据）</h3>
+    <p class="demo-page-sub">
+        数据源是一份<b>扁平</b>的层级列表：每个节点带 <code>Id</code> / <code>ParentId</code>，实体继承 <code>ElementPlus.TreeItemBase</code>。
+        <code>ElTableTreeColumn</code> 标记「机构 / 科室」为树形列，自动渲染展开箭头、按 <code>Level</code> 缩进；点击箭头可逐层展开 / 折叠。
+        下面用「院区 → 学科系统 → 科室 → 病区 / 医疗组」四级结构演示，并提供一键展开 / 折叠。
+    </p>
+
+    <div class="demo-toolbar">
+        <ElButton Type="ButtonType.Primary" Size="ButtonSize.Small" OnClick="ExpandAll">展开全部</ElButton>
+        <ElButton Size="ButtonSize.Small" OnClick="CollapseAll">折叠全部</ElButton>
+        <span class="demo-toolbar-status">当前 @orgNodes.Count 个节点</span>
+    </div>
+
+    <ElTable @ref="treeTable" DataSource="orgNodes" AutoGenerateColumns="false" HasSelectionColumn="false"
+             EnablePagination="false" Border="true">
+        <ElTableTreeColumn Property="Name" Text="机构 / 科室（树形列）" Width="260" />
+        <ElTableColumn Property="Kind" Text="类别" Width="110" />
+        <ElTableColumn Property="Director" Text="负责人" Width="120" />
+        <ElTableColumn Property="Capacity" Text="床位/编制" Width="120" Align="right">
+            @{
+                var capNode = (OrgNode)context;
+            }
+            @(capNode.Capacity > 0 ? capNode.Capacity.ToString() : "—")
+        </ElTableColumn>
+        <ElTableColumn Property="Status" Text="状态" Width="120">
+            @{
+                var stNode = (OrgNode)context;
+                var stColor = stNode.Status == "满员" ? "#f56c6c" : stNode.Status == "停诊" ? "#909399" : "#67c23a";
+            }
+            <span style="color:@stColor;font-weight:600;">@stNode.Status</span>
+        </ElTableColumn>
+    </ElTable>
+</div>
+
+<div class="demo-section">
+    <h3>⑤ 操作列置顶（SortNo） + 获取当前行记录</h3>
+    <p class="demo-page-sub">
+        操作列想排到最前面，只要给它一个<b>最小</b>的 <code>SortNo</code>（如 <code>-1</code>）—— 组件渲染前会按 <code>SortNo</code> 升序排列所有列，跟标签写在哪无关（对比本节 ID / 名称等列都写在它后面，但操作列仍排第一）。
+        拿当前行记录有两种现成通道，本表同时演示：<b>① 模板列里的 <code>@@context</code></b> 就是当前行对象（强转后用）；<b>② 点任意单元格触发 <code>RowClick</code> 事件</b>，参数即整行对象。
+        按钮点击已调用 <code>StopPropagation()</code>，避免和 <code>RowClick</code> 冒泡打架。
+    </p>
+
+    <ElTable DataSource="opRows" AutoGenerateColumns="false" HasSelectionColumn="false"
+             Border="true" RowClick="@(r => OnOpRowClick((Product)r))">
+        <!-- 操作列：SortNo 最小 → 排第一列（即使写在其它列之后也不影响） -->
+        <ElTableTemplateColumn Text="操作" Width="160" SortNo="-1">
+            @{
+                var r = (Product)context;
+                <span class="op-cell" @onclick="e => { }" @onclick:stopPropagation>
+                    <ElButton Size="ButtonSize.Small" Type="ButtonType.Primary"
+                              OnClick="@(() => OpEdit(r))">编辑</ElButton>
+                    <ElButton Size="ButtonSize.Small" Type="ButtonType.Danger"
+                              OnClick="@(() => OpDelete(r))">删除</ElButton>
+                </span>
+            }
+        </ElTableTemplateColumn>
+        <ElTableColumn Property="Id" Text="ID" Width="60" />
+        <ElTableColumn Property="Name" Text="名称" Width="160" />
+        <ElTableColumn Property="Category" Text="类别" Width="140" />
+        <ElTableColumn Property="Price" Text="单价" Width="110" Align="right">
+            <span>¥@(((Product)context).Price.ToString("N2"))</span>
+        </ElTableColumn>
+        <ElTableColumn Property="Stock" Text="库存" Width="90" />
+    </ElTable>
+
+    <p class="demo-note" id="op-detail">@opDetailText</p>
+</div>
+
+<div class="demo-section">
+    <h3>⑥ 树形表格 + 分页（按顶层节点分页）</h3>
+    <p class="demo-page-sub">
+        树形表格同样可以分页。本库采用<b>「按顶层节点分页」</b>策略：<code>PageSize</code> 表示每页包含的<b>顶层（ParentId==0）节点数</b>，
+        某个顶层节点被展开后，它的子节点会<b>就地显示在同一页</b>（不会把父子拆到两页）；分页器总数 <code>Total</code> 传「顶层节点数」即可。
+        下面用 9 个一级科室（每页 3 个 → 共 3 页）演示；切换页码看顶层节点轮换，展开某个科室后其子病区留在当前页。
+    </p>
+
+    <div class="demo-toolbar">
+        <ElButton Type="ButtonType.Primary" Size="ButtonSize.Small" OnClick="ExpandAllDept">展开全部</ElButton>
+        <ElButton Size="ButtonSize.Small" OnClick="CollapseAllDept">折叠全部</ElButton>
+        <span class="demo-toolbar-status">顶层节点 @deptRootCount 个 · 当前第 @deptTable?.CurrentPage 页 · 本页可见 @deptVisibleCount 行</span>
+    </div>
+
+    <ElTable @ref="deptTable" DataSource="deptNodes" AutoGenerateColumns="false" HasSelectionColumn="false"
+             Border="true" EnablePagination="true" PageSize="@deptPageSize" Total="@deptRootCount"
+             CurrentPageChanged="@(_ => StateHasChanged())">
+        <ElTableTreeColumn Property="Name" Text="一级科室 / 亚专业（树形列）" Width="260" />
+        <ElTableColumn Property="Kind" Text="类别" Width="110" />
+        <ElTableColumn Property="Director" Text="负责人" Width="120" />
+        <ElTableColumn Property="Capacity" Text="床位/编制" Width="120" Align="right">
+            @{
+                var capD = (OrgNode)context;
+            }
+            @(capD.Capacity > 0 ? capD.Capacity.ToString() : "—")
+        </ElTableColumn>
+        <ElTableColumn Property="Status" Text="状态" Width="120">
+            @{
+                var stD = (OrgNode)context;
+                var stColorD = stD.Status == "满员" ? "#f56c6c" : stD.Status == "停诊" ? "#909399" : "#67c23a";
+            }
+            <span style="color:@stColorD;font-weight:600;">@stD.Status</span>
+        </ElTableColumn>
+    </ElTable>
+</div>
+
+<div class="demo-section" id="sec-table-carousel">
+    <h3>⑦ 表格列内嵌入 ElCarousel（影像 / 报告轮播）</h3>
+    <p class="demo-page-sub">
+        单元格里同样可以放完整组件：<code>ElTableTemplateColumn</code> 的 <code>@@context</code> 是当前行对象，
+        直接在里面放一个 <code>ElCarousel</code> + 若干 <code>ElCarouselItem</code> 即可 ——
+        <b>每个单元格都是一个独立实例</b>（各自计时、互不干扰，因此在行里放轮播是安全的）。
+        本列用 <code>Arrow="CarouselArrow.Hover"</code>，所以<b>鼠标移到哪个单元格，哪个单元格的箭头才出现</b>；
+        <code>ImageFit="CarouselImageFit.Contain"</code> 让图片完整显示、不裁掉边缘的信息。
+        已开启 <code>PreviewOnClick="true"</code>，<b>单击（或双击）轮播项内的图片即弹出内置 lightbox 放大</b>；
+        双击被限制在轮播项内部，不会冒泡到表格行、误触发行的「双击进入编辑」。
+    </p>
+
+    <ElTable DataSource="scans" AutoGenerateColumns="false" HasSelectionColumn="false" Border="true">
+        <ElTableColumn Property="PatientName" Text="患者" Width="110" />
+        <ElTableColumn Property="StudyDate" Text="检查日期" Width="120" />
+        <ElTableColumn Property="Modality" Text="检查类型" Width="130" />
+        <ElTableTemplateColumn Text="影像预览（列内走马灯）" Width="300">
+            @{
+                var scanRow = (ScanItem)context;
+            }
+            <ElCarousel Height="120px" Arrow="CarouselArrow.Hover" ImageFit="CarouselImageFit.Contain"
+                        IndicatorPosition="CarouselIndicatorPosition.Inside" Interval="4000"
+                        PreviewOnClick="true" PreviewLoop="true">
+                @foreach (var url in scanRow.Images)
+                {
+                    <ElCarouselItem>
+                        <img src="@url" alt="@scanRow.PatientName" />
+                    </ElCarouselItem>
+                }
+            </ElCarousel>
+        </ElTableTemplateColumn>
+        <ElTableTemplateColumn Text="操作" Width="120">
+            @{
+                var scanOp = (ScanItem)context;
+            }
+            <ElButton Size="ButtonSize.Small" OnClick="@(() => ShowScanDetail(scanOp))">查看清单</ElButton>
+        </ElTableTemplateColumn>
+    </ElTable>
+
+    <p class="demo-note" id="scan-detail">@scanDetailText</p>
+</div>
+
+<div class="demo-section" id="sec-carousel-preview">
+    <h3>⑧ ElCarousel 图片单击放大 + 编程预览</h3>
+    <p class="demo-page-sub">
+        给 <code>ElCarousel</code> 加 <code>PreviewOnClick="true"</code> 后，<b>单击轮播项内的图片（URL 或 base64 均可）即弹出内置 lightbox 放大</b>，
+        非图片内容（文本/组件）单击无反应；灯箱支持上一张/下一张、循环、ESC 关闭、点遮罩关闭。
+        组件会自动收集所有 <code>&lt;img&gt;</code> 地址到 <code>CollectedImages</code> 并通过 <code>PreviewImagesChanged</code> 回调；
+        也支持开发者通过 <code>PreviewImages</code> 显式指定图集，或调用 <code>OpenPreviewAsync(图片集合, 起始下标)</code> 编程选择<b>一张或几张</b>放大。
+    </p>
+
+    <ElCarousel @ref="previewCarousel" Height="200px" Arrow="CarouselArrow.Hover" ImageFit="CarouselImageFit.Contain"
+                PreviewOnClick="true" PreviewLoop="true"
+                PreviewImagesChanged="OnPreviewImagesChanged">
+        @foreach (var url in previewGallery)
+        {
+            <ElCarouselItem>
+                <img src="@url" alt="影像" />
+            </ElCarouselItem>
+        }
+        <ElCarouselItem>
+            <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#909399;">本项不是图片，单击不会放大</div>
+        </ElCarouselItem>
+    </ElCarousel>
+
+    <div class="demo-row">
+        <ElButton Size="ButtonSize.Small" OnClick="@(() => previewCarousel.OpenPreviewAsync(0))">编程放大第 1 张</ElButton>
+        <ElButton Size="ButtonSize.Small" OnClick="@(() => previewCarousel.OpenPreviewAsync(new[] { previewGallery[1], previewGallery[3] }, 0))">只放大第 2、4 张</ElButton>
+        <ElButton Size="ButtonSize.Small" OnClick="@(() => previewCarousel.OpenPreviewAsync(previewGallery, previewGallery.Count - 1))">放大全部（从最后一张开始）</ElButton>
+    </div>
+    <p class="demo-note">已自动收集 @previewCollected.Count 张图片：@string.Join("、", previewCollected.Select(x => x?.Replace("/images/demo-img-", "").Replace(".svg", "") ?? "—"))</p>
+</div>
+
+<div class="demo-section" id="sec-fixed-header">
+    <h3>⑨ 固定表头 / 流体高度（Height · MaxHeight，滚动不空白）</h3>
+    <p class="demo-page-sub">
+        设 <code>Height</code> → 表头固定、表体独立滚动；设 <code>MaxHeight</code> → 高度随内容增长，到顶才开始滚（EP 的「流体高度」）。
+        横向滚动由 <code>dom.js</code> 的 <code>elementTableSyncScroll</code> <b>纯 JS 镜像</b>表头位置，
+        <b>滚动期间完全不进 Blazor 渲染管线</b>（此前用 <code>@@onscroll</code> 绑定：每滚一次都要整表重渲染一遍，行多时就是「先空白停滞一下再显示」）。
+        下面左表固定高度 <b>260px</b>、右表最大高度 <b>320px</b>，各 <b>@fixedRows.Count</b> 行。
+    </p>
+
+    <div class="demo-split-2">
+        <div>
+            <p class="demo-note">固定表头（<code>Height="260"</code>）</p>
+            <ElTable DataSource="fixedRows" Height="260" Border="true" Stripe="true"
+                     HasSelectionColumn="false" AutoGenerateColumns="false" EnablePagination="false">
+                <ElTableColumn Property="Id" Text="ID" Width="70" Align="right" />
+                <ElTableColumn Property="Name" Text="名称" Width="200" />
+                <ElTableColumn Property="Category" Text="类别" Width="130" />
+                <ElTableColumn Property="Price" Text="单价(元)" Width="110" Align="right" />
+                <ElTableColumn Property="Stock" Text="库存" Width="100" Align="right" />
+            </ElTable>
+        </div>
+        <div>
+            <p class="demo-note">流体高度（<code>MaxHeight="320"</code>，行数少时不锁高）</p>
+            <ElTable DataSource="@fixedRows.Take(12).ToList()" MaxHeight="320" Border="true"
+                     HasSelectionColumn="false" AutoGenerateColumns="false" EnablePagination="false">
+                <ElTableColumn Property="Id" Text="ID" Width="70" Align="right" />
+                <ElTableColumn Property="Name" Text="名称" Width="200" />
+                <ElTableColumn Property="Category" Text="类别" Width="130" />
+                <ElTableColumn Property="Price" Text="单价(元)" Width="110" Align="right" />
+                <ElTableColumn Property="Stock" Text="库存" Width="100" Align="right" />
+            </ElTable>
+        </div>
+    </div>
+</div>
+
+<div class="demo-section" id="sec-ep-features">
+    <h3>⑩ EP 进阶能力：合计行 / 单元格合并 / 默认排序 / 实例方法</h3>
+    <p class="demo-page-sub">
+        本表一次性演示四个官方对齐能力：
+        <b>合计行</b>（<code>ShowSummary</code> + <code>SumText</code>：数值列自动求和，首列显示「合计」）；
+        <b>单元格合并</b>（<code>SpanMethod</code>：名称列每两行纵向合并一次）；
+        <b>默认排序</b>（<code>DefaultSortProp="Stock"</code> 升序，首次加载即按库存排序）；
+        <b>实例方法</b>：下方按钮分别调用 <code>ClearSelectionAsync()</code> / <code>SetCurrentRow()</code> / <code>SetScrollTopAsync()</code>。
+        「高亮第 1 行」取的是 <code>VisibleRows[0]</code>（<b>显示</b>的第 1 行，已按默认排序重排）——
+        若按数据源下标取 <code>epRows[0]</code>，它会排到第 31 行、在 260px 定高表体外面，点了像没反应。
+    </p>
+
+    <div class="demo-toolbar">
+        <ElButton Size="ButtonSize.Small" OnClick="@(() => epTable?.ClearSelectionAsync())">清空选择</ElButton>
+        <ElButton Size="ButtonSize.Small" OnClick="@(() => epTable?.SetCurrentRow(epTable.VisibleRows.FirstOrDefault()))">高亮第 1 行</ElButton>
+        <ElButton Size="ButtonSize.Small" OnClick="@(() => epTable?.SetScrollTopAsync(0))">滚动到顶部</ElButton>
+    </div>
+
+    <ElTable @ref="epTable" DataSource="epRows" Height="260" Border="true" Stripe="true"
+             HasSelectionColumn="true" AutoGenerateColumns="false" EnablePagination="false"
+             ShowSummary="true" SumText="合计"
+             HighlightCurrentRow="true"
+             DefaultSortProp="Stock" DefaultSortOrder="TableSortOrder.Ascending"
+             SpanMethod="EpSpanMethod">
+        <ElTableColumn Property="Id" Text="ID" Width="70" Align="right" />
+        <ElTableColumn Property="Name" Text="名称（每2行合并）" Width="200" />
+        <ElTableColumn Property="Category" Text="类别" Width="130" />
+        <ElTableColumn Property="Price" Text="单价(元)" Width="110" Align="right" />
+        <ElTableColumn Property="Stock" Text="库存" Width="100" Align="right" />
+    </ElTable>
+
+    <p class="demo-note" id="ep-status">@epStatus</p>
+</div>
+
+@* ⑪ 段整体搬到 HeaderMenuDemo 组件：菜单状态挂在页面上时，点列头会连带重渲染整页 12 段
+   （实测「点击 → 首个 DOM mutation」1155 / 1271 ms，菜单可见在 1165 / 1280 ms）。状态隔离到子组件后只有本组件重渲染。 *@
+<HeaderMenuDemo />
+
+<div class="demo-section" id="sec-ep-wire">
+    <h3>⑫ 本轮新增 EP 能力接线演示（CellClick / 表头行 / 表头单元格 / TableLayout / 隐藏表头 / 筛选 / 展开变更）</h3>
+    <p class="demo-page-sub">
+        下面这张表把本轮接线的 7 个 EP 能力一次性用上：
+        <b>点击任意单元格</b>触发 <code>CellClick</code>（载荷含行/列对象与行列下标，下方回显）；
+        <b>表头行</b>通过 <code>HeaderRowClassName</code> + <code>HeaderRowStyle</code> 加类名与内联样式（蓝色下沿 + 浅蓝底，见 app.css 的 <code>.ep-demo-header-row</code>）；
+        其中「名称」列的<b>表头单元格</b>用 <code>HeaderCellStyle</code> 单独上色；
+        <b>TableLayout</b> 可在 auto / fixed 间切换；
+        <b>HideHeader</b> 开关可隐藏整个表头；
+        「类别」列带<b>筛选</b>，勾选触发 <code>FilterChange</code>，组件按 <code>FilterMethod</code> 自动过滤表格，下方实时回显命中行；
+        「名称」「库存」两列是本库扩展的<b>条件式筛选</b>（<code>AdvancedFilter="true"</code>：运算符 + 值，最多两条、可且可或，「应用」才生效）；
+        三列的漏斗一律<b>点击展开</b>，面板用 <code>position:fixed</code> 钉在漏斗下方（写在表头里会被 <code>.cell</code> 的 <code>overflow:hidden</code> 整条裁掉，那就是先前「点了没反应」的真因），点空白处或滚滚轮即收起；
+        <b>排序</b>：列属性是 <code>Sortable="true"</code>（表头出现上下箭头，点箭头按 升序→降序→取消 循环，触发 <code>SortChange</code>）与 <code>SortOrder</code>（初始方向），表级默认排序见 ⑩ 的 <code>DefaultSortProp</code> / <code>DefaultSortOrder</code>；
+        注意 <code>SortNo</code> 管的是<b>列的显示次序</b>，不是数据排序；
+        <b>展开变更</b>：点「展开全部 / 折叠全部 / 展开第 1 行」通过 <code>ToggleRowExpandAsync</code> 改变展开键集并触发 <code>ExpandChange</code>，下方「展开内容区」实时列出已展开行的详情。
+    </p>
+
+    <div class="demo-toolbar">
+        <span class="demo-toolbar-status">TableLayout：</span>
+        <ElButton Size="ButtonSize.Small" OnClick="@(() => wireLayout = "")">auto</ElButton>
+        <ElButton Size="ButtonSize.Small" OnClick="@(() => wireLayout = "fixed")">fixed</ElButton>
+        <label class="demo-note" style="display:inline-flex;align-items:center;gap:4px;"><input type="checkbox" @bind="wireHideHeader" /> 隐藏表头 (HideHeader)</label>
+        <ElButton Size="ButtonSize.Small" OnClick="@(() => wireTable?.ToggleRowExpandAsync(wireRows[0]))">展开/折叠第 1 行</ElButton>
+        <ElButton Size="ButtonSize.Small" OnClick="WireExpandAll">展开全部</ElButton>
+        <ElButton Size="ButtonSize.Small" OnClick="WireCollapseAll">折叠全部</ElButton>
+    </div>
+
+    <ElTable @ref="wireTable" DataSource="wireRows" AutoGenerateColumns="false" HasSelectionColumn="false"
+             Border="true" Height="260"
+             TableLayout="@wireLayout" HideHeader="@wireHideHeader"
+             HeaderRowClassName="@((row, ri) => "ep-demo-header-row")"
+             HeaderRowStyle="@((row, ri) => new Dictionary<string, string> { { "box-shadow", "inset 0 -3px 0 #409eff" } })"
+             HeaderCellStyle="WireHeaderCellStyle"
+             CellClick="OnWireCellClick"
+             FilterChange="OnWireFilterChange"
+             ExpandChange="OnWireExpandChange">
+        <ElTableColumn Property="Id" Text="ID" Width="70" Align="right" />
+        <ElTableColumn Property="Name" Text="名称（条件筛选）" Width="220" AdvancedFilter="true" />
+        <ElTableColumn Property="Category" Text="类别（带筛选）" Width="160"
+                       Filters="@wireCategoryFilters" FilterMethod="@((val, row) => ((Product)row).Category == (string)val)" />
+        <ElTableColumn Property="Price" Text="单价(元)" Width="110" Align="right" Sortable="true" />
+        <ElTableColumn Property="Stock" Text="库存（可排序＋条件筛选）" Width="180" Align="right"
+                       Sortable="true" AdvancedFilter="true" />
+    </ElTable>
+
+    <p class="demo-note" id="ep-wire-cell">@wireCellMsg</p>
+
+    <div class="ep-wire-filter-result">
+        <b>FilterChange 实时回显：</b>
+        @if (wireFilterValues.Count == 0)
+        {
+            <span>未筛选（显示全部 @wireRows.Count 条）</span>
+        }
+        else if (wireFilterProp == "Category")
+        {
+            <span>@wireFilterProp 列命中 @WireFilteredRows.Count 条（@string.Join("、", wireFilterValues)）：</span>
+            <span class="ep-wire-names">@string.Join("，", WireFilteredRows.Select(r => r.Name))</span>
+        }
+        else
+        {
+            <span>@wireFilterProp 列条件：@string.Join("、", wireFilterValues)</span>
+        }
+        <span>表格当前显示 @WireDisplayRowCount 条 / 数据共 @wireRows.Count 条</span>
+        <span class="ep-wire-hint">（选项列表按 FilterMethod 过滤，条件式面板按运算符＋值过滤）</span>
+    </div>
+
+    <div class="ep-wire-expand-zone">
+        <b>ExpandChange 展开内容区（@wireExpandedKeys.Count 行展开）：</b>
+        @if (wireExpandedKeys.Count == 0)
+        {
+            <div class="ep-wire-expand-empty">（尚无展开行，点上方「展开全部」或「展开第 1 行」）</div>
+        }
+        else
+        {
+            foreach (var item in wireExpandedKeys)
+            {
+                var row = (Product)item;
+                <div class="ep-wire-expand-card">
+                    <div class="ep-wire-expand-card__title">#@row.Id @row.Name</div>
+                    <div class="ep-wire-expand-card__body">
+                        类别：@row.Category　|　单价：¥@row.Price.ToString("N2")　|　库存：@row.Stock
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<div class="demo-section" id="sec-table-ellipsis">
+    <h3>单元格截断悬停看全文（show-overflow-tooltip）</h3>
+    <p class="demo-page-sub">
+        EP 的 <code>show-overflow-tooltip</code> 默认关；本仓此前只有属性没有行为，现已接线。
+        开着时 <code>.cell</code> 换成不换行 + 定宽（列宽减 1px，EP table-column/render-helper.ts:195-199），
+        悬停后<strong>实测文字确实被裁</strong>才浮 <code>elTooltip</code>；放得下就什么都不弹。
+    </p>
+    <ElTable DataSource="ellipsisRows" AutoGenerateColumns="false" HasSelectionColumn="false" Border="true">
+        <ElTableColumn Property="Name" Text="名称（开）" Width="160" ShowOverflowTooltip="true" />
+        <ElTableColumn Property="Name" Text="名称（关＝EP 默认，换行显示全）" Width="160" />
+        <ElTableColumn Property="Category" Text="类别" Width="120" ShowOverflowTooltip="true" />
+    </ElTable>
+    <p class="demo-note" id="ep-ellipsis-note">对照：第一列悬停浮出全文，第二列整段换行显示、悬停不浮；第三列文字放得下，同样不浮。</p>
+</div>
+
+<div class="demo-section" id="sec-table-formatter">
+    <h3>单元格格式化函数（Formatter，EP 口径）</h3>
+    <p class="demo-page-sub">
+        EP 的 <code>el-table-column</code> 有 <code>formatter(row, column, value, index)</code>（EP 2.14.0 <code>table/src/config.ts:193-208</code>）：
+        命中即<b>整体替换</b>默认渲染；第三个参数是<b>属性原值</b>（不是默认渲染器 <code>ToString()</code> 之后的文本），
+        第四个是<b>当前页内 0 基下标</b>。本仓此前「只有参数、没有行为」（抄进 <code>TableHeader</code> 后再没人调用），现已接线。
+        四档对照：① 不写 formatter ＝ 裸 <code>ToString()</code>（原样）；② 写 formatter ＝ 按返回值显示；
+        ③ <code>ChildContent</code> 与 formatter 同时写 ＝ 按 EP 口径<b>插槽优先</b>，formatter 根本不跑；
+        ④ 返回 HTML 的 formatter 要看 <code>EnableMarkupString</code>：开 → 按标记渲染，关 → 原样转义显示。
+    </p>
+    <ElTable DataSource="rows" AutoGenerateColumns="false" HasSelectionColumn="false" Border="true" EnableMarkupString="true">
+        <ElTableColumn Property="Price" Text="单价（无 formatter＝裸 ToString）" Width="220" />
+        <ElTableColumn Property="Price" Text="单价（formatter：收到的是原值）" Width="220" Align="right" Formatter="FormatPrice" />
+        <ElTableColumn Property="Stock" Text="库存（formatter：分档文案）" Width="190" Formatter="FormatStock" />
+        <ElTableColumn Property="Price" Text="序号（formatter：0 基下标）" Width="180" Align="center" Formatter="FormatIndex" />
+        <ElTableColumn Property="Name" Text="名称（插槽优先，formatter 不跑）" Width="200" Formatter="FormatMustNotRun">
+            <span class="fmt-slot">@(((Product)context).Name)</span>
+        </ElTableColumn>
+        <ElTableColumn Property="Name" Text="名称（formatter 回 HTML）" Width="200" Formatter="FormatBold" />
+    </ElTable>
+    <p class="demo-note" id="fmt-note">
+        「单价（formatter…）」这一列如果哪天又显示成 <code>非原值:…</code>，说明传给 formatter 的不再是属性原值（decimal）而是渲染后的文本；
+        「名称（插槽优先…）」列里绝不该出现 <code>不该出现</code>。
+    </p>
+</div>
+
+@code {
+    // ===== 单元格格式化函数（Formatter）—— EP 2.14.0 table/src/config.ts:193-208 的四档口径 =====
+    // 第三个参数必须是属性原值（decimal / int），不是默认渲染器的文本；显示成「非原值:…」就说明接线又坏了。
+    private static readonly Func<object, object, object, int, object> FormatPrice =
+        (row, header, value, index) => value is decimal d ? "¥" + d.ToString("N2") : "非原值:" + Convert.ToString(value);
+
+    private static readonly Func<object, object, object, int, object> FormatStock =
+        (row, header, value, index) => value is int n ? (n > 200 ? "充足" : n > 50 ? "偏少" : "紧张") : "非原值";
+
+    private static readonly Func<object, object, object, int, object> FormatIndex =
+        (row, header, value, index) => "第 " + (index + 1) + " 行";
+
+    private static readonly Func<object, object, object, int, object> FormatMustNotRun =
+        (row, header, value, index) => "不该出现";
+
+    private static readonly Func<object, object, object, int, object> FormatBold =
+        (row, header, value, index) => "<b class=\"fmt-bold\">" + Convert.ToString(value) + "</b>";
+
+    private ElTable editTable;
+
+    // 供应商单元格存的是编码（"S01"…），显示态映射成名称；编码找不到时退回显示原值。
+    // 该列同时带具名片段 <EditorColumns>，所以显示模板必须写成显式 <ChildContent>，隐式子内容会报 RZ9996。
+    private static string SupplierDisplayText(object row)
+        => row is Product p ? (MockData.Suppliers.FirstOrDefault(s => s.Code == p.Supplier)?.Name ?? p.Supplier) : Convert.ToString(row);
+
+    // ⑬ 截断悬停演示：名称给到 160px 列放不下，类别放得下 —— 同表内形成「弹 / 不弹」对照
+    private List<Product> ellipsisRows = new()
+    {
+        new Product { Id = 1, Name = "一次性使用无菌注射器（带针，20ml 成人体）", Price = 1.20m, Stock = 3200, Category = "耗材", OnSale = true },
+        new Product { Id = 2, Name = "0.9% 氯化钠注射液（玻璃瓶 500ml）", Price = 3.50m, Stock = 820, Category = "西药", OnSale = true }
+    };
+
+    // ⑨ 固定表头 / 流体高度演示数据：复制多份并赋唯一 Id，避免 Blazor 行 key 冲突
+    private List<Product> fixedRows = Enumerable.Range(0, 60).Select(i =>
+    {
+        var src = MockData.Products[i % MockData.Products.Count];
+        return new Product
+        {
+            Id = i + 1,
+            Name = src.Name,
+            Category = src.Category,
+            Price = src.Price,
+            Stock = src.Stock,
+            OnSale = src.OnSale,
+            Supplier = src.Supplier,
+            CreatedAt = src.CreatedAt
+        };
+    }).ToList();
+
+    // ⑩ EP 进阶能力演示数据：独立副本、唯一 Id，避免行 key 冲突
+    private ElTable epTable;
+    private string epStatus = "（尚未调用实例方法）";
+    private List<Product> epRows = Enumerable.Range(0, 60).Select(i =>
+    {
+        var src = MockData.Products[i % MockData.Products.Count];
+        return new Product
+        {
+            Id = i + 1,
+            Name = src.Name,
+            Category = src.Category,
+            Price = src.Price,
+            Stock = src.Stock,
+            OnSale = src.OnSale,
+            Supplier = src.Supplier,
+            CreatedAt = src.CreatedAt
+        };
+    }).ToList();
+
+    /// <summary>⑩ span-method 演示：名称列（0 下标）每两行纵向合并一次；其余列不合并。</summary>
+    private (int Rowspan, int Colspan) EpSpanMethod(object row, TableHeader header, int rowIndex, int columnIndex)
+    {
+        if (columnIndex == 0)
+        {
+            return rowIndex % 2 == 0 ? (2, 1) : (0, 0);
+        }
+        return (1, 1);
+    }
+
+    // 用本地副本，避免编辑操作污染其他页面的共享 Mock 数据
+    private List<Product> products = MockData.Products.Select(p => new Product
+    {
+        Id = p.Id,
+        Name = p.Name,
+        Category = p.Category,
+        Price = p.Price,
+        Stock = p.Stock,
+        OnSale = p.OnSale,
+        Supplier = p.Supplier,
+        CreatedAt = p.CreatedAt
+    }).ToList();
+
+    private List<Product> rows = MockData.Products.Take(6).ToList();
+
+    private class ScanItem
+    {
+        public string PatientName { get; set; }
+        public string StudyDate { get; set; }
+        public string Modality { get; set; }
+        public List<string> Images { get; set; } = new List<string>();
+    }
+
+    private List<ScanItem> scans = new List<ScanItem>
+    {
+        new ScanItem
+        {
+            PatientName = "Kevin Carter", StudyDate = "2026-09-12", Modality = "CT + DR",
+            Images = new List<string> { "/images/demo-img-ct.svg", "/images/demo-img-xray.svg" }
+        },
+        new ScanItem
+        {
+            PatientName = "李静", StudyDate = "2026-09-11", Modality = "检验 + 心电",
+            Images = new List<string> { "/images/demo-img-report.svg", "/images/demo-img-eeg.svg" }
+        },
+        new ScanItem
+        {
+            PatientName = "王强", StudyDate = "2026-09-09", Modality = "CT + 心电 + 检验",
+            Images = new List<string> { "/images/demo-img-ct.svg", "/images/demo-img-eeg.svg", "/images/demo-img-report.svg" }
+        }
+    };
+
+    private string scanDetailText = "点某一行的「查看清单」按钮，这里显示该患者的影像列表。";
+
+    // ⑧ ElCarousel 图片预览演示
+    private ElCarousel previewCarousel;
+    private List<string> previewGallery = new List<string>
+    {
+        "/images/demo-img-ct.svg",
+        "/images/demo-img-xray.svg",
+        "/images/demo-img-report.svg",
+        "/images/demo-img-eeg.svg"
+    };
+    private List<string> previewCollected = new List<string>();
+
+    private void OnPreviewImagesChanged(IReadOnlyList<string> imgs)
+    {
+        previewCollected = imgs?.ToList() ?? new List<string>();
+    }
+
+    private void ShowScanDetail(ScanItem row)
+    {
+        var names = row.Images.Select(x => x.Replace("/images/demo-img-", string.Empty).Replace(".svg", string.Empty));
+        scanDetailText = $"{row.PatientName}（{row.StudyDate}，{row.Modality}）共 {row.Images.Count} 张：{string.Join("、", names)}";
+    }
+
+    private string lastAction = "（尚未保存过）";
+    private string headerClickMsg = "（尚未点击任何表头）";
+    private string detailText = "点击某行的「详情」按钮，这里会显示该行数据。";
+
+    private Task OnProductSave(TableSaveEventArgs e)
+    {
+        var row = (Product)e.Data;
+        switch (e.Action)
+        {
+            case SaveAction.Create:
+                row.Id = products.Count == 0 ? 1 : products.Max(x => x.Id) + 1;
+                products.Add(row);
+                lastAction = $"新增 #{row.Id}：{row.Name} / {row.Category} / ¥{row.Price} / 库存 {row.Stock} / {(row.OnSale ? "在售" : "下架")}";
+                break;
+
+            case SaveAction.Update:
+                var index = products.FindIndex(x => x.Id == row.Id);
+                if (index >= 0)
+                {
+                    products[index] = row;
+                }
+                lastAction = $"更新 #{row.Id}：{row.Name} / {row.Category} / ¥{row.Price} / 库存 {row.Stock} / {(row.OnSale ? "在售" : "下架")}";
+                break;
+
+            case SaveAction.Delete:
+                var hit = products.FirstOrDefault(x => x.Id == row.Id);
+                if (hit != null)
+                {
+                    products.Remove(hit);
+                    lastAction = $"删除 #{row.Id}：{hit.Name}";
+                }
+                break;
+        }
+
+        editTable?.Refresh();
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    /// <summary>①「名称」列表头点击事件：演示 ElTableColumn.OnHeaderClick（仅该列设置了此属性）。</summary>
+    private void OnNameHeaderClick(TableHeader header)
+    {
+        headerClickMsg = $"点击了表头「{header.Text}」（Property={header.Property?.Name}）";
+        StateHasChanged();
+    }
+
+    private void ShowDetail(Product p)
+    {
+        detailText = $"已选：#{p.Id} {p.Name}（{p.Category}）单价 ¥{p.Price:N2}，库存 {p.Stock}，{p.CreatedAt:yyyy-MM-dd}";
+        StateHasChanged();
+    }
+
+    // ===== ⑪ 列头点击弹出菜单：状态与回调都在 HeaderMenuDemo 组件里（见 Components/HeaderMenuDemo.razor） =====
+
+    private static string BarColor(int stock)
+    {
+        // 库存阈值配色：缺货红 / 偏低橙 / 充足绿
+        return stock < 100 ? "#f56c6c" : stock < 500 ? "#e6a23c" : "#67c23a";
+    }
+
+    private static int BarWidth(int stock)
+    {
+        // 1500 记作满格
+        return Math.Min(100, stock * 100 / 1500);
+    }
+
+    // ===== ④ 树形表格 =====
+
+    /// <summary>树形表格的节点模型：必须继承 ElementPlus.TreeItemBase，并自带头/父级 Id 与层级字段。</summary>
+    private class OrgNode : ElementPlus.TreeItemBase
+    {
+        public string Name { get; set; }
+        public string Kind { get; set; }
+        public string Director { get; set; }
+        public int Capacity { get; set; }
+        public string Status { get; set; }
+    }
+
+    /// <summary>构建一份「院区 → 学科系统 → 科室 → 病区/医疗组」扁平层级数据（靠 ParentId 串成树）。</summary>
+    private static List<OrgNode> BuildOrgTree()
+    {
+        var list = new List<OrgNode>();
+        var id = 0;
+        OrgNode Add(string name, string kind, string director, int capacity, string status, int parentId, bool hasChildren = false)
+        {
+            var node = new OrgNode
+            {
+                Id = ++id,
+                ParentId = parentId,
+                Name = name,
+                Kind = kind,
+                Director = director,
+                Capacity = capacity,
+                Status = status,
+                HasChildren = hasChildren
+            };
+            list.Add(node);
+            return node;
+        }
+
+        var hosp = Add("总院（本院区）", "院区", "王院长", 1200, "正常", 0, true);
+
+        var internalSys = Add("内科系统", "学科系统", "李内主任", 0, "正常", hosp.Id, true);
+        var cardio = Add("心血管内科", "科室", "张文博", 60, "满员", internalSys.Id, true);
+        Add("心血管一病区", "病区", "赵护士长", 30, "正常", cardio.Id);
+        Add("心血管二病区", "病区", "钱护士长", 30, "正常", cardio.Id);
+        var resp = Add("呼吸内科", "科室", "孙呼吸", 50, "正常", internalSys.Id, true);
+        Add("呼吸重症监护室 RICU", "病区", "周监护", 12, "满员", resp.Id);
+
+        var surgSys = Add("外科系统", "学科系统", "吴外主任", 0, "正常", hosp.Id, true);
+        var general = Add("普外科", "科室", "郑普外", 55, "正常", surgSys.Id, true);
+        Add("胃肠外科组", "医疗组", "王胃肠", 20, "正常", general.Id);
+        Add("肝胆外科组", "医疗组", "冯肝胆", 18, "正常", general.Id);
+        var ortho = Add("骨科", "科室", "陈骨科", 48, "正常", surgSys.Id, true);
+        Add("创伤骨科组", "医疗组", "褚创伤", 22, "正常", ortho.Id);
+
+        var tech = Add("医技科室", "学科系统", "卫医技", 0, "正常", hosp.Id, true);
+        Add("医学影像科", "科室", "蒋影像", 0, "正常", tech.Id);
+        Add("检验科", "科室", "沈检验", 0, "停诊", tech.Id);
+
+        // 第二个院区（另一个根节点），证明多级根也能正确呈现
+        var east = Add("东院区", "院区", "韩院长", 600, "正常", 0, true);
+        Add("急诊科", "科室", "杨急诊", 40, "满员", east.Id);
+        Add("儿科", "科室", "朱儿科", 36, "正常", east.Id);
+
+        return list;
+    }
+
+    private List<OrgNode> orgNodes = BuildOrgTree();
+    private ElTable treeTable;
+
+    private void ExpandAll()
+    {
+        treeTable?.ExpandAllTree();
+    }
+
+    private void CollapseAll()
+    {
+        treeTable?.CollapseAllTree();
+    }
+
+    // ===== ⑥ 树形表格 + 分页 =====
+
+    /// <summary>⑥ 用多个顶层节点（一级科室）演示树形 + 分页：每页 3 个顶层节点。</summary>
+    private List<OrgNode> deptNodes = BuildDeptTree();
+    private ElTable deptTable;
+    private int deptPageSize = 3;
+    private int deptRootCount => deptNodes.Count(x => x.ParentId == 0);
+    private int deptVisibleCount => deptTable?.VisibleRowCount ?? 0;
+
+    /// <summary>构建 9 个一级科室（顶层根），每个带 2~3 个亚专业 / 病区，共约 30 个节点。</summary>
+    private static List<OrgNode> BuildDeptTree()
+    {
+        var list = new List<OrgNode>();
+        var id = 0;
+        OrgNode Add(string name, string kind, string director, int capacity, string status, int parentId, bool hasChildren = false)
+        {
+            var node = new OrgNode
+            {
+                Id = ++id,
+                ParentId = parentId,
+                Name = name,
+                Kind = kind,
+                Director = director,
+                Capacity = capacity,
+                Status = status,
+                HasChildren = hasChildren
+            };
+            list.Add(node);
+            return node;
+        }
+
+        // 9 个一级科室（顶层根）。HasChildren 一律不手写，末尾按 ParentId 反推（见下方注释）。
+        var a = Add("内科", "一级科室", "李主任", 0, "正常", 0);
+        var cardio = Add("心血管内科", "亚专业", "张文博", 60, "满员", a.Id);
+        Add("心血管一病区", "病区", "赵护士长", 30, "正常", cardio.Id);
+        Add("呼吸内科", "亚专业", "孙呼吸", 50, "正常", a.Id);
+
+        var b = Add("外科", "一级科室", "吴主任", 0, "正常", 0);
+        var general = Add("普外科", "亚专业", "郑普外", 55, "正常", b.Id);
+        Add("胃肠外科组", "医疗组", "王胃肠", 20, "正常", general.Id);
+        Add("肝胆外科组", "医疗组", "冯肝胆", 18, "正常", general.Id);
+
+        var c = Add("妇产科", "一级科室", "何主任", 0, "正常", 0);
+        Add("妇科", "亚专业", "许妇科", 40, "正常", c.Id);
+        var obstetric = Add("产科", "亚专业", "施产科", 45, "满员", c.Id);
+        Add("产房", "病区", "曹助产", 15, "正常", obstetric.Id);
+
+        var d = Add("儿科", "一级科室", "朱主任", 0, "正常", 0);
+        var neonatal = Add("新生儿科", "亚专业", "秦新生", 30, "正常", d.Id);
+        Add("NICU", "病区", "尤监护", 10, "满员", neonatal.Id);
+        Add("普儿病区", "病区", "吕普儿", 25, "正常", d.Id);
+
+        var e = Add("神经内科", "一级科室", "卫主任", 0, "正常", 0);
+        Add("脑血管病组", "医疗组", "蒋脑血管", 22, "正常", e.Id);
+        Add("癫痫门诊", "亚专业", "沈癫痫", 0, "正常", e.Id);
+
+        var f = Add("心血管科", "一级科室", "韩主任", 0, "正常", 0);
+        Add("冠心病组", "医疗组", "杨冠心病", 26, "正常", f.Id);
+        Add("心律失常组", "医疗组", "朱心律", 24, "正常", f.Id);
+
+        var g = Add("骨科", "一级科室", "陈主任", 0, "正常", 0);
+        Add("脊柱外科组", "医疗组", "褚脊柱", 20, "正常", g.Id);
+        Add("关节外科组", "医疗组", "孔关节", 19, "正常", g.Id);
+
+        var h = Add("眼科", "一级科室", "云主任", 0, "正常", 0);
+        Add("白内障组", "医疗组", "金白内障", 16, "正常", h.Id);
+        Add("眼底病组", "医疗组", "魏眼底", 14, "正常", h.Id);
+
+        var i = Add("耳鼻喉科", "一级科室", "陶主任", 0, "正常", 0);
+        Add("耳科组", "医疗组", "姜耳科", 15, "正常", i.Id);
+        Add("鼻科组", "医疗组", "戚鼻科", 13, "正常", i.Id);
+
+        // HasChildren 由 ParentId 反推，不留手抄的空间：这一列以前给 4 个叶子节点（心血管内科 / 普外科 /
+        // 产科 / 新生儿科）写了 true，而它们的「孩子」实际挂在祖父节点上 —— 于是那 4 行的箭头点了没反应
+        // （用户 2026-10-10 截图指的就是这种行）。三层链（一级科室 → 亚专业 → 病区/医疗组）顺带补上，
+        // 让「分页 × 多层展开」这条路径真有样本。
+        var parentIds = new HashSet<int>(list.Where(x => x.ParentId != 0).Select(x => x.ParentId));
+        foreach (var node in list)
+        {
+            node.HasChildren = parentIds.Contains(node.Id);
+        }
+
+        return list;
+    }
+
+    private void ExpandAllDept()
+    {
+        deptTable?.ExpandAllTree();
+    }
+
+    private void CollapseAllDept()
+    {
+        deptTable?.CollapseAllTree();
+    }
+
+    // ===== ⑤ 操作列置顶 + 当前行记录获取 =====
+
+    /// <summary>⑤ 用一份独立数据源，避免污染其它 demo 的共享 Mock。</summary>
+    private List<Product> opRows = MockData.Products.Take(5).ToList();
+    private string opDetailText = "点「编辑 / 删除」按钮（取 context 行对象），或点任意单元格（触发 RowClick）看结果。";
+
+    /// <summary>① 模板列里拿当前行：context 强制转成 Product 即可直接用。</summary>
+    private void OpEdit(Product p)
+    {
+        opDetailText = $"[按钮 context] 编辑 → #{p.Id} {p.Name}（{p.Category}）单价 ¥{p.Price:N2}";
+        StateHasChanged();
+    }
+
+    /// <summary>① 同上，删除按钮。</summary>
+    private void OpDelete(Product p)
+    {
+        opDetailText = $"[按钮 context] 删除 → #{p.Id} {p.Name}";
+        StateHasChanged();
+    }
+
+    /// <summary>② 行点击事件：点任意单元格（非按钮）触发，参数 r 即整行对象。按钮已 StopPropagation，不会走到这里。</summary>
+    private void OnOpRowClick(Product p)
+    {
+        opDetailText = $"[RowClick] 点击了第 #{p.Id} 行：{p.Name} · 库存 {p.Stock} · {(p.OnSale ? "在售" : "下架")}";
+        StateHasChanged();
+    }
+
+    /// <summary>首帧渲染后把树形数据折叠成「仅顶层」，让树形结构一目了然；表格行未就绪时下一帧重试。</summary>
+    private bool treeCollapsedOnce = false;
+    private bool deptCollapsedOnce = false;
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        if (!treeCollapsedOnce && treeTable != null && treeTable.CollapseAllTree())
+        {
+            treeCollapsedOnce = true;
+        }
+        if (!deptCollapsedOnce && deptTable != null && deptTable.CollapseAllTree())
+        {
+            deptCollapsedOnce = true;
+            // 折叠完成后刷新本页（工具栏的「当前页 / 本页可见行数」依赖 deptTable 实时值）
+            StateHasChanged();
+        }
+    }
+
+    // ===== ⑫ 本轮新增 EP 能力接线演示 =====
+
+    /// <summary>⑫ 演示用独立数据，避免污染其它 demo 的共享 Mock。</summary>
+    private ElTable wireTable;
+    private List<Product> wireRows = MockData.ProductsLarge.Take(8).ToList();
+    private string wireLayout = "";
+    private bool wireHideHeader = false;
+    private string wireCellMsg = "（点击任意单元格 → 触发 CellClick）";
+    private List<string> wireFilterValues = new List<string>();
+
+    /// <summary>⑫ 最近一次 FilterChange 来自哪一列（条件式面板与选项列表共用同一个事件，回显要分得开）。</summary>
+    private string wireFilterProp;
+
+    /// <summary>⑫ 表格真实显示的行数：以组件读数为准，避免回显自己算一套和屏幕对不上。</summary>
+    private int WireDisplayRowCount => wireTable?.VisibleRowCount ?? wireRows.Count;
+    private HashSet<object> wireExpandedKeys = new HashSet<object>();
+
+    /// <summary>⑫ CellClick 回显：载荷为 (Row, Column, RowIndex, ColumnIndex) 元组。</summary>
+    private void OnWireCellClick((object Row, TableHeader Column, int RowIndex, int ColumnIndex) e)
+    {
+        var id = e.Row is Product p ? p.Id : 0;
+        wireCellMsg = $"CellClick → 第{e.RowIndex}行/第{e.ColumnIndex}列 列「{e.Column?.Text}」 行Id={id}";
+        StateHasChanged();
+    }
+
+    /// <summary>⑫ FilterChange 回显：载荷为 (Prop, Values) 元组；记录选中值用于下方命中行回显。</summary>
+    private void OnWireFilterChange((string Prop, object[] Values) e)
+    {
+        wireFilterProp = e.Prop;
+        wireFilterValues = e.Values?.Select(v => v?.ToString() ?? string.Empty)
+                              .Where(s => !string.IsNullOrEmpty(s)).ToList()
+                          ?? new List<string>();
+        StateHasChanged();
+    }
+
+    /// <summary>⑫ ExpandChange 回显：载荷为当前展开行键集合；记录以便下方「展开内容区」渲染。</summary>
+    private void OnWireExpandChange(HashSet<object> e)
+    {
+        wireExpandedKeys = e ?? new HashSet<object>();
+        StateHasChanged();
+    }
+
+    /// <summary>⑫ 展开全部：把尚未展开的行串行展开（逐行 await，避免并发 toggle 竞态），最终 ExpandChange 给出完整快照。</summary>
+    private async Task WireExpandAll()
+    {
+        if (wireTable == null) return;
+        foreach (var r in wireRows)
+        {
+            if (!wireTable.ExpandRowKeys.Contains(r))
+            {
+                await wireTable.ToggleRowExpandAsync(r);
+            }
+        }
+    }
+
+    /// <summary>⑫ 折叠全部：把已展开的行串行收起。</summary>
+    private async Task WireCollapseAll()
+    {
+        if (wireTable == null) return;
+        foreach (var r in wireRows)
+        {
+            if (wireTable.ExpandRowKeys.Contains(r))
+            {
+                await wireTable.ToggleRowExpandAsync(r);
+            }
+        }
+    }
+
+    /// <summary>⑫ FilterChange 命中行（供 Demo 回显）：未筛选显示全部，否则按选中类别匹配。</summary>
+    private List<Product> WireFilteredRows
+        => wireFilterValues.Count == 0
+            ? wireRows
+            : wireRows.Where(r => wireFilterValues.Contains(r.Category)).ToList();
+
+    /// <summary>⑫ 类别列筛选项（Filters）：值为 Category 字符串，配合 FilterMethod 精确匹配。</summary>
+    private List<TableFilterOption> wireCategoryFilters = new List<TableFilterOption>
+    {
+        new TableFilterOption { Text = "西药", Value = "西药" },
+        new TableFilterOption { Text = "中成药", Value = "中成药" },
+        new TableFilterOption { Text = "保健品", Value = "保健品" },
+        new TableFilterOption { Text = "耗材", Value = "耗材" }
+    };
+
+    /// <summary>⑫ 表头单元格样式回调（HeaderCellStyle）：仅给「名称」列表头单独上色，其余返回 null。</summary>
+    private Dictionary<string, string> WireHeaderCellStyle(object row, TableHeader header, int rowIndex, int columnIndex)
+    {
+        // 按属性名认列：表头文字是给人看的，演示与探针都可能改它。
+        if (header?.Property?.Name == "Name")
+        {
+            return new Dictionary<string, string> { { "background", "#fff7e6" }, { "color", "#d9480f" } };
+        }
+        return null;
+    }
+}

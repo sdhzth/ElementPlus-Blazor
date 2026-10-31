@@ -1,0 +1,37 @@
+@inherits ElementFieldComponentBase<double?>
+
+<div class="@wrapperClsBuilder.ToString()"
+     style="@Style"
+     role="slider"
+     aria-label="@AriaLabel"
+     aria-valuemin="0"
+     aria-valuemax="@Max"
+     aria-valuenow="@CurrentValue"
+     aria-disabled="@AriaDisabled"
+     tabindex="@(OnFocus.HasDelegate || OnBlur.HasDelegate ? "0" : null)"
+     @onfocus="OnFocusAsync"
+     @onblur="OnBlurAsync">
+    @for (var i = 1; i <= Max; i++)
+    {
+        var index = i;
+        var context = CreateIconContext(index);
+        var iconTemplate = ResolvedIconTemplate;
+        <span class="el-rate__item"
+              @onclick="e => SelectRateAsync(index)"
+              @onmousemove="e => HoverRate(index, e)"
+              @onmouseleave="ClearHover">
+            @if (iconTemplate != null)
+            {
+                @iconTemplate(context)
+            }
+            else
+            {
+                <i class="@context.IconClass" style="@context.IconStyle"></i>
+            }
+        </span>
+    }
+    @if (ShowText || ShowScore)
+    {
+        <span class="el-rate__text">@DisplayText</span>
+    }
+</div>

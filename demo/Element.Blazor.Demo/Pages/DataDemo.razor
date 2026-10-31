@@ -1,0 +1,202 @@
+@page "/data"
+
+<h1 class="demo-page-title">数据展示组件（带 Mock 数据）</h1>
+<p class="demo-page-sub">表格、树、标签、进度、卡片、头像、统计等均使用本地 Mock 数据。</p>
+
+<div class="demo-section">
+    <h3>ElTable 表格（产品 Mock 数据）</h3>
+    <ElTable DataSource="MockData.Products">
+        <ElTableColumn Property="Name" Text="名称" />
+        <ElTableColumn Property="Category" Text="类别" />
+        <ElTableColumn Property="Price" Text="单价(元)" />
+        <ElTableColumn Property="Stock" Text="库存" />
+    </ElTable>
+</div>
+
+<div class="demo-section">
+    <h3>ElTable 序号列 + ElPagination 分页（Type="index"，可切换每页条数 / 跳页）</h3>
+    <p class="demo-page-sub">第一列「#」为页内序号（翻页重置）；第二列「连续序号」用 IndexMethod 算出跨页连续序号。下方使用 ElPagination 组件（含每页条数、跳页、总条数）驱动分页，取代原生下拉。</p>
+    <ElTable DataSource="@(MockData.ProductsLarge.Skip((currentPage - 1) * pageSize).Take(pageSize).ToList())">
+        <ElTableColumn Type="index" Text="#" Width="60" />
+        <ElTableColumn Type="index" Text="连续序号" Width="90" IndexMethod="i => i + (currentPage - 1) * pageSize + 1" />
+        <ElTableColumn Property="Name" Text="名称" />
+        <ElTableColumn Property="Category" Text="类别" />
+        <ElTableColumn Property="Price" Text="单价(元)" />
+        <ElTableColumn Property="Stock" Text="库存" />
+    </ElTable>
+    <div style="margin-top:12px;">
+        <ElPagination Total="@MockData.ProductsLarge.Count" PageSize="@pageSize" CurrentPage="@currentPage"
+                      Layout="total, sizes, prev, pager, next, jumper" PageSizes="@(new[] { 5, 10, 20 })"
+                      CurrentPageChanged="OnPageChanged" PageSizeChanged="OnPageSizeChanged" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>ElTable 列分隔线（Border 属性，默认不显示）</h3>
+    <p class="demo-page-sub">默认 Border="false"：只有行横线，列与列之间没有竖线。设 Border="true"：每列右侧出现竖向分隔线，并带整表外框。</p>
+    <ElTable DataSource="MockData.Products" Border="true">
+        <ElTableColumn Type="index" Text="#" Width="60" />
+        <ElTableColumn Property="Name" Text="名称" />
+        <ElTableColumn Property="Category" Text="类别" />
+        <ElTableColumn Property="Price" Text="单价(元)" />
+        <ElTableColumn Property="Stock" Text="库存" />
+    </ElTable>
+</div>
+
+<div class="demo-section">
+    <h3>ElTree 组织树（医院科室 Mock 数据）</h3>
+    <ElTree DataSource="treeData" />
+</div>
+
+<div class="demo-section">
+    <h3>标签 / 进度 / 统计</h3>
+    <div class="demo-row">
+        <ElTag><text>西药</text></ElTag>
+        <ElTag><text>中成药</text></ElTag>
+        <ElProgress Percentage="72" ShowText="true" />
+        <ElStatistic Title="在库品种" Value="1234" SuffixText="种" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>卡片 / 头像 / 角标 / 图片</h3>
+    <div class="demo-row" style="align-items:flex-start;">
+        <ElCard>
+            <Header>
+                <text>患者卡片</text>
+            </Header>
+            <Body>
+                <text>姓名：@MockData.Patients[0].Name　科室：@MockData.Patients[0].Department</text>
+            </Body>
+        </ElCard>
+
+        <ElBadge Value="3">
+            <ElAvatar><text>医</text></ElAvatar>
+        </ElBadge>
+
+        <ElImage Src="@placeholderImg" Style="width:120px;height:120px;" />
+    </div>
+
+    <p class="demo-page-sub" style="margin-top:14px;">
+        ElAvatar 颜色：<code>Color</code> 给背景色、<code>TextColor</code> 给文字色，取值是<b>任意 CSS 颜色</b>（<code>#7b61ff</code> / <code>rgb(123,97,255)</code> / 主题变量 <code>var(--el-color-success)</code> 都行，也支持渐变，见最后一个）；不传则沿用 Element Plus 默认灰底白字。
+    </p>
+    <div class="demo-row" style="align-items:center;" data-testid="avatar-colors">
+        <ElAvatar><text>默</text></ElAvatar>
+        <ElAvatar Color="var(--el-color-primary)"><text>主</text></ElAvatar>
+        <ElAvatar Color="var(--el-color-success)"><text>成</text></ElAvatar>
+        <ElAvatar Color="var(--el-color-warning)"><text>警</text></ElAvatar>
+        <ElAvatar Color="var(--el-color-danger)"><text>危</text></ElAvatar>
+        <ElAvatar Color="var(--el-color-info)"><text>信</text></ElAvatar>
+        <ElAvatar Color="#7b61ff"><text>紫</text></ElAvatar>
+        <ElAvatar Color="#e8f3ff" TextColor="#409eff"><text>浅</text></ElAvatar>
+        <ElAvatar Color="var(--el-color-success)" Icon="user-solid" />
+        <ElAvatar Color="var(--el-color-primary)" Shape="AvatarShape.Square"><text>方</text></ElAvatar>
+        <ElAvatar Color="var(--el-color-danger)" Size="ElementSize.Large"><text>大</text></ElAvatar>
+        <ElAvatar Color="var(--el-color-warning)" Size="ElementSize.Small"><text>小</text></ElAvatar>
+        <ElAvatar Style="background-image:linear-gradient(135deg,#409eff,#7b61ff);"><text>渐</text></ElAvatar>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>步骤条 / 时间线 / 描述列表</h3>
+    <ElSteps Active="1">
+        <ElStep Title="接诊" />
+        <ElStep Title="检查" />
+        <ElStep Title="诊断" />
+        <ElStep Title="开方" />
+    </ElSteps>
+
+    <ElTimeline>
+        <ElTimelineItem Timestamp="09:00"><text>患者挂号内科</text></ElTimelineItem>
+        <ElTimelineItem Timestamp="09:20"><text>医生问诊</text></ElTimelineItem>
+        <ElTimelineItem Timestamp="10:00"><text>开具处方</text></ElTimelineItem>
+    </ElTimeline>
+
+    <ElDescriptions Title="处方信息">
+        <ElDescriptionsItem Label="患者"><text>Kevin Carter</text></ElDescriptionsItem>
+        <ElDescriptionsItem Label="诊断"><text>高血压</text></ElDescriptionsItem>
+        <ElDescriptionsItem Label="金额"><text>12.50 元</text></ElDescriptionsItem>
+    </ElDescriptions>
+</div>
+
+<div class="demo-section">
+    <h3>ElDialogGrow 自定义尺寸对话框</h3>
+    <p class="demo-page-sub">打开对话框后，可用内部工具栏实时调整 <code>Width</code>（支持 50%、600px、30vw 等任意 CSS 宽度）、<code>Top</code>、<code>Fullscreen</code>，弹出框会即时跟随变化。</p>
+    <div class="demo-row" style="gap:14px; align-items:flex-end;">
+        <ElButton OnClick="@(() => dialogVisible = true)">打开对话框</ElButton>
+    </div>
+
+    <ElDialogGrow @bind-Visible="dialogVisible" Title="自定义尺寸演示" Width="@dialogWidth" Top="@dialogTop" Fullscreen="@dialogFullscreen"
+                  ShowClose="@dialogShowClose" CloseOnClickModal="@dialogCloseOnModal" CloseOnPressEscape="@dialogCloseOnEscape">
+        <ChildContent>
+            <div style="display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid #ebeef5;">
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                    <label style="font-size:12px; color:#606266;">宽度 Width</label>
+                    <input type="text" @bind-value="dialogWidth" @bind-value:event="oninput" style="width:120px; padding:4px 8px; border:1px solid #dcdfe6; border-radius:4px;" />
+                </div>
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                    <label style="font-size:12px; color:#606266;">距顶 Top</label>
+                    <input type="text" @bind-value="dialogTop" @bind-value:event="oninput" style="width:120px; padding:4px 8px; border:1px solid #dcdfe6; border-radius:4px;" />
+                </div>
+                <label style="font-size:13px; color:#606266;"><input type="checkbox" @bind="dialogFullscreen" style="vertical-align:middle;" /> 全屏 Fullscreen</label>
+                <label style="font-size:13px; color:#606266;"><input type="checkbox" @bind="dialogShowClose" style="vertical-align:middle;" /> 显示 × 关闭按钮 ShowClose</label>
+                <label style="font-size:13px; color:#606266;"><input type="checkbox" @bind="dialogCloseOnModal" style="vertical-align:middle;" /> 点遮罩关闭 CloseOnClickModal</label>
+                <label style="font-size:13px; color:#606266;"><input type="checkbox" @bind="dialogCloseOnEscape" style="vertical-align:middle;" /> Esc 关闭 CloseOnPressEscape</label>
+                <span class="demo-page-sub" style="margin:0;">预设：</span>
+                <ElButton OnClick="@(() => SetSize(SizeSmall))">小 400px</ElButton>
+                <ElButton OnClick="@(() => SetSize(SizeMedium))">中 700px</ElButton>
+                <ElButton OnClick="@(() => SetSize(SizeLarge))">大 90%</ElButton>
+            </div>
+            <p>当前宽度：<code>@dialogWidth</code>　距顶：<code>@dialogTop</code>　全屏：<code>@dialogFullscreen</code>　显示×：<code>@dialogShowClose</code>。修改上方控件，本弹出框即时跟随变化（试试把宽度改成 80% 或 500px，或取消勾选「显示 × 关闭按钮」）。</p>
+            <ElTable DataSource="MockData.Products">
+                <ElTableColumn Property="Name" Text="名称" />
+                <ElTableColumn Property="Category" Text="类别" />
+                <ElTableColumn Property="Price" Text="单价(元)" />
+            </ElTable>
+        </ChildContent>
+        <Footer>
+            <ElButton OnClick="@(() => dialogVisible = false)">关闭</ElButton>
+        </Footer>
+    </ElDialogGrow>
+</div>
+
+@code {
+    // ---- ElDialogGrow 自定义尺寸演示 ----
+    private bool dialogVisible;
+    private string dialogWidth = "50%";
+    private string dialogTop = "15vh";
+    private bool dialogFullscreen;
+    private bool dialogShowClose = true;
+    private bool dialogCloseOnModal = true;
+    private bool dialogCloseOnEscape = true;
+
+    private const string SizeSmall = "400px";
+    private const string SizeMedium = "700px";
+    private const string SizeLarge = "90%";
+
+    private void SetSize(string w)
+    {
+        dialogWidth = w;
+        dialogFullscreen = false;
+        dialogVisible = true;
+    }
+
+    private int currentPage = 1;
+    private int pageSize = 5;
+
+    private void OnPageChanged(int page)
+    {
+        currentPage = page;
+    }
+
+    private void OnPageSizeChanged(int size)
+    {
+        pageSize = size;
+        currentPage = 1;
+    }
+
+    private List<ElementPlus.TreeItemBase> treeData = MockData.FlatOrgTree();
+
+    private const string placeholderImg =
+        "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><rect width='120' height='120' fill='%23409eff'/><text x='50%25' y='52%25' fill='white' font-size='16' text-anchor='middle' dominant-baseline='middle'>Element</text></svg>";
+}

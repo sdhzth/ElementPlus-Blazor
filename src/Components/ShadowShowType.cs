@@ -1,0 +1,14 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace ElementPlus
+{
+    public enum ShadowShowType
+    {
+        Always = 0,
+        Never = 1,
+        Hover = 2
+    }
+}

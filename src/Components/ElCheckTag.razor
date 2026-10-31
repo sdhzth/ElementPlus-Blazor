@@ -1,0 +1,11 @@
+@inherits ElementComponentBase
+
+<span class="@CheckTagClass"
+      role="checkbox"
+      aria-checked="@Checked.ToString().ToLowerInvariant()"
+      aria-disabled="@Disabled.ToString().ToLowerInvariant()"
+      @onclick="OnClickAsync"
+      style="@CheckTagStyle"
+      @attributes="Attributes">
+    @ChildContent
+</span>

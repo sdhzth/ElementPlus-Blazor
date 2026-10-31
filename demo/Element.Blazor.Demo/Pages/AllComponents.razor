@@ -1,0 +1,173 @@
+@page "/all"
+@using ElementPlus.Blazor.Demo.Shared
+@using Microsoft.AspNetCore.Components
+
+<h1 class="demo-page-title">全部组件</h1>
+<p class="demo-page-sub">下列所有组件均通过反射自动发现并实例化，为避免一次性渲染过多组件导致页面卡顿，默认分批展示，可点击“加载更多”逐批展开。</p>
+
+@if (Entries.Count == 0)
+{
+    <div class="demo-empty">未找到匹配组件。</div>
+}
+else
+{
+    <div class="demo-gallery">
+        @foreach (var entry in Entries.Take(visibleCount))
+        {
+            <div class="demo-gallery-card" @key="entry">
+                <div class="demo-gallery-head">
+                    <span>@entry.Name</span>
+                    <span class="demo-tag">@entry.Assembly</span>
+                </div>
+                <div class="demo-gallery-body">
+                    @if (entry.IsGeneric)
+                    {
+                        <span class="demo-note">泛型组件，已在分类演示中展示（@entry.Category）</span>
+                    }
+                    else if (GallerySkip.Contains(entry.Name))
+                    {
+                        <span class="demo-note">该组件需由服务 / 父容器驱动（或会铺满全屏），请在「@entry.Category」演示中查看</span>
+                    }
+                    else
+                    {
+                        <ErrorBoundary>
+                            <ChildContent>
+                                @(RenderComponent(entry))
+                            </ChildContent>
+                            <ErrorContent Context="ex">
+                                <div class="demo-gallery-err">自动渲染跳过：@ex.Message</div>
+                            </ErrorContent>
+                        </ErrorBoundary>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (visibleCount < Entries.Count)
+    {
+        <div class="demo-row" style="margin-top:16px;">
+            <ElButton OnClick="@LoadMore">
+                加载更多（已显示 @Math.Min(visibleCount, Entries.Count) / @Entries.Count）
+            </ElButton>
+            <ElButton OnClick="@ShowAllAsync">
+                @(showingAll ? "展开中…" : "显示全部（分批展开）")
+            </ElButton>
+        </div>
+    }
+}
+
+@code {
+    private List<CatalogEntry> Entries { get; set; } = new();
+
+    /// <summary>每次“加载更多”新增的组件数量，避免一次性实例化全部组件导致页面卡死。</summary>
+    private const int Chunk = 9;
+
+    /// <summary>
+    /// 不适合在“全部组件”画廊里孤立自动实例化的组件。
+    /// 它们会在被孤立实例化时渲染出 <c>position:fixed</c> 的全屏遮罩层（弹层 / 蒙层），
+    /// 盖住整页并吞掉所有指针事件 —— 用户感受就是「点击任何东西都没反应、页面卡死」；
+    /// 或强依赖父容器，孤立渲染必然抛异常。
+    /// 这些组件在画廊中只展示名称与提示，真实用法请到对应分类演示页查看。
+    /// </summary>
+    private static readonly HashSet<string> GallerySkip = new(StringComparer.Ordinal)
+    {
+        // 弹层宿主：被孤立实例化时会渲染铺满整屏的 el-message-box__wrapper
+        // （position:fixed + pointer-events:auto + 覆盖整个视口），盖住整页、
+        // 吞掉所有指针事件 —— 这正是「点任何按钮都没反应 / 页面像卡死」的真凶。
+        "ElPopup", "ElPopupLayer",
+        // 轮播子项：脱离 ElCarousel 后会独占铺满整屏（el-carousel__item）
+        "ElCarousel", "ElCarouselItem",
+        // 其余弹层 / 蒙层基础件：孤立渲染会抛异常或产出遮罩
+        "ElMessageBox", "MessageBoxContent", "ElementDialogBase",
+        // 强依赖父容器的子组件：孤立渲染必然抛 NRE
+        "ElCol", "ElTabPane",
+
+        // 以下均为「必须嵌在父容器里才有意义」的子组件，孤立实例化必然抛 NRE / 业务异常：
+        // · 表格列：必须放在 ElTable / ElTableColumns 内
+        "ElTableColumn", "ElTableCheckBoxColumn", "ElTableDateTimeColumn", "ElTableTemplateColumn", "ElTableTreeColumn",
+        // · 树节点：必须放在 ElTree 内
+        "ElTreeItem",
+        // · 动画路径：必须放在 ElTransition 内
+        "ElTransitionPath",
+        // · 表单动作项：必须放在 ElForm 内
+        "ElFormActionItem",
+        // · 需要数据源才能渲染：已修复为「无数据源渲染空状态（无数据）」而非抛异常，故不再跳过，正常渲染即可
+        //   （ElTable / ElTableV2 / ElTree / ElTreeV2 现在在画廊里展示空状态占位，而不是崩溃）
+
+        // Ribbon 家族：ElRibbon 内部硬编码 OnActiveTabChanging="PreventMenuSwitchAsync"，
+        // 而菜单页签 Title 默认取 "开始"；ElTabs 初始化激活该页签时会触发 OnActiveTabChanging
+        // → PreventMenuSwitchAsync 判定 Title=="开始" 且未提供 Menu → 调用
+        // DialogService.ShowLayerAsync<DialogResult>(null, …) → 全局 ElPopup 渲染铺满整屏的
+        // el-message-box__wrapper（盖住整页、吞掉指针事件）。这正是「点击加载更多后页面卡死」的根因。
+        // 孤立渲染既无意义（缺 Menu 父容器），又会冻结整页，故整族排除。
+        "ElRibbon", "ElRibbonBlock", "ElRibbonItem", "ElRibbonTab",
+    };
+
+    private int visibleCount = Chunk;
+
+    protected override void OnParametersSet()
+    {
+        Entries = ComponentCatalog.All.ToList();
+
+        // 首屏只渲染第一批，保证首屏渲染轻量
+        visibleCount = Math.Min(Chunk, Math.Max(Entries.Count, 0));
+    }
+
+    private void LoadMore() => visibleCount = Math.Min(visibleCount + Chunk, Entries.Count);
+
+    private bool showingAll;
+
+    /// <summary>
+    /// 分批渐进展开全部组件。
+    /// 每批只新增 <see cref="Chunk"/> 个并 <c>await Task.Delay(1)</c> 让出主线程，
+    /// 使浏览器有机会布局/绘制，避免一次性同步渲染上百个组件导致页面无响应（卡死）。
+    /// </summary>
+    private async Task ShowAllAsync()
+    {
+        if (showingAll) return;
+        showingAll = true;
+        StateHasChanged();
+        try
+        {
+            while (visibleCount < Entries.Count)
+            {
+                visibleCount = Math.Min(visibleCount + Chunk, Entries.Count);
+                StateHasChanged();
+                await Task.Delay(1); // 宏任务让位：浏览器得以绘制，页面保持可交互
+            }
+        }
+        finally
+        {
+            showingAll = false;
+            StateHasChanged();
+        }
+    }
+
+    /// <summary>
+    /// 参数字典缓存：同一组件类型的默认参数只构建一次。
+    /// 追加新卡片时，已渲染卡片的 DynamicComponent 拿到的是同一个字典实例，
+    /// Blazor 判定参数未变 → 不再触发旧组件重渲染（配合 @key 实现「只新增、不重建」）。
+    /// </summary>
+    private readonly Dictionary<Type, IReadOnlyDictionary<string, object>?> paramCache = new();
+
+    private RenderFragment RenderComponent(CatalogEntry entry)
+    {
+        if (!paramCache.TryGetValue(entry.Type, out var parameters))
+        {
+            parameters = (IReadOnlyDictionary<string, object>?)ComponentCatalog.BuildSafeParameters(entry.Type);
+            paramCache[entry.Type] = parameters;
+        }
+
+        return builder =>
+        {
+            builder.OpenComponent<DynamicComponent>(0);
+            builder.AddComponentParameter(1, "Type", entry.Type);
+            if (parameters != null)
+            {
+                builder.AddComponentParameter(2, "Parameters", parameters);
+            }
+            builder.CloseComponent();
+        };
+    }
+}

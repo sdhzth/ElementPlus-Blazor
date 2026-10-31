@@ -1,0 +1,105 @@
+@page "/steps"
+
+<div class="demo-section">
+    <h3>ElSteps 步骤条（对齐 Element Plus Steps）</h3>
+    <p class="demo-page-sub">
+        官方属性：<code>space</code>、<code>direction</code>（horizontal / vertical）、<code>active</code>、
+        <code>process-status</code>、<code>finish-status</code>、<code>align-center</code>、<code>simple</code>。
+        ElStep 官方属性：<code>title</code>、<code>description</code>、<code>icon</code>、<code>status</code>、
+        <code>space</code>（单步骤宽度，本次补齐）。
+        本库扩展：ElStep 的 <code>TitleContent</code> / <code>DescriptionContent</code> / <code>IconContent</code> / <code>ChildContent</code>。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>基础步骤条</h3>
+    <ElSteps Active="@active">
+        <ElStep Title="步骤 1" Description="填写基本信息" />
+        <ElStep Title="步骤 2" Description="上传检查资料" />
+        <ElStep Title="步骤 3" Description="医生审核" />
+        <ElStep Title="步骤 4" Description="完成" />
+    </ElSteps>
+    <div class="demo-row" style="gap:8px; margin-top:10px;">
+        <ElButton Size="ButtonSize.Small" Disabled="@(active <= 0)" OnClick="@(() => active--)">上一步</ElButton>
+        <ElButton Size="ButtonSize.Small" Type="ButtonType.Primary" Disabled="@(active >= 4)" OnClick="@(() => active++)">下一步</ElButton>
+        <ElButton Size="ButtonSize.Small" OnClick="@(() => active = 4)">全部完成（Active = 4）</ElButton>
+        <ElButton Size="ButtonSize.Small" OnClick="@(() => active = 0)">重置</ElButton>
+        <span class="demo-note">Active = @active</span>
+    </div>
+    <p class="demo-page-sub" style="margin-top:8px;">
+        语义（对齐 Element Plus）：<code>Active</code> 是<b>当前步骤的下标</b>（从 0 起）。
+        <code>Active</code> 为 0~3 时，第 <code>Active+1</code> 步是 <code>is-process</code>（深色数字圆点 + 深色加粗标题），
+        它之前的步骤是 <code>is-finish</code>（✓）；<code>Active</code> 等于步骤总数（4）时表示<b>全部完成</b>——四步全部 ✓。
+        因此在最后一步（<code>Active = 3</code>）再点「下一步」按定义就不会有任何变化（已置灰），要看「全部完成」请点上方对应按钮。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>居中对齐（AlignCenter）+ 自定义 finish/process 状态</h3>
+    <ElSteps Active="2" AlignCenter="true" FinishStatus="StepStatus.Success" ProcessStatus="StepStatus.Process">
+        <ElStep Title="登记" Description="已登记" />
+        <ElStep Title="分诊" Description="已分诊" />
+        <ElStep Title="就诊" Description="就诊中" />
+        <ElStep Title="离院" Description="待离院" />
+    </ElSteps>
+</div>
+
+<div class="demo-section">
+    <h3>竖向步骤条（Direction=Vertical）+ 固定 space</h3>
+    <ElSteps Active="1" Direction="StepDirection.Vertical" Space="200px" Style="height:260px;">
+        @* ElStep 的 Icon 会被自动补全 el-icon- 前缀，这里写裸名 *@
+        <ElStep Title="入院" Description="办理入院手续" Icon="edit" />
+        <ElStep Title="检查" Description="完成各项检查" Icon="upload" />
+        <ElStep Title="治疗" Description="实施治疗方案" Icon="picture" />
+    </ElSteps>
+</div>
+
+<div class="demo-section">
+    <h3>单步骤 space（ElStep.Space 覆盖全局 Space）</h3>
+    <ElSteps Active="1">
+        <ElStep Title="窄" Space="80px" />
+        <ElStep Title="宽" Space="260px" />
+        <ElStep Title="默认" />
+    </ElSteps>
+</div>
+
+<div class="demo-section">
+    <h3>带图标与状态（icon / status）</h3>
+    <ElSteps Active="2">
+        <ElStep Title="成功" Icon="circle-check" Status="StepStatus.Success" />
+        <ElStep Title="进行中" Icon="loading" Status="StepStatus.Process" />
+        <ElStep Title="出错" Icon="circle-close" Status="StepStatus.Error" Description="校验未通过" />
+        <ElStep Title="等待" Icon="more" />
+    </ElSteps>
+</div>
+
+<div class="demo-section">
+    <h3>简洁风格（Simple）</h3>
+    <ElSteps Active="1" Simple="true">
+        <ElStep Title="步骤 1" />
+        <ElStep Title="步骤 2" />
+        <ElStep Title="步骤 3" />
+    </ElSteps>
+</div>
+
+<div class="demo-section">
+    <h3>自定义插槽（TitleContent / DescriptionContent / IconContent）</h3>
+    <ElSteps Active="1">
+        <ElStep>
+            <IconContent>
+                <i class="el-icon-user" style="font-size:18px;"></i>
+            </IconContent>
+            <TitleContent>
+                <b style="color:#409eff;">自定义标题</b>
+            </TitleContent>
+            <DescriptionContent>
+                <span style="color:#909399;">自定义描述文本</span>
+            </DescriptionContent>
+        </ElStep>
+        <ElStep Title="普通步骤" Description="普通描述" />
+    </ElSteps>
+</div>
+
+@code {
+    private int active = 1;
+}

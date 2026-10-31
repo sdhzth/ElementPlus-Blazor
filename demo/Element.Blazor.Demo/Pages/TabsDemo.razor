@@ -1,0 +1,200 @@
+@page "/tabs"
+
+<div class="demo-section">
+    <h3>ElTabs 标签页（对齐 Element Plus Tabs）</h3>
+    <p class="demo-page-sub">
+        官方属性：<code>model-value</code>（<code>ModelValue</code> / <code>Value</code>）、<code>type</code>（card / border-card）、
+        <code>closable</code>、<code>addable</code>、<code>editable</code>、<code>tab-position</code>（top / right / bottom / left）、
+        <code>before-leave</code>、<code>stretch</code>；
+        官方事件 <code>tab-click</code>（本次新增）、<code>tab-change</code>（<code>OnActiveTabChanged</code>）、
+        <code>edit</code>（本次新增，Action=add/remove）、<code>tab-remove</code>、<code>add</code>；
+        官方 exposes <code>currentName</code>（本次新增 <code>CurrentName</code>）。
+        TabPane 官方属性：<code>label</code>（本次新增别名）、<code>name</code>、<code>closable</code>、<code>disabled</code>、
+        <code>lazy</code>（本次新增），官方 label 插槽（本次新增 <code>TitleTemplate</code>）。
+        本库扩展（EP 2.14.0 源码里没有）：<code>TabTextAlign</code>（页签文字对齐）、<code>TabClass</code>、<code>DataSource</code>。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>基础用法 + tab-click / tab-change + TabClass</h3>
+    <p class="demo-page-sub">
+        <code>TabClass</code> 是本库扩展属性（<b>不是</b> EP 标准属性：EP 2.14.0 的 <code>tabsProps</code> 只有 type / closable / addable / model-value / default-value / editable / tab-position / before-leave / stretch / tabindex）：在 <code>ElTabs</code> 上设置后，会级联作用到每个 <code>ElTabPane</code> 的页签按钮（见 app.css 的 <code>.custom-tab</code>，给页签加了圆角与高亮态底色）。
+    </p>
+    <ElTabs TabClass="custom-tab" @bind-Value="activeName" OnTabClick="@(e => clickLog = "tab-click: " + e.Pane?.Name)"
+            OnActiveTabChanged="@(e => changeLog = "tab-change: " + e.NewValue?.Name)">
+        <ElTabPane Name="t1" Title="待诊患者">
+            <p class="demo-note">待诊患者列表内容</p>
+        </ElTabPane>
+        <ElTabPane Name="t2" Title="已诊患者">
+            <p class="demo-note">已诊患者列表内容</p>
+        </ElTabPane>
+        <ElTabPane Name="t3" Title="转诊" Disabled="true">
+            <p class="demo-note">禁用页签（不可点）</p>
+        </ElTabPane>
+    </ElTabs>
+    <p class="demo-note">@clickLog ｜ @changeLog ｜ CurrentName=@tabRef?.CurrentName</p>
+</div>
+
+<div class="demo-section">
+    <h3>页签文字对齐（TabTextAlign=Left / Center / Right，本库扩展）</h3>
+    <p class="demo-page-sub">
+        EP 没有这个属性，所以默认不设置时组件不输出任何对齐样式。页签项本身是 <code>display:inline-flex</code>，
+        对齐只能走 <code>justify-content</code>（<code>text-align</code> 对它无效）；横向时组件顺带把页签栏撑满容器宽度，
+        否则栏宽会收缩到内容宽（实测 1034px 容器里只有 220px），居中／靠右根本看不出来。
+    </p>
+    <div class="demo-row" style="gap:16px; align-items:flex-start;">
+        <div style="flex:1;">
+            <p class="demo-note">TabTextAlign="Left"</p>
+            <ElTabs Cls="align-left-demo" TabTextAlign="TabTextAlign.Left">
+                <ElTabPane Name="al1" Title="待诊患者"><p class="demo-note">内容</p></ElTabPane>
+                <ElTabPane Name="al2" Title="已诊患者"><p class="demo-note">内容</p></ElTabPane>
+            </ElTabs>
+        </div>
+        <div style="flex:1;">
+            <p class="demo-note">TabTextAlign="Center"</p>
+            <ElTabs Cls="align-center-demo" TabTextAlign="TabTextAlign.Center">
+                <ElTabPane Name="ac1" Title="待诊患者"><p class="demo-note">内容</p></ElTabPane>
+                <ElTabPane Name="ac2" Title="已诊患者"><p class="demo-note">内容</p></ElTabPane>
+            </ElTabs>
+        </div>
+        <div style="flex:1;">
+            <p class="demo-note">TabTextAlign="Right" + Stretch</p>
+            <ElTabs Cls="align-right-demo" TabTextAlign="TabTextAlign.Right" Stretch="true">
+                <ElTabPane Name="ar1" Title="待诊患者"><p class="demo-note">内容</p></ElTabPane>
+                <ElTabPane Name="ar2" Title="已诊患者"><p class="demo-note">内容</p></ElTabPane>
+            </ElTabs>
+        </div>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>卡片风格（Type=Card）+ 可关闭 + edit 事件</h3>
+    <p class="demo-page-sub">
+        点 X 会真正把页签摘掉。EP 那边 <code>tabs.tsx</code> 的 <code>handleTabRemove</code> 只发 <code>edit(remove)</code>
+        与 <code>tab-remove</code>，数组由使用方自己 splice；硬编码 <code>&lt;ElTabPane&gt;</code> 在 Blazor 里没法让使用方删，
+        所以本库在 <code>DataSource</code> 模式下仍走「删数据」，硬编码模式下由组件自己摘掉并记住名字。
+    </p>
+    <ElTabs @ref="tabRef" Type="TabType.Card" IsRemovable="true" OnEdit="@(e => editLog = "edit: " + e.Action + " " + e.PaneName)">
+        <ElTabPane Name="c1" Title="页签一"><p class="demo-note">内容一</p></ElTabPane>
+        <ElTabPane Name="c2" Title="页签二" IsClosable="true"><p class="demo-note">内容二</p></ElTabPane>
+        <ElTabPane Name="c3" Title="页签三"><p class="demo-note">内容三</p></ElTabPane>
+    </ElTabs>
+    <p class="demo-note">@editLog</p>
+</div>
+
+<div class="demo-section">
+    <h3>用代码新增页签（外部按钮 + DataSource）+ border-card + stretch</h3>
+    @* 增删只能作用于 DataSource（ObservableCollection&lt;TabOption&gt;），硬编码 <ElTabPane> 撑不住新增。
+       这里刻意不开 IsAddable：页签条右侧不出现内置「+」，新增改由外部按钮直接写集合。
+       组件的 IsAddable / OnAddingTab 能力保留（EP 也有 addable），只是本例演示「开发者自己用代码加」。 *@
+    <div class="demo-row" style="margin-bottom:12px">
+        <ElButton Type="ButtonType.Primary" OnClick="AddTabAsync">新增一个页签</ElButton>
+    </div>
+    <ElTabs Type="TabType.BorderCard" Stretch="true" DataSource="addableTabs">
+    </ElTabs>
+    <p class="demo-note">@addLog</p>
+</div>
+
+<div class="demo-section">
+    <h3>标签位置（TabPosition=Left / Right / Bottom）</h3>
+    <div class="demo-row" style="gap:16px; align-items:flex-start;">
+        <div style="flex:1;">
+            <ElTabs TabPosition="TabPosition.Left" Style="height:150px;">
+                <ElTabPane Name="l1" Title="左侧一"><p class="demo-note">内容一</p></ElTabPane>
+                <ElTabPane Name="l2" Title="左侧二"><p class="demo-note">内容二</p></ElTabPane>
+            </ElTabs>
+        </div>
+        <div style="flex:1;">
+            <ElTabs TabPosition="TabPosition.Bottom">
+                <ElTabPane Name="bt1" Title="底部一"><p class="demo-note">内容一</p></ElTabPane>
+                <ElTabPane Name="bt2" Title="底部二"><p class="demo-note">内容二</p></ElTabPane>
+            </ElTabs>
+        </div>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>label 插槽（TitleTemplate）+ label 别名 + lazy</h3>
+    <ElTabs>
+        <ElTabPane Name="x1" Label="带图标">
+            <TitleTemplate>
+                <span><i class="el-icon-date" style="margin-right:4px;"></i>自定义标题</span>
+            </TitleTemplate>
+            <ChildContent>
+                <p class="demo-note">该页签标题由 label 插槽渲染</p>
+            </ChildContent>
+        </ElTabPane>
+        <ElTabPane Name="x2" Title="普通页签" Lazy="true">
+            <p class="demo-note">lazy=true：首次激活前不渲染内容</p>
+        </ElTabPane>
+    </ElTabs>
+</div>
+
+<div class="demo-section">
+    <h3>切换拦截（BeforeLeave）</h3>
+    <p class="demo-page-sub">
+        回调签名与 EP 一致：<code>before-leave(newName, oldName)</code>（<code>tabs.tsx:147</code> 传的是
+        <code>props.beforeLeave(value, currentName.value)</code>，第一个参数是<b>要切去的那个</b>页签）。
+        返回 false 即拦下，激活项与内容区都不动。
+    </p>
+    <ElTabs @bind-Value="guardValue" BeforeLeave="GuardAsync">
+        <ElTabPane Name="g1" Title="页签一"><p class="demo-note">内容一</p></ElTabPane>
+        <ElTabPane Name="g2" Title="页签二"><p class="demo-note">内容二（被拦截，需勾选放行）</p></ElTabPane>
+    </ElTabs>
+    <label class="demo-note"><input type="checkbox" @bind="allowLeave" /> 允许切换到「页签二」</label>
+    <p class="demo-note">@guardLog</p>
+</div>
+
+@code {
+    private string activeName = "t1";
+    private string guardValue = "g1";
+    private bool allowLeave;
+    private string clickLog = "(无)";
+    private string changeLog = "(无)";
+    private string editLog = "(无)";
+    private string addLog = "(无)";
+    private string guardLog = "(未触发)";
+    private ElTabs tabRef;
+
+    /// <summary>
+    /// 可新增示例的数据源。IsAddable / IsEditable 模式必须绑定 DataSource，
+    /// 因为「新增 / 删除」只能作用于该集合，硬编码的 ElTabPane 无法参与增删。
+    /// </summary>
+    private System.Collections.ObjectModel.ObservableCollection<TabOption> addableTabs = new()
+    {
+        new TabOption { Name = "b1", Title = "标签一", Content = "<p class=\"demo-note\">内容一</p>", IsActive = true },
+        new TabOption { Name = "b2", Title = "标签二", Content = "<p class=\"demo-note\">内容二</p>" }
+    };
+
+    /// <summary>
+    /// 开发者自己往 DataSource 里加一项就是「新增页签」。
+    /// Name 不指定时 TabOption 会自动生成唯一 Guid，避免重名校验失败。
+    /// （EP 的「+」只发出 tab-add 事件、真正的新增同样由使用方写集合，所以走外部按钮不丢能力。）
+    /// </summary>
+    private Task AddTabAsync()
+    {
+        var index = addableTabs.Count + 1;
+        addableTabs.Add(new TabOption
+        {
+            Title = "新标签 " + index,
+            Content = "<p class=\"demo-note\">新增的内容 " + index + "</p>",
+            IsActive = true
+        });
+        addLog = $"add → 共 {addableTabs.Count} 个页签（当前：新标签 {index}）";
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// EP 的 before-leave 签名是 (newName, oldName) —— 组件里调用为 BeforeLeave(tab.Name, oldName)，
+    /// 第一个参数才是「要切去的页签」。判据必须用 newName，用 oldName 会永远放行。
+    /// 末尾的 StateHasChanged 不是多余的：拦下来时组件内部什么都不改、也不会重渲染使用方这一层，
+    /// 于是"日志"看着像没触发（实测：不勾选点页签二，页面文本仍停在 (未触发)）。
+    /// </summary>
+    private Task<bool> GuardAsync(string newName, string oldName)
+    {
+        var allow = newName != "g2" || allowLeave;
+        guardLog = $"before-leave(newName={newName}, oldName={oldName}) → {(allow ? "放行" : "拦截")}";
+        StateHasChanged();
+        return Task.FromResult(allow);
+    }
+}

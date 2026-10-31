@@ -1,0 +1,178 @@
+@page "/video-player-grow"
+@inherits ElementComponentBase
+
+<h1 class="demo-page-title">ElVideoPlayerGrow 视频播放器</h1>
+<p class="demo-page-sub">
+    自渲染视频播放器（零第三方播放器依赖，按 Element Plus 观感渲染）。支持网络地址、HLS 流媒体、多种封装格式，并内置播放/暂停、可拖拽进度、音量、倍速、画中画、全屏等控制条。
+</p>
+
+<div class="demo-section">
+    <h3>1. 基础用法（网络地址 + 海报 + 多格式回退）</h3>
+    <p class="demo-note">下面用公开示例视频演示；实际项目请把地址换成内网可访问的视频 / 流地址。多个 &lt;source&gt; 时浏览器会按顺序选择第一个可播放的格式。</p>
+    <ElVideoPlayerGrow Src="https://media.w3.org/2010/05/sintel/trailer.mp4"
+                      Poster="https://media.w3.org/2010/05/sintel/poster.png"
+                      Height="360px" />
+</div>
+
+<div class="demo-section">
+    <h3>2. 多格式回退（mp4 / webm）</h3>
+    <p class="demo-note">通过 <code>Sources</code> 传入多个源，MIME 按扩展名自动推断；也可显式指定 <code>Type</code>。</p>
+    <ElVideoPlayerGrow Height="320px" Sources="@_multiSources" />
+</div>
+
+<div class="demo-section">
+    <h3>3. HLS 流媒体（.m3u8）</h3>
+    <p class="demo-note">
+        浏览器原生 HLS（Safari 及较新版本 Chrome 直接播放，无需任何插件）。若浏览器不支持原生 HLS，组件会探测并给出友好提示（此时可接入 hls.js 等 MSE 库）。
+    </p>
+    <ElVideoPlayerGrow Src="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+                      Height="320px" StreamType="ElVideoPlayerGrow.ElVideoStreamType.Hls" />
+</div>
+
+<div class="demo-section">
+    <h3>4. 控制条开关与初始状态</h3>
+    <div class="demo-row">
+        <ElVideoPlayerGrow Src="https://media.w3.org/2010/05/sintel/trailer.mp4"
+                          Height="280px" Muted="true" AutoPlay="true" Loop="true" />
+        <ElVideoPlayerGrow Src="https://media.w3.org/2010/05/sintel/trailer.mp4"
+                          Height="280px" Controls="false" />
+    </div>
+    <p class="demo-note">左：静音自动循环播放 + 控制条；右：隐藏控制条（仅纯播放画面）。</p>
+</div>
+
+<div class="demo-section">
+    <h3>4.1 平时隐藏控制条、鼠标移上去才显示</h3>
+    <p class="demo-note">
+        <code>AutoHideControls="true"</code>：播放中鼠标静止超过 <code>ControlsHideDelay</code>（默认 3000ms）后，
+        控制条淡出、鼠标指针一并隐藏；鼠标移入播放器或移动 / 点击立即恢复。<b>暂停时始终保持可见</b>，避免找不到播放按钮。
+        下方左侧延迟 1.5 秒（方便观察），右侧延迟 3 秒（默认）。
+    </p>
+    <div class="demo-row">
+        <ElVideoPlayerGrow Src="https://media.w3.org/2010/05/sintel/trailer.mp4"
+                          Height="280px" Muted="true" AutoPlay="true" Loop="true"
+                          AutoHideControls="true" ControlsHideDelay="1500" />
+        <ElVideoPlayerGrow Src="https://media.w3.org/2010/05/sintel/trailer.mp4"
+                          Height="280px" Muted="true" AutoHideControls="true" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>4.2 逐个显示 / 隐藏控制条按钮</h3>
+    <div class="demo-row">
+        <ElVideoPlayerGrow Src="https://media.w3.org/2010/05/sintel/trailer.mp4"
+                          Height="240px" Muted="true"
+                          ShowVolume="false" ShowPlaybackRate="false" />
+        <ElVideoPlayerGrow Src="https://media.w3.org/2010/05/sintel/trailer.mp4"
+                          Height="240px" Muted="true"
+                          ShowLoop="false" ShowPiP="false" ShowFullscreen="false" />
+    </div>
+    <p class="demo-note">
+        每个按钮都有独立开关：<code>ShowLoop</code> / <code>ShowVolume</code> / <code>ShowPlaybackRate</code> /
+        <code>ShowPiP</code> / <code>ShowFullscreen</code>。左：只留播放/循环/进度/全屏；右：去掉循环、画中画、全屏。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>5. 事件回调（播放 / 暂停 / 结束 / 错误 / 时间更新）</h3>
+    <ElVideoPlayerGrow Src="https://media.w3.org/2010/05/sintel/trailer.mp4"
+                      Height="300px"
+                      OnPlay="@(() => Log("OnPlay"))"
+                      OnPause="@(() => Log("OnPause"))"
+                      OnEnded="@(() => Log("OnEnded"))"
+                      OnError="@(msg => Log("OnError: " + msg))"
+                      OnTimeUpdate="@(_ => LogTime())" />
+    <div class="demo-video-log">
+        @foreach (var line in _log)
+        {
+            <div>@line</div>
+        }
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>6. 支持的格式与流 & 控制条</h3>
+    <ul class="demo-list">
+        <li><b>网络地址</b>：<code>Src</code> 或 <code>Sources</code>（http/https 与相对路径均可）。</li>
+        <li><b>流媒体</b>：HLS（<code>.m3u8</code>，原生播放）；DASH（<code>.mpd</code>）/ FLV（<code>.flv</code>）可通过 <code>HlsLibUrl</code> / <code>DashLibUrl</code> / <code>FlvLibUrl</code> 显式接入 hls.js / dash.js / flv.js（见第 7 节）。</li>
+        <li><b>点播封装</b>：MP4 / WebM / OGG(Theora) / MOV / M4V / AVI / WMV / TS / MKV 等，按扩展名自动推断 MIME，也支持多源回退。</li>
+        <li><b>控制条</b>：播放/暂停、<b>循环播放（♺ 按钮，可运行时切换）</b>、时间、可拖拽进度、<b>静音开关（🎤/🔇 按钮）</b>、倍速、画中画、全屏；每一项都可用 <code>ShowXxx</code> 单独关掉，整体用 <code>Controls="false"</code> 关掉，或用 <code>AutoHideControls="true"</code> 改为「鼠标移上去才显示」。</li>
+        <li><b>全屏</b>：全屏的是<b>整个播放器容器</b>（不只是 &lt;video&gt;），所以控制条一并进入全屏，画面按 100vw×100vh 铺满。</li>
+    </ul>
+</div>
+
+<div class="demo-section">
+    <h3>7. 接入外部 MSE 库（内网 / 老旧浏览器 HLS·DASH·FLV）</h3>
+    <p class="demo-note">
+        当浏览器不支持原生 HLS，或需要播放 DASH / FLV 时，可显式提供对应库的地址，组件会动态加载该库并接管视频元素（默认仍保持零依赖原生播放）。
+        <b>下面示例故意不指向 CDN，而是指向站内文件</b> <code>js/vendor/hls.min.js</code>（hls.js 1.6.15，与 npm 官方 tarball 逐字节一致，见该目录里的
+        <code>README.md</code>）—— 内网 / 非 HTTPS 环境直连 CDN 会被浏览器拦掉（<code>cdn.jsdelivr.net</code> 常被解析到 127.0.0.1，
+        于是报 CORS / Private Network Access），把库放进自己的静态目录才是可部署的做法。
+    </p>
+    <ElVideoPlayerGrow Src="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+                      Height="320px"
+                      StreamType="ElVideoPlayerGrow.ElVideoStreamType.Hls"
+                      HlsLibUrl="js/vendor/hls.min.js" />
+    <p class="demo-note">
+        用法：<code>HlsLibUrl=".../hls.min.js"</code>（HLS）、<code>DashLibUrl=".../dash.all.min.js"</code>（DASH）、<code>FlvLibUrl=".../flv.min.js"</code>（FLV）。
+        三个地址都可以写站内相对路径（相对 <code>&lt;base href="/" /&gt;</code>）。库加载失败会在播放器上显示错误提示并通过 <code>OnError</code> 回调。
+        本条示例的 <code>Src</code> 仍是公网测试流，内网部署请换成你们自己的 <code>.m3u8</code> 地址。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>8. 打开本地视频文件</h3>
+    <p class="demo-note">点击下方按钮选择本机视频文件即可在播放器中播放（通过 <code>URL.createObjectURL</code> 生成本地 blob 地址，不经过任何服务器）。支持浏览器可解码的 MP4 / WebM / MOV 等格式。</p>
+    <div class="demo-row">
+        <button type="button" class="el-button el-button--primary" @onclick="PickLocalFile">选择本地视频文件</button>
+        <span class="demo-file-name">@(_localFileName ?? "未选择文件")</span>
+    </div>
+    <ElVideoPlayerGrow @ref="_localPlayer" Height="360px" Muted="true" />
+</div>
+
+@code {
+    private List<ElVideoPlayerGrow.VideoSource> _multiSources = new()
+    {
+        new ElVideoPlayerGrow.VideoSource { Url = "https://media.w3.org/2010/05/sintel/trailer.mp4" },
+        new ElVideoPlayerGrow.VideoSource { Url = "https://media.w3.org/2010/05/sintel/trailer.webm" }
+    };
+
+    private List<string> _log = new();
+
+    private void Log(string message)
+    {
+        _log.Insert(0, $"[{DateTime.Now:HH:mm:ss}] {message}");
+        if (_log.Count > 12) _log.RemoveAt(_log.Count - 1);
+        StateHasChanged();
+    }
+
+    private int _timeTick;
+    private void LogTime()
+    {
+        _timeTick++;
+        if (_timeTick % 20 == 0) Log("OnTimeUpdate …");
+    }
+
+    // 第 8 节：打开本地视频文件
+    private ElVideoPlayerGrow _localPlayer;
+    private string _localFileName;
+    private string _localObjectUrl;
+
+    private async Task PickLocalFile()
+    {
+        var result = await JSRuntime.InvokeAsync<System.Text.Json.JsonElement>("elVideoPlayerGrowPickLocalVideo");
+        if (result.ValueKind != System.Text.Json.JsonValueKind.Object) return;
+        if (!result.TryGetProperty("url", out var urlProp) || !result.TryGetProperty("name", out var nameProp)) return;
+        var url = urlProp.GetString();
+        if (string.IsNullOrEmpty(url)) return;
+        // 释放上一个本地文件的 blob 地址，避免内存泄漏
+        if (!string.IsNullOrEmpty(_localObjectUrl))
+        {
+            try { await JSRuntime.InvokeVoidAsync("URL.revokeObjectURL", _localObjectUrl); } catch { }
+        }
+        _localObjectUrl = url;
+        _localFileName = nameProp.GetString();
+        if (_localPlayer != null)
+            await _localPlayer.LoadSource(url, true);
+        StateHasChanged();
+    }
+}

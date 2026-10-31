@@ -1,0 +1,72 @@
+@page "/message-box"
+@using ElementPlus
+@inject ElementPlus.MessageBox MessageBox
+
+<h1 class="demo-page-title">ElMessageBox 弹框（对齐 Element Plus MessageBox）</h1>
+<p class="demo-page-sub">
+    模态交互式询问框：Alert（提示）、Confirm（确认/取消）、Prompt（输入）。基于 DialogService 实现，返回结果可在代码中 await。
+</p>
+
+<div class="demo-section">
+    <h3>Alert / Confirm / Prompt</h3>
+    <div class="demo-row demo-row-wrap">
+        <ElButton OnClick="DoAlert">Alert</ElButton>
+        <ElButton OnClick="DoConfirm">Confirm</ElButton>
+        <ElButton OnClick="DoPrompt">Prompt</ElButton>
+    </div>
+    <p class="demo-note">结果：@result</p>
+</div>
+
+<div class="demo-section">
+    <h3>自定义标题 / 类型 / 输入校验</h3>
+    <ElButton OnClick="DoTyped">带类型与标题</ElButton>
+    <p class="demo-note">最近输入值：@promptValue</p>
+</div>
+
+@code {
+    private string result = "无";
+    private string promptValue = "无";
+
+    private async Task DoAlert()
+    {
+        await MessageBox.AlertAsync(new MessageBoxOption
+        {
+                Title = "提示",
+            Message = "操作已完成。",
+            Type = MessageBoxType.Success
+        });
+        result = "Alert 已关闭";
+    }
+
+    private async Task DoConfirm()
+    {
+        var r = await MessageBox.ConfirmAsync("确定删除该记录吗？");
+        result = r == MessageBoxResult.Ok ? "用户点击了确定" : "用户点击了取消";
+    }
+
+    private async Task DoPrompt()
+    {
+        var r = await MessageBox.PromptAsync("请输入姓名", "信息收集");
+        if (r.Result == MessageBoxResult.Ok)
+        {
+            promptValue = r.Value ?? "(空)";
+            result = "Prompt 已提交";
+        }
+        else
+        {
+            result = "Prompt 已取消";
+        }
+    }
+
+    private async Task DoTyped()
+    {
+        var r = await MessageBox.ConfirmAsync(new MessageBoxOption
+        {
+            Title = "风险操作",
+            Message = "该操作将影响线上数据。",
+            Type = MessageBoxType.Warning,
+            ConfirmButtonText = "仍然继续"
+        });
+        result = r == MessageBoxResult.Ok ? "继续" : "放弃";
+    }
+}

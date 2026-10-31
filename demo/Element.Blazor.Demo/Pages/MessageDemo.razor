@@ -1,0 +1,47 @@
+@page "/message"
+@using ElementPlus
+@inject ElementPlus.MessageService MessageService
+
+<h1 class="demo-page-title">ElMessage 全局提示（对齐 Element Plus Message）</h1>
+<p class="demo-page-sub">
+    轻量、非阻塞的全局反馈（顶部居中）。支持四种类型、show-close、duration、center、grouping 与 closeAll。
+</p>
+
+<div class="demo-section">
+    <h3>四种类型</h3>
+    <div class="demo-row demo-row-wrap">
+        <ElButton OnClick="@(() => MessageService.Success("保存成功"))">success</ElButton>
+        <ElButton OnClick="@(() => MessageService.Warning("库存偏低"))">warning</ElButton>
+        <ElButton OnClick="@(() => MessageService.Info("这是一条消息"))">info</ElButton>
+        <ElButton Type="ButtonType.Danger" OnClick="@(() => MessageService.Error("校验失败"))">error</ElButton>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>显示关闭按钮 / 居中 / 分组</h3>
+    <div class="demo-row demo-row-wrap">
+        <ElButton OnClick="@(() => MessageService.Show(new MessageInfo { Message = "可手动关闭", ShowClose = true, Duration = 0 }))">show-close</ElButton>
+        <ElButton OnClick="@(() => MessageService.Show(new MessageInfo { Message = "居中消息", Center = true }))">center</ElButton>
+        <ElButton OnClick="@GroupClick">连续 5 条（grouping）</ElButton>
+        <ElButton Type="ButtonType.Danger" OnClick="@(() => MessageService.CloseAll())">close all</ElButton>
+    </div>
+    <p class="demo-note">当前同时最多显示 @MessageService.Max 条，超出自动淘汰最早一条。</p>
+</div>
+
+@code {
+    private int groupCount;
+
+    private void GroupClick()
+    {
+        groupCount++;
+        for (var i = 0; i < 5; i++)
+        {
+            MessageService.Show(new MessageInfo
+            {
+                Message = $"分组消息 #{groupCount}-{i + 1}",
+                Grouping = true,
+                Type = MessageType.Info
+            });
+        }
+    }
+}

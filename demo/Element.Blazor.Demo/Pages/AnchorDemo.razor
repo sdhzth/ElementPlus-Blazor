@@ -1,0 +1,115 @@
+@page "/anchor"
+
+<div class="demo-section">
+    <h3>ElAnchor 锚点（对齐 Element Plus Anchor）</h3>
+    <p class="demo-page-sub">
+        官方属性：<code>type</code>（default / underline）、<code>container</code>、<code>offset</code>、
+        <code>bound</code>、<code>duration</code>、<code>marker</code>、<code>direction</code>、
+        <code>select-scroll-top</code>（2.10.5）；官方事件 <code>change</code> / <code>click</code>；
+        官方 <code>cursor</code> 插槽（2.10.5）。
+        本库扩展：<code>ModelValue</code> 双向绑定、<code>ScrollToAsync</code>、<code>ActiveHref</code>、
+        ElAnchorLink 的 <code>Target</code> 与单条 <code>Offset</code>。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>基础竖向锚点（marker 竖线 + 平滑滚动）</h3>
+    <div class="demo-row" style="align-items:flex-start; gap:16px;">
+        <div style="min-width:150px;">
+            <ElAnchor @ref="anchorRef"
+                      @bind-ModelValue="activeHref"
+                      Offset="60"
+                      Bound="15"
+                      Duration="300"
+                      Marker="true"
+                      Container=".anchor-scroll-box"
+                      OnChange="@(h => changeLog = h)">
+                <ElAnchorLink Href="#sec-a" Title="章节 A" />
+                <ElAnchorLink Href="#sec-b" Title="章节 B" Offset="0" />
+                <ElAnchorLink Href="#sec-c" Title="章节 C" />
+            </ElAnchor>
+        </div>
+        <div class="anchor-scroll-box" style="flex:1;">
+            <h4 id="sec-a">章节 A</h4>
+            @for (var i = 0; i < 8; i++) { <p class="demo-note">A 段落 @i</p> }
+            <h4 id="sec-b">章节 B</h4>
+            @for (var i = 0; i < 8; i++) { <p class="demo-note">B 段落 @i</p> }
+            <h4 id="sec-c">章节 C</h4>
+            @for (var i = 0; i < 8; i++) { <p class="demo-note">C 段落 @i</p> }
+        </div>
+    </div>
+    <p class="demo-note">当前激活：@(activeHref ?? "(空)")；最近一次 change：@(changeLog ?? "(无)")</p>
+</div>
+
+<div class="demo-section">
+    <h3>下划线型（Type=Underline）+ 横向（Direction=Horizontal）</h3>
+    <ElAnchor Type="AnchorType.Underline" Direction="AnchorDirection.Horizontal" Container=".anchor-scroll-box2">
+        <ElAnchorLink Href="#u-1" Title="模块一" />
+        <ElAnchorLink Href="#u-2" Title="模块二" />
+        <ElAnchorLink Href="#u-3" Title="模块三" />
+    </ElAnchor>
+    <div class="anchor-scroll-box2">
+        <h4 id="u-1">模块一</h4>
+        @for (var i = 0; i < 5; i++) { <p class="demo-note">模块一 内容 @i</p> }
+        <h4 id="u-2">模块二</h4>
+        @for (var i = 0; i < 5; i++) { <p class="demo-note">模块二 内容 @i</p> }
+        <h4 id="u-3">模块三</h4>
+        @for (var i = 0; i < 5; i++) { <p class="demo-note">模块三 内容 @i</p> }
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>select-scroll-top（忽略 offset，目标直接顶到容器顶部）</h3>
+    <div class="demo-row" style="align-items:flex-start; gap:16px;">
+        <div style="min-width:150px;">
+            <ElAnchor @ref="scrollTopRef" Container=".anchor-scroll-box3" Offset="80" SelectScrollTop="true">
+                <ElAnchorLink Href="#s-1" Title="段一" />
+                <ElAnchorLink Href="#s-2" Title="段二" />
+            </ElAnchor>
+        </div>
+        <div class="anchor-scroll-box3" style="flex:1;">
+            <h4 id="s-1">段一</h4>
+            @for (var i = 0; i < 10; i++) { <p class="demo-note">段一 内容 @i</p> }
+            <h4 id="s-2">段二</h4>
+            @for (var i = 0; i < 10; i++) { <p class="demo-note">段二 内容 @i</p> }
+        </div>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>cursor 插槽（自定义游标替换默认 marker）</h3>
+    <p class="demo-note">游标会被写到当前激活那条链接的行内 <code>top</code>（算法同官方 marker 的 updateMarkerStyle）；EP 2.14.0 的 anchor 只有 <code>default</code> 插槽，<code>cursor</code> 是本库扩展。</p>
+    <ElAnchor @ref="cursorRef" Container=".anchor-scroll-box4" Offset="60">
+        <CursorTemplate>
+            <span class="el-anchor__cursor" style="top:0; height:18px; background:#f56c6c;"></span>
+        </CursorTemplate>
+        <ChildContent>
+            <ElAnchorLink Href="#c-1" Title="自定义游标一" />
+            <ElAnchorLink Href="#c-2" Title="自定义游标二" />
+        </ChildContent>
+    </ElAnchor>
+    <div class="anchor-scroll-box4">
+        <h4 id="c-1">自定义游标一</h4>
+        @for (var i = 0; i < 6; i++) { <p class="demo-note">内容 @i</p> }
+        <h4 id="c-2">自定义游标二</h4>
+        @for (var i = 0; i < 6; i++) { <p class="demo-note">内容 @i</p> }
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>编程式跳转（ScrollToAsync）</h3>
+    <p class="demo-note">官方 expose 的 <code>scrollTo(href)</code> 会先把该锚点组的激活项设为 href 再滚动，所以要向<strong>拥有这段内容的那个 ElAnchor</strong> 调用：#sec-* 属于第一个（.anchor-scroll-box），#s-* 属于 select-scroll-top 那台，#c-* 属于 cursor 插槽那台。</p>
+    <div class="demo-row" style="gap:8px;">
+        <ElButton OnClick="@(() => anchorRef.ScrollToAsync("#sec-b"))">滚动到 #sec-b</ElButton>
+        <ElButton OnClick="@(() => scrollTopRef.ScrollToAsync("#s-2"))">滚动到 #s-2</ElButton>
+        <ElButton OnClick="@(() => cursorRef.ScrollToAsync("#c-2"))">滚动到 #c-2</ElButton>
+    </div>
+</div>
+
+@code {
+    private string activeHref;
+    private string changeLog;
+    private ElAnchor anchorRef;
+    private ElAnchor scrollTopRef;
+    private ElAnchor cursorRef;
+}

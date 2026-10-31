@@ -1,0 +1,13 @@
+@inherits ElementComponentBase
+@{
+    var wrapperCls = HtmlPropertyBuilder.CreateCssClassBuilder()
+        .Add("el-heatmap-grow")
+        .AddIf(!string.IsNullOrWhiteSpace(Cls), Cls);
+    var wrapperStyle = HtmlPropertyBuilder.CreateCssStyleBuilder()
+        .AddIf(Width > 0, $"width:{Width}px")
+        .AddIf(Height > 0, $"height:{Height}px")
+        .Add(Style);
+}
+<div class="@wrapperCls.ToString()" style="@wrapperStyle.ToString()" @attributes="Attributes">
+    @((MarkupString)InnerMarkup)
+</div>

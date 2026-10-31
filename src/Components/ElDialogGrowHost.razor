@@ -1,0 +1,76 @@
+@implements IDisposable
+@inject ElDialogGrowService Service
+
+@* 服务化对话框宿主：对齐 Radzen 的 RadzenDialog（订阅 ElDialogGrowService 事件后统一渲染）。
+   每个请求渲染成一个 ElDialogGrowHostItem → ElDialogGrow（Element 自渲染），
+   弹层内容组件通过级联 ElDialogGrowRef 调 CloseAsync(result) 回传结果。 *@
+@foreach (var request in requests)
+{
+    <ElDialogGrowHostItem @key="request" Request="request" OnClosed="HandleClosed" />
+}
+
+@code {
+    private List<ElDialogGrowRequest> requests = new();
+
+    protected override void OnInitialized()
+    {
+        Service.OnOpen += OnOpen;
+        Service.OnClose += OnClose;
+        Service.OnRefresh += OnRefresh;
+    }
+
+    private void OnOpen(ElDialogGrowRequest request)
+    {
+        InvokeAsync(() =>
+        {
+            // 选项变化 → 重渲染（对应 Radzen「动态更新对话框属性」示例）。
+            request.Option.Changed += OnOptionChanged;
+            requests.Add(request);
+            StateHasChanged();
+        });
+    }
+
+    private void OnOptionChanged(ElDialogGrowOptions options)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnClose(object result)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnRefresh()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    /// <summary>
+    /// 某个对话框关闭：先从渲染列表摘除，再让服务完成对应Task 的返回值。
+    /// 顺序很重要 —— 先摘除才能在 <c>Task</c> 完成后的续体里立即看到对话框已消失。
+    /// </summary>
+    private void HandleClosed(ElDialogGrowClosedEventArgs args)
+    {
+        if (args?.Request == null)
+        {
+            return;
+        }
+
+        args.Request.Option.Changed -= OnOptionChanged;
+        requests.Remove(args.Request);
+        Service.CompleteDialog(args.Request, args.Result);
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Service.OnOpen -= OnOpen;
+        Service.OnClose -= OnClose;
+        Service.OnRefresh -= OnRefresh;
+        foreach (var request in requests)
+        {
+            request.Option.Changed -= OnOptionChanged;
+        }
+        requests.Clear();
+    }
+}

@@ -1,0 +1,16 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace ElementPlus
+{
+    public class WidthAttribute : Attribute
+    {
+        public float Width { get; }
+        public WidthAttribute(float width)
+        {
+            Width = width;
+        }
+    }
+}

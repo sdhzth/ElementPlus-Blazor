@@ -1,0 +1,271 @@
+@inherits ElementComponentBase
+@{
+    var wrapperCls = BuildWrapperCssClass();
+    var wrapperStyle = BuildWrapperStyle();
+    var bodyStyle = BuildBodyStyle();
+    var toolbarCls = BuildToolbarCssClass();
+    var isSource = CurrentMode == ElHtmlEditorGrowMode.Source;
+}
+<div class="@wrapperCls" style="@wrapperStyle" id="@EditorId" @attributes="Attributes">
+    @if (ShowToolbar)
+    {
+        <div class="@toolbarCls" role="toolbar" aria-label="富文本工具栏">
+            @if (ChildContent != null)
+            {
+                @ChildContent
+            }
+            else if (EnableDefaultToolbar)
+            {
+                foreach (var tool in VisibleTools)
+                {
+                    @if (tool.Kind == ElHtmlEditorGrowToolKind.Separator)
+                    {
+                        <span class="el-html-editor-grow__separator" role="separator" aria-orientation="vertical"></span>
+                    }
+                    else if (tool.Kind == ElHtmlEditorGrowToolKind.Button || tool.Kind == ElHtmlEditorGrowToolKind.TableCommand)
+                    {
+                        <button type="button"
+                                class="@BuildToolCssClass(tool)"
+                                title="@tool.Title"
+                                aria-label="@tool.Title"
+                                aria-pressed="@(IsToolActive(tool) ? "true" : "false")"
+                                disabled="@(!IsToolEnabled(tool))"
+                                @onmousedown:preventDefault="true"
+                                @onclick="() => OnToolClickAsync(tool)">
+                            @((MarkupString)ElHtmlEditorGrowIcons.Get(tool.Icon))
+                        </button>
+                    }
+                    else if (tool.Kind == ElHtmlEditorGrowToolKind.Color)
+                    {
+                        <button type="button"
+                                class="@BuildToolCssClass(tool)"
+                                title="@tool.Title"
+                                aria-label="@tool.Title"
+                                disabled="@(!IsToolEnabled(tool))"
+                                @onmousedown:preventDefault="true"
+                                @onclick="() => OnToolClickAsync(tool)">
+                            @((MarkupString)ElHtmlEditorGrowIcons.Get(tool.Icon))
+                            <span class="el-html-editor-grow__color-bar" style="@("background:" + GetColorValue(tool))"></span>
+                        </button>
+                    }
+                    else if (tool.Kind == ElHtmlEditorGrowToolKind.Select)
+                    {
+                        <select class="el-html-editor-grow__select"
+                                style="@("width:" + tool.Width)"
+                                title="@tool.Title"
+                                aria-label="@tool.Title"
+                                disabled="@(!IsToolEnabled(tool))"
+                                @key="@(tool.Name + "|select")"
+                                value="@GetSelectValue(tool)"
+                                @onchange="e => OnSelectChangedAsync(tool, e)">
+                            <option value="">@tool.Title</option>
+                            @foreach (var option in tool.Options)
+                            {
+                                <option value="@option.Value" style="@option.Style">@option.Text</option>
+                            }
+                        </select>
+                    }
+                }
+            }
+        </div>
+    }
+
+    <div class="el-html-editor-grow__body" style="@bodyStyle">
+        <div class="el-html-editor-grow__content"
+             @ref="contentEditable"
+             role="textbox"
+             aria-multiline="true"
+             aria-label="@Placeholder"
+             spellcheck="false"
+             data-placeholder="@Placeholder"
+             contenteditable="@(CanEdit ? "true" : "false")"
+             hidden="@isSource"
+             @onkeydown="OnKeyDownAsync"></div>
+
+        <textarea class="el-html-editor-grow__source"
+                  spellcheck="false"
+                  aria-label="HTML 源码"
+                  hidden="@(!isSource)"
+                  readonly="@(!CanEdit)"
+                  value="@sourceText"
+                  @oninput="OnSourceInputAsync"
+                  @onblur="OnSourceBlurAsync"></textarea>
+    </div>
+
+    <input type="file" class="el-html-editor-grow__file" @ref="fileInput" accept="@Accept" tabindex="-1" aria-hidden="true" />
+
+    @if (ActivePanel == "link")
+    {
+        <div class="el-html-editor-grow__panel" role="dialog" aria-label="插入链接">
+            <div class="el-html-editor-grow__panel-title">插入链接</div>
+            <label class="el-html-editor-grow__field">
+                <span class="el-html-editor-grow__label">链接地址</span>
+                <input type="text" class="el-html-editor-grow__input" placeholder="https://" value="@LinkUrl" @oninput="e => LinkUrl = e.Value as string" />
+            </label>
+            <label class="el-html-editor-grow__field">
+                <span class="el-html-editor-grow__label">显示文本</span>
+                <input type="text" class="el-html-editor-grow__input" placeholder="留空则显示地址" value="@LinkText" @oninput="e => LinkText = e.Value as string" />
+            </label>
+            <label class="el-html-editor-grow__field el-html-editor-grow__field--inline">
+                <input type="checkbox" checked="@LinkNewWindow" @onchange="e => LinkNewWindow = (bool)e.Value" />
+                <span class="el-html-editor-grow__label">在新窗口打开</span>
+            </label>
+            <div class="el-html-editor-grow__panel-actions">
+                <button type="button" class="el-html-editor-grow__panel-btn" @onclick="ClosePanelAsync">取消</button>
+                <button type="button" class="el-html-editor-grow__panel-btn el-html-editor-grow__panel-btn--primary" @onclick="SubmitLinkPanelAsync">确定</button>
+            </div>
+        </div>
+    }
+
+    @if (ActivePanel == "image")
+    {
+        <div class="el-html-editor-grow__panel" role="dialog" aria-label="插入图片">
+            <div class="el-html-editor-grow__panel-title">插入图片</div>
+            @if (!string.IsNullOrWhiteSpace(UploadUrl))
+            {
+                <label class="el-html-editor-grow__field el-html-editor-grow__field--inline">
+                    <span class="el-html-editor-grow__label">选择文件上传</span>
+                    <button type="button" class="el-html-editor-grow__upload" @onmousedown:preventDefault="true" @onclick="PickFileAsync">浏览</button>
+                </label>
+            }
+            <label class="el-html-editor-grow__field">
+                <span class="el-html-editor-grow__label">图片地址</span>
+                <input type="text" class="el-html-editor-grow__input" placeholder="https://" value="@ImageUrl" @oninput="e => ImageUrl = e.Value as string" />
+            </label>
+            <label class="el-html-editor-grow__field">
+                <span class="el-html-editor-grow__label">替代文本</span>
+                <input type="text" class="el-html-editor-grow__input" value="@ImageAlt" @oninput="e => ImageAlt = e.Value as string" />
+            </label>
+            <label class="el-html-editor-grow__field el-html-editor-grow__field--half">
+                <span class="el-html-editor-grow__label">宽度</span>
+                <input type="text" class="el-html-editor-grow__input" placeholder="auto" value="@ImageWidth" @oninput="e => ImageWidth = e.Value as string" />
+            </label>
+            <label class="el-html-editor-grow__field el-html-editor-grow__field--half">
+                <span class="el-html-editor-grow__label">高度</span>
+                <input type="text" class="el-html-editor-grow__input" placeholder="auto" value="@ImageHeight" @oninput="e => ImageHeight = e.Value as string" />
+            </label>
+            <div class="el-html-editor-grow__panel-actions">
+                <button type="button" class="el-html-editor-grow__panel-btn" @onclick="ClosePanelAsync">取消</button>
+                <button type="button" class="el-html-editor-grow__panel-btn el-html-editor-grow__panel-btn--primary" @onclick="SubmitImagePanelAsync">确定</button>
+            </div>
+        </div>
+    }
+
+    @if (ActivePanel == "table")
+    {
+        <div class="el-html-editor-grow__panel el-html-editor-grow__panel--wide" role="dialog" aria-label="@(TableUpdating ? "编辑表格" : "插入表格")">
+            <div class="el-html-editor-grow__panel-title">@(TableUpdating ? "编辑表格" : "插入表格")</div>
+            @if (!TableUpdating)
+            {
+                <label class="el-html-editor-grow__field el-html-editor-grow__field--half">
+                    <span class="el-html-editor-grow__label">行数</span>
+                    <input type="number" min="1" max="100" class="el-html-editor-grow__input" @bind="TableDraft.Rows" />
+                </label>
+                <label class="el-html-editor-grow__field el-html-editor-grow__field--half">
+                    <span class="el-html-editor-grow__label">列数</span>
+                    <input type="number" min="1" max="50" class="el-html-editor-grow__input" @bind="TableDraft.Columns" />
+                </label>
+                <label class="el-html-editor-grow__field el-html-editor-grow__field--half">
+                    <span class="el-html-editor-grow__label">宽度</span>
+                    <input type="text" class="el-html-editor-grow__input" placeholder="100%" @bind="TableDraft.Width" />
+                </label>
+                <label class="el-html-editor-grow__field el-html-editor-grow__field--half">
+                    <span class="el-html-editor-grow__label">边框(px)</span>
+                    <input type="number" min="0" max="10" class="el-html-editor-grow__input" @bind="TableDraft.Border" />
+                </label>
+                <label class="el-html-editor-grow__field el-html-editor-grow__field--inline">
+                    <input type="checkbox" @bind="TableDraft.HeaderRow" />
+                    <span class="el-html-editor-grow__label">包含表头行</span>
+                </label>
+            }
+            else
+            {
+                <div class="el-html-editor-grow__panel-subtitle">当前单元格</div>
+                <label class="el-html-editor-grow__field el-html-editor-grow__field--half">
+                    <span class="el-html-editor-grow__label">背景色</span>
+                    <input type="color" class="el-html-editor-grow__input" value="@(TableDraft.CellBackground ?? "#ffffff")" @oninput="e => TableDraft.CellBackground = e.Value as string" />
+                </label>
+                <label class="el-html-editor-grow__field el-html-editor-grow__field--half">
+                    <span class="el-html-editor-grow__label">内边距</span>
+                    <input type="text" class="el-html-editor-grow__input" placeholder="4px 8px" value="@TableDraft.CellPadding" @oninput="e => TableDraft.CellPadding = e.Value as string" />
+                </label>
+                <label class="el-html-editor-grow__field el-html-editor-grow__field--half">
+                    <span class="el-html-editor-grow__label">水平对齐</span>
+                    <select class="el-html-editor-grow__input" value="@TableDraft.CellTextAlign" @onchange="e => TableDraft.CellTextAlign = e.Value as string">
+                        <option value="">默认</option>
+                        <option value="left">左对齐</option>
+                        <option value="center">居中</option>
+                        <option value="right">右对齐</option>
+                        <option value="justify">两端对齐</option>
+                    </select>
+                </label>
+                <label class="el-html-editor-grow__field el-html-editor-grow__field--half">
+                    <span class="el-html-editor-grow__label">垂直对齐</span>
+                    <select class="el-html-editor-grow__input" value="@TableDraft.CellVerticalAlign" @onchange="e => TableDraft.CellVerticalAlign = e.Value as string">
+                        <option value="">默认</option>
+                        <option value="top">顶部</option>
+                        <option value="middle">居中</option>
+                        <option value="bottom">底部</option>
+                    </select>
+                </label>
+                <label class="el-html-editor-grow__field el-html-editor-grow__field--half">
+                    <span class="el-html-editor-grow__label">边框样式</span>
+                    <select class="el-html-editor-grow__input" value="@TableDraft.BorderStyle" @onchange="e => TableDraft.BorderStyle = e.Value as string">
+                        <option value="">默认</option>
+                        <option value="solid">实线</option>
+                        <option value="dashed">虚线</option>
+                        <option value="dotted">点线</option>
+                        <option value="double">双线</option>
+                        <option value="none">无边框</option>
+                    </select>
+                </label>
+                <label class="el-html-editor-grow__field el-html-editor-grow__field--half">
+                    <span class="el-html-editor-grow__label">边框宽度(px)</span>
+                    <input type="number" min="0" max="20" class="el-html-editor-grow__input" @bind="TableDraft.BorderWidthPx" />
+                </label>
+                <label class="el-html-editor-grow__field el-html-editor-grow__field--half">
+                    <span class="el-html-editor-grow__label">边框颜色</span>
+                    <input type="color" class="el-html-editor-grow__input" value="@(TableDraft.BorderColor ?? "#dcdfe6")" @oninput="e => TableDraft.BorderColor = e.Value as string" />
+                </label>
+                <label class="el-html-editor-grow__field el-html-editor-grow__field--half">
+                    <span class="el-html-editor-grow__label">列宽</span>
+                    <input type="text" class="el-html-editor-grow__input" placeholder="auto" value="@TableDraft.ColumnWidth" @oninput="e => TableDraft.ColumnWidth = e.Value as string" />
+                </label>
+            }
+            <div class="el-html-editor-grow__panel-actions">
+                <button type="button" class="el-html-editor-grow__panel-btn" @onclick="ClosePanelAsync">取消</button>
+                <button type="button" class="el-html-editor-grow__panel-btn el-html-editor-grow__panel-btn--primary" @onclick="SubmitTablePanelAsync">
+                    @(TableUpdating ? "更新" : "插入")
+                </button>
+            </div>
+        </div>
+    }
+
+    @if (ActivePanel != null && ActivePanel.StartsWith("color:", StringComparison.Ordinal))
+    {
+        var panelName = ActivePanel.Substring("color:".Length);
+        var colorTool = ElHtmlEditorGrowToolbar.Find(panelName);
+        <div class="el-html-editor-grow__panel el-html-editor-grow__panel--colors" role="dialog" aria-label="选择颜色">
+            <div class="el-html-editor-grow__panel-title">@(colorTool?.Title ?? "颜色")</div>
+            <div class="el-html-editor-grow__swatches">
+                @foreach (var color in Palette)
+                {
+                    <button type="button"
+                            class="el-html-editor-grow__swatch"
+                            style="@("background:" + color)"
+                            title="@color"
+                            aria-label="@color"
+                            @onclick="() => ApplyColorAsync(panelName, color)"></button>
+                }
+            </div>
+            <div class="el-html-editor-grow__panel-actions">
+                <label class="el-html-editor-grow__field el-html-editor-grow__field--inline">
+                    <span class="el-html-editor-grow__label">自定义</span>
+                    <input type="color" class="el-html-editor-grow__input" value="@GetColorValue(colorTool)" @oninput="e => CustomColor = e.Value as string" />
+                </label>
+                <button type="button" class="el-html-editor-grow__panel-btn" @onclick="ClosePanelAsync">取消</button>
+                <button type="button" class="el-html-editor-grow__panel-btn el-html-editor-grow__panel-btn--primary" @onclick="() => ApplyColorAsync(panelName, CustomColor)">确定</button>
+            </div>
+        </div>
+    }
+</div>

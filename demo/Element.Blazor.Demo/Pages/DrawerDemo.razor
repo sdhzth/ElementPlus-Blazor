@@ -1,0 +1,179 @@
+@page "/drawer"
+@using ElementPlus
+@inject ElementPlus.MessageBox MessageBox
+
+<h1 class="demo-page-title">ElDrawer 抽屉（对齐 Element Plus Drawer）</h1>
+<p class="demo-page-sub">
+    从屏幕边缘滑出的浮层面板。对齐官方 API：四个方向（rtl/ltr/ttb/btt）、size、with-header、modal、before-close、resizable、open-delay 等，并保留懒渲染与焦点管理扩展。
+</p>
+
+<div class="demo-section">
+    <h3>四个方向</h3>
+    <div class="demo-row demo-row-wrap">
+        <ElButton OnClick="() => OpenWith(DrawerDirection.Rtl)">右侧 rtl</ElButton>
+        <ElButton OnClick="() => OpenWith(DrawerDirection.Ltr)">左侧 ltr</ElButton>
+        <ElButton OnClick="() => OpenWith(DrawerDirection.Ttb)">顶部 ttb</ElButton>
+        <ElButton OnClick="() => OpenWith(DrawerDirection.Btt)">底部 btt</ElButton>
+    </div>
+    <ElDrawer @bind-ModelValue="Open" Title="抽屉标题" Direction="Dir" Size="30%">
+        <ChildContent>
+            <p>抽屉方向：@Dir</p>
+            <p>这是抽屉内的内容区，可放置表单、列表等。</p>
+        </ChildContent>
+    </ElDrawer>
+</div>
+
+<div class="demo-section">
+    <h3>可拖拽调整大小（resizable）+ 打开延时</h3>
+    <ElButton OnClick="() => OpenResize = true">可拖拽抽屉</ElButton>
+    <ElDrawer @bind-ModelValue="OpenResize" Title="可拖拽改变宽度" Direction="DrawerDirection.Rtl"
+              Size="30%" Resizable="true" OpenDelay="300">
+        <ChildContent>
+            <p>拖动右边缘可调整抽屉宽度（resizable）。</p>
+            <p>打开延时 300ms 后显示（open-delay）。</p>
+        </ChildContent>
+    </ElDrawer>
+</div>
+
+<div class="demo-section">
+    <h3>before-close 校验 + 无遮罩点击穿透</h3>
+    <div class="demo-row demo-row-wrap">
+        <ElButton OnClick="() => OpenBefore = true">带 before-close</ElButton>
+        <ElButton OnClick="() => OpenNoModal = true">无遮罩</ElButton>
+    </div>
+    <ElDrawer @bind-ModelValue="OpenBefore" Title="确认关闭" Direction="DrawerDirection.Rtl" Size="30%"
+              BeforeClose="BeforeClose">
+        <ChildContent><p>关闭前会弹确认（before-close 校验）。</p></ChildContent>
+    </ElDrawer>
+    <ElDrawer @bind-ModelValue="OpenNoModal" Title="无遮罩抽屉" Direction="DrawerDirection.Rtl" Size="30%"
+              Modal="false">
+        <ChildContent><p>Modal=false 时点击外部不会关闭，遮罩不拦截事件。</p></ChildContent>
+    </ElDrawer>
+</div>
+
+<div class="demo-section">
+    <h3>是否显示右上角关闭按钮（ShowClose）</h3>
+    <div class="demo-row demo-row-wrap">
+        <ElButton OnClick="() => OpenNoClose = true">ShowClose=false（无 ×）</ElButton>
+        <ElButton OnClick="() => OpenWithClose = true">ShowClose=true（默认有 ×）</ElButton>
+    </div>
+    <ElDrawer @bind-ModelValue="OpenNoClose" Title="没有右上角 ×" Direction="DrawerDirection.Rtl" Size="30%"
+              ShowClose="false" CloseOnPressEscape="false" CloseOnClickModal="false">
+        <ChildContent>
+            <p>本抽屉 <code>ShowClose=false</code>：右上角不渲染 × 按钮。</p>
+            <p>同时关掉了 Esc 关闭与遮罩点击关闭，只能用下方按钮关闭。</p>
+            <ElButton Type="ButtonType.Primary" OnClick="() => OpenNoClose = false">点我关闭</ElButton>
+        </ChildContent>
+    </ElDrawer>
+    <ElDrawer @bind-ModelValue="OpenWithClose" Title="有右上角 ×" Direction="DrawerDirection.Rtl" Size="30%">
+        <ChildContent><p><code>ShowClose</code> 默认为 true，右上角会渲染 × 按钮。</p></ChildContent>
+    </ElDrawer>
+    <p class="demo-note"><code>ShowClose="false"</code> 控制右上角 × 是否显示；想连头部一起去掉用 <code>WithHeader="false"</code>。</p>
+</div>
+
+<div class="demo-section">
+    <h3>点击遮罩层是否关闭（CloseOnClickModal）</h3>
+    <div class="demo-row demo-row-wrap">
+        <ElButton OnClick="() => OpenModalClose = true">遮罩点击可关闭（默认）</ElButton>
+        <ElButton OnClick="() => OpenModalKeep = true">遮罩点击不关闭</ElButton>
+    </div>
+    <ElDrawer @bind-ModelValue="OpenModalClose" Title="点遮罩即关闭" Direction="DrawerDirection.Rtl" Size="30%">
+        <ChildContent><p><code>CloseOnClickModal</code> 默认 true：点遮罩 / 抽屉外侧空白即关闭。</p></ChildContent>
+    </ElDrawer>
+    <ElDrawer @bind-ModelValue="OpenModalKeep" Title="点遮罩不关闭" Direction="DrawerDirection.Rtl" Size="30%"
+              CloseOnClickModal="false">
+        <ChildContent>
+            <p><code>CloseOnClickModal="false"</code>：点遮罩不会关闭（表单填写中途防误触常用）。</p>
+            <p>仍可用右上角 × 或 Esc 关闭。</p>
+        </ChildContent>
+    </ElDrawer>
+    <p class="demo-note">另有 <code>CloseOnPressEscape</code>（Esc 关闭，默认 true）与 <code>BeforeClose</code>（关闭前校验，返回 false 可拦下）。</p>
+</div>
+
+<div class="demo-section">
+    <h3>动态设置 title</h3>
+    <div class="demo-row demo-row-wrap">
+        <ElButton OnClick="() => OpenTitle = true">打开抽屉</ElButton>
+        <ElButton OnClick="RenameFromOutside">改标题（外部改 Title 参数）</ElButton>
+    </div>
+    <ElDrawer @bind-ModelValue="OpenTitle" Title="@DrawerTitle" Direction="DrawerDirection.Rtl" Size="30%">
+        <ChildContent><p>当前标题：<code>@DrawerTitle</code>（抽屉开着时点上面第二个按钮也能改）。</p></ChildContent>
+    </ElDrawer>
+    <p class="demo-note">改 <code>Title</code> 参数即动态改标题；抽屉内部改标题见下一节（级联 <code>ElDrawerRef</code>）。</p>
+</div>
+
+<div class="demo-section">
+    <h3>抽屉里放表单，由表单改当前抽屉标题</h3>
+    <div class="demo-row demo-row-wrap">
+        <ElButton Type="ButtonType.Primary" OnClick="OpenEmployeeDrawer">打开员工表单抽屉</ElButton>
+    </div>
+    <ElDrawer @bind-ModelValue="OpenEmployee" Title="编辑员工信息" Direction="DrawerDirection.Rtl" Size="420px">
+        <ChildContent>
+            @* ChildContent 里渲染独立组件：它拿不到抽屉实例，靠级联 ElDrawerRef 反向操作抽屉。 *@
+            <EmployeeFormDrawer Model="Employee" OnSubmitted="OnEmployeeSubmitted" />
+        </ChildContent>
+    </ElDrawer>
+    @if (Submitted != null)
+    {
+        <p class="demo-note">
+            上次提交：@Submitted.Name / @Submitted.Age 岁 / @Submitted.Department / @(Submitted.OnDuty ? "在职" : "离职")
+        </p>
+    }
+    <p class="demo-note">
+        表单组件里声明 <code>[CascadingParameter] ElDrawerRef Drawer</code>，即可
+        <code>Drawer.Title = "..."</code> 动态改本抽屉标题、<code>await Drawer.CloseAsync()</code> 关闭本抽屉。
+        抽屉每次重新打开会把标题重置回 <code>Title</code> 参数值。
+    </p>
+</div>
+
+@code {
+    private bool Open;
+    private DrawerDirection Dir = DrawerDirection.Rtl;
+    private bool OpenResize;
+    private bool OpenBefore;
+    private bool OpenNoModal;
+
+    private bool OpenNoClose;
+    private bool OpenWithClose;
+    private bool OpenModalClose;
+    private bool OpenModalKeep;
+
+    private bool OpenTitle;
+    private string DrawerTitle = "初始标题";
+    private int outsideRenameCount;
+
+    private bool OpenEmployee;
+    private EmployeeModel Employee = new EmployeeModel { Name = "张三", Age = 32, Department = "门诊部", OnDuty = true };
+    private EmployeeModel Submitted;
+
+    /// <summary>抽屉打开状态下，从外部改 Title 参数（最朴素的动态改标题方式）。</summary>
+    private void RenameFromOutside()
+    {
+        outsideRenameCount++;
+        DrawerTitle = $"外部改的标题 #{outsideRenameCount}";
+    }
+
+    private void OpenEmployeeDrawer()
+    {
+        Employee = new EmployeeModel { Name = "张三", Age = 32, Department = "门诊部", OnDuty = true };
+        OpenEmployee = true;
+    }
+
+    private void OnEmployeeSubmitted(EmployeeModel model)
+    {
+        Submitted = model;
+    }
+
+    /// <summary>按指定方向打开抽屉（此前只改 Dir 不开抽屉，四个按键看着「没效果」）。</summary>
+    private void OpenWith(DrawerDirection dir)
+    {
+        Dir = dir;
+        Open = true;
+    }
+
+    private async Task<bool> BeforeClose()
+    {
+        var ok = await MessageBox.ConfirmAsync("确定关闭抽屉？");
+        return ok == MessageBoxResult.Ok;
+    }
+}

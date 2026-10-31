@@ -1,0 +1,438 @@
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace ElementPlus
+{
+    public partial class ElInputOtp : ElementFieldComponentBase<string>
+    {
+        private ElementReference[] inputElements = Array.Empty<ElementReference>();
+        private HtmlPropertyBuilder wrapperClsBuilder;
+        private bool effectiveDisabled;
+        private string internalValue = string.Empty;
+
+        [Parameter]
+        public string Value { get; set; }
+
+        [Parameter]
+        public string ModelValue
+        {
+            get => Value;
+            set => Value = value;
+        }
+
+        [Parameter]
+        public EventCallback<string> ValueChanged { get; set; }
+
+        [Parameter]
+        public EventCallback<string> ModelValueChanged { get; set; }
+
+        [Parameter]
+        public int Length { get; set; } = 6;
+
+        [Parameter]
+        public bool Disabled { get; set; }
+
+        [Parameter]
+        public bool IsDisabled
+        {
+            get => Disabled;
+            set => Disabled = value;
+        }
+
+        [Parameter]
+        public bool Readonly { get; set; }
+
+        [Parameter]
+        public string Inputmode { get; set; } = "numeric";
+
+        /// <summary>默认掩码字符。配置驱动场景（ControlConfigs）里 Mask 为 true 但未指定字符时使用。</summary>
+        public const string DefaultMask = "•";
+
+        /// <summary>mask 字符（默认 "•"）；传 "" 则不遮蔽；传 null 则显示明文</summary>
+        [Parameter]
+        public string Mask { get; set; } = DefaultMask;
+
+        /// <summary>是否显示密码（覆盖 mask）</summary>
+        [Parameter]
+        public bool ShowPassword { get; set; }
+
+        /// <summary>尺寸</summary>
+        [Parameter]
+        public InputSize Size { get; set; } = InputSize.Normal;
+
+        /// <summary>格子间的分隔符</summary>
+        [Parameter]
+        public string Separator { get; set; } = "";
+
+        /// <summary>每个格子的自定义样式</summary>
+        [Parameter]
+        public string InputStyle { get; set; }
+
+        /// <summary>原生 tabindex</summary>
+        [Parameter]
+        public int Tabindex { get; set; } = 0;
+
+        /// <summary>aria-label</summary>
+        [Parameter]
+        public string AriaLabel { get; set; }
+
+        /// <summary>aria-describedby</summary>
+        [Parameter]
+        public string AriaDescribedby { get; set; }
+
+        [Parameter]
+        public bool ValidateEvent { get; set; } = true;
+
+        [Parameter]
+        public EventCallback<string> OnInput { get; set; }
+
+        [Parameter]
+        public EventCallback<string> OnChange { get; set; }
+
+        [Parameter]
+        public EventCallback OnFocus { get; set; }
+
+        [Parameter]
+        public EventCallback OnBlur { get; set; }
+
+        protected override void OnParametersSet()
+        {
+            base.OnParametersSet();
+            effectiveDisabled = Disabled || (FormItem?.Form?.Disabled ?? false);
+            Length = Math.Max(1, Length);
+            if (inputElements.Length != Length)
+            {
+                inputElements = new ElementReference[Length];
+            }
+
+            var sizeVal = Size switch
+            {
+                InputSize.Large => "large",
+                InputSize.Small => "small",
+                _ => null
+            };
+            wrapperClsBuilder = HtmlPropertyBuilder.CreateCssClassBuilder()
+                .Add("el-input-otp", Cls)
+                .AddIf(effectiveDisabled, "is-disabled")
+                .AddIf(Readonly, "is-readonly")
+                .AddIf(sizeVal != null, $"el-input-otp--{sizeVal}");
+
+            if (FormItem != null && !FormItem.OriginValueHasRendered)
+            {
+                FormItem.OriginValueHasRendered = true;
+                if (FormItem.Form?.Values.Any() ?? false)
+                {
+                    Value = Convert.ToString(FormItem.OriginValue);
+                }
+                SetFieldValue(Value, false);
+            }
+
+            internalValue = Normalize(Value);
+        }
+
+        protected override void FormItem_OnReset(object value, bool requireRerender)
+        {
+            Value = Convert.ToString(value);
+            internalValue = Normalize(Value);
+            if (ValueChanged.HasDelegate)
+            {
+                _ = ValueChanged.InvokeAsync(Value);
+            }
+            if (ModelValueChanged.HasDelegate)
+            {
+                _ = ModelValueChanged.InvokeAsync(Value);
+            }
+            else
+            {
+                StateHasChanged();
+            }
+        }
+
+        private async Task OnCellInputAsync(int index, ChangeEventArgs e)
+        {
+            if (effectiveDisabled || Readonly)
+            {
+                return;
+            }
+
+            var text = Convert.ToString(e.Value) ?? string.Empty;
+            if (text.Length > 1)
+            {
+                await ApplyTextAsync(index, text);
+                return;
+            }
+
+            var chars = EnsureCells();
+            chars[index] = text.FirstOrDefault();
+            var nextValue = new string(chars).TrimEnd('\0');
+            var shouldNotifyChange = IsValueComplete(nextValue);
+            await CommitAsync(nextValue, validate: shouldNotifyChange ? ValidateEvent : false, notifyChange: shouldNotifyChange);
+
+            if (!string.IsNullOrEmpty(text) && index < Length - 1)
+            {
+                await FocusCellAsync(index + 1);
+            }
+        }
+
+        private async Task OnCellKeyDownAsync(int index, KeyboardEventArgs e)
+        {
+            if (effectiveDisabled || Readonly)
+            {
+                return;
+            }
+
+            if (e.Key == "Backspace")
+            {
+                if (e.CtrlKey || e.MetaKey)
+                {
+                    await ClearThroughIndexAsync(index);
+                    return;
+                }
+
+                await HandleBackspaceAsync(index);
+            }
+            else if ((e.Key == "ArrowLeft" || e.Key == "ArrowUp") && (e.CtrlKey || e.MetaKey))
+            {
+                await FocusCellAsync(0);
+            }
+            else if ((e.Key == "ArrowRight" || e.Key == "ArrowDown") && (e.CtrlKey || e.MetaKey))
+            {
+                await FocusCellAsync(LastCellIndex);
+            }
+            else if (e.Key == "ArrowLeft" && index > 0)
+            {
+                await FocusCellAsync(index - 1);
+            }
+            else if (e.Key == "ArrowRight" && index < Length - 1)
+            {
+                await FocusCellAsync(index + 1);
+            }
+            else if (e.Key == "Delete")
+            {
+                if (e.CtrlKey || e.MetaKey)
+                {
+                    await ClearFromIndexAsync(index);
+                    return;
+                }
+
+                await HandleDeleteAsync(index);
+            }
+            else if (e.Key == "Home")
+            {
+                await FocusCellAsync(0);
+            }
+            else if (e.Key == "End")
+            {
+                await FocusCellAsync(LastCellIndex);
+            }
+        }
+
+        private async Task ApplyTextAsync(int index, string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+
+            var chars = EnsureCells();
+            var writeIndex = index;
+            foreach (var value in text.Where(x => !char.IsWhiteSpace(x)))
+            {
+                if (writeIndex >= Length)
+                {
+                    break;
+                }
+                chars[writeIndex++] = value;
+            }
+
+            var nextValue = new string(chars).TrimEnd('\0');
+            var shouldNotifyChange = IsValueComplete(nextValue);
+            await CommitAsync(nextValue, validate: shouldNotifyChange ? ValidateEvent : false, notifyChange: shouldNotifyChange);
+            await FocusCellAsync(GetNextFocusIndex(writeIndex));
+        }
+
+        private async Task CommitAsync(string value, bool validate, bool notifyChange)
+        {
+            Value = Normalize(value);
+            internalValue = Value;
+            SetFieldValue(Value, validate);
+            if (ValueChanged.HasDelegate)
+            {
+                await ValueChanged.InvokeAsync(Value);
+            }
+            if (ModelValueChanged.HasDelegate)
+            {
+                await ModelValueChanged.InvokeAsync(Value);
+            }
+            if (OnInput.HasDelegate)
+            {
+                await OnInput.InvokeAsync(Value);
+            }
+            if (notifyChange)
+            {
+                await NotifyChangeAsync();
+            }
+        }
+
+        private async Task NotifyChangeAsync()
+        {
+            if (OnChange.HasDelegate)
+            {
+                await OnChange.InvokeAsync(Value);
+            }
+        }
+
+        private async Task HandleBackspaceAsync(int index)
+        {
+            var chars = EnsureCells();
+            if (chars[index] != '\0')
+            {
+                chars[index] = '\0';
+                await CommitAsync(new string(chars).TrimEnd('\0'), validate: false, notifyChange: false);
+                return;
+            }
+
+            if (index <= 0)
+            {
+                await CommitAsync(string.Empty, validate: false, notifyChange: false);
+                return;
+            }
+
+            chars[index - 1] = '\0';
+            await CommitAsync(new string(chars).TrimEnd('\0'), validate: false, notifyChange: false);
+            await FocusCellAsync(index - 1);
+        }
+
+        private async Task HandleDeleteAsync(int index)
+        {
+            var chars = EnsureCells();
+            if (chars[index] == '\0')
+            {
+                return;
+            }
+
+            chars[index] = '\0';
+            await CommitAsync(new string(chars).TrimEnd('\0'), validate: false, notifyChange: false);
+        }
+
+        private async Task ClearThroughIndexAsync(int index)
+        {
+            var chars = EnsureCells();
+            var end = Math.Clamp(index, 0, Length - 1);
+            for (var i = 0; i <= end; i++)
+            {
+                chars[i] = '\0';
+            }
+
+            await CommitAsync(new string(chars).TrimEnd('\0'), validate: false, notifyChange: false);
+            await FocusCellAsync(0);
+        }
+
+        private async Task ClearFromIndexAsync(int index)
+        {
+            var chars = EnsureCells();
+            var start = Math.Clamp(index, 0, Length - 1);
+            for (var i = start; i < Length; i++)
+            {
+                chars[i] = '\0';
+            }
+
+            await CommitAsync(new string(chars).TrimEnd('\0'), validate: false, notifyChange: false);
+            await FocusCellAsync(start);
+        }
+
+        private async Task FocusCellAsync(int index)
+        {
+            if (index < 0 || index >= inputElements.Length)
+            {
+                return;
+            }
+            await inputElements[index].Dom(JSRuntime).FocusAsync();
+        }
+
+        private string GetCellValue(int index)
+        {
+            if (index < 0 || index >= internalValue.Length)
+            {
+                return string.Empty;
+            }
+            var cell = internalValue[index];
+            if (cell == '\0')
+            {
+                return string.Empty;
+            }
+
+            var value = cell.ToString();
+            if (ShowPassword) return value;
+            if (string.IsNullOrEmpty(Mask) || string.IsNullOrEmpty(value)) return value;
+            return Mask;
+        }
+
+        private string GetCellAriaLabel(int index)
+        {
+            return $"OTP character {index + 1} of {Length}";
+        }
+
+        /// <summary>
+        /// 单个单元格最终使用的 aria-label：未显式指定 <see cref="AriaLabel"/> 时用 Element Plus 的
+        /// "OTP character n of N" 形式；指定了就以 <see cref="AriaLabel"/> 作为前缀。
+        /// （原先直接在 Razor 里拼 $" {AriaLabel} OTP {n}"，AriaLabel 为空时会留下前导空格。）
+        /// </summary>
+        private string CellAriaLabel(int index)
+        {
+            return string.IsNullOrWhiteSpace(AriaLabel) ? GetCellAriaLabel(index) : $"{AriaLabel} OTP {index + 1}";
+        }
+
+        private char[] EnsureCells()
+        {
+            var chars = new char[Length];
+            var value = Normalize(internalValue);
+            for (var i = 0; i < Math.Min(value.Length, Length); i++)
+            {
+                chars[i] = value[i];
+            }
+            return chars;
+        }
+
+        private string Normalize(string value)
+        {
+            return string.IsNullOrEmpty(value)
+                ? string.Empty
+                : new string(value.Where(x => x != '\0').Take(Length).ToArray());
+        }
+
+        private int GetNextFocusIndex(int writeIndex)
+        {
+            if (writeIndex <= 0)
+            {
+                return 0;
+            }
+
+            return Math.Min(writeIndex >= Length ? Length - 1 : writeIndex, Length - 1);
+        }
+
+        private bool IsValueComplete(string value) => !string.IsNullOrEmpty(value) && value.Length >= Length;
+
+        private bool IsInputOtpDisabled => effectiveDisabled;
+
+        private int LastCellIndex => Math.Max(Length - 1, 0);
+
+        /// <summary>聚焦到第一个格子</summary>
+        public async Task FocusAsync() => await FocusCellAsync(0);
+
+        /// <summary>失焦</summary>
+        public Task BlurAsync()
+        {
+            foreach (var el in inputElements)
+            {
+                el.Dom(JSRuntime).BlurAsync();
+            }
+            return Task.CompletedTask;
+        }
+
+        private string AriaInvalid => IsAriaInvalid ? "true" : "false";
+    }
+}

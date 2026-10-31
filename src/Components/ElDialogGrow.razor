@@ -1,0 +1,102 @@
+@inherits ElementComponentBase
+@{
+    var wrapperCls = HtmlPropertyBuilder.CreateCssClassBuilder()
+        .Add("el-overlay-dialog")
+        .Add("el-dialog__wrapper")
+        .Add("el-dialog-grow__wrapper")
+        .AddIf(AlignCenter && ModelValue, "is-align-center")
+        .Add(WrapperClass)
+        .Add(Cls);
+
+    var wrapperStyle = HtmlPropertyBuilder.CreateCssStyleBuilder()
+        .Add($"z-index:{ResolvedZIndex}")
+        .AddIf(!ModelValue, "display:none");
+
+    var dialogCls = HtmlPropertyBuilder.CreateCssClassBuilder()
+        .Add("el-dialog")
+        .Add("el-dialog-grow")
+        // 与下面 height 内联样式同条件：定了高度就要把对话框改成 flex 列，正文才有界可滚——
+        // 只声明 overflow:auto 而不约束高度时，块级布局下正文高度等于内容高度，滚动条永远不出现。
+        .AddIf(!Fullscreen && !string.IsNullOrWhiteSpace(EffectiveHeight), "el-dialog-grow--fixed-height")
+        // 关闭图标的显隐只有这里知道，宿主却要用它决定标题栏动作条让位多少（见 index.css 的 --no-close），
+        // 所以把它输出成修饰类——不用 :has()，本仓 CSS 有浏览器下限守卫禁它。
+        .AddIf(!ShowClose, "el-dialog-grow--no-close")
+        .AddIf(Fullscreen, "is-fullscreen")
+        .AddIf(Draggable, "is-draggable")
+        .AddIf(Resizable, "is-resizable")
+        .AddIf(Center, "el-dialog--center");
+
+    var dialogStyle = HtmlPropertyBuilder.CreateCssStyleBuilder()
+        .AddIf(!string.IsNullOrWhiteSpace(EffectiveWidth) && !Fullscreen, $"width:{EffectiveWidth}")
+        .AddIf(!string.IsNullOrWhiteSpace(EffectiveHeight) && !Fullscreen, $"height:{EffectiveHeight}")
+        .AddIf(!Fullscreen && !AlignCenter && !string.IsNullOrWhiteSpace(Top), $"margin-top:{Top}")
+        .AddIf(Draggable && !string.IsNullOrWhiteSpace(dragTransform), $"transform:{dragTransform}")
+        .Add(Style);
+
+    var modalStyle = HtmlPropertyBuilder.CreateCssStyleBuilder()
+        .Add($"z-index:{ResolvedModalZIndex}")
+        .AddIf(!ModelValue, "display:none");
+
+    var modalCls = "v-modal el-overlay" + (string.IsNullOrWhiteSpace(ModalClass) ? "" : " " + ModalClass);
+
+    var bodyCls = HtmlPropertyBuilder.CreateCssClassBuilder()
+        .Add("el-dialog__body")
+        .Add(ContentClass);
+
+    var resolvedRole = string.IsNullOrWhiteSpace(Role) ? "dialog" : Role;
+    var resolvedAriaLabel = string.IsNullOrWhiteSpace(AriaLabel) ? EffectiveTitle : AriaLabel;
+    var resolvedCloseAriaLabel = string.IsNullOrWhiteSpace(CloseAriaLabel) ? "Close" : CloseAriaLabel;
+}
+@if (ShouldRenderDialog)
+{
+    @if (Modal)
+    {
+        <div class="@modalCls" style="@modalStyle.ToString()" @onclick="CloseOnModalClickAsync"></div>
+    }
+    <div class="@wrapperCls.ToString()" style="@wrapperStyle.ToString()" tabindex="-1" role="presentation"
+         @onclick="CloseOnModalClickAsync" @onkeydown="OnKeyDownAsync" @ref="wrapperElement">
+        @if (ShowContent)
+        {
+            <div class="@dialogCls.ToString()" style="@dialogStyle.ToString()" role="@resolvedRole"
+                 aria-modal="@(Modal ? "true" : null)" aria-label="@resolvedAriaLabel" @onclick:stopPropagation
+                 @ref="dialogElement">
+                @if (ShowTitle)
+                {
+                    <div class="el-dialog__header @(Draggable ? "el-dialog-grow__draggable-header" : "")"
+                         @ref="headerElement">
+                        @if (Header != null)
+                        {
+                            @Header
+                        }
+                        else
+                        {
+                            <span class="el-dialog__title">@EffectiveTitle</span>
+                        }
+                        @if (ShowClose)
+                        {
+                            <button type="button" class="el-dialog__headerbtn" aria-label="@resolvedCloseAriaLabel"
+                                    tabindex="@CloseTabIndex" @onclick="CloseAsync">
+                                <i class="el-dialog__close el-icon-close"></i>
+                            </button>
+                        }
+                    </div>
+                }
+                <div class="@bodyCls.ToString()" style="@(string.IsNullOrWhiteSpace(ContentStyle) ? null : ContentStyle)">
+                    <CascadingValue Value="ActiveDialogRef" IsFixed="true">
+                        @ChildContent
+                    </CascadingValue>
+                </div>
+                @if (Footer != null)
+                {
+                    <div class="el-dialog__footer">
+                        @Footer
+                    </div>
+                }
+                @if (Resizable && !Fullscreen)
+                {
+                    <div class="el-dialog-grow__resizer" @ref="resizerElement"></div>
+                }
+            </div>
+        }
+    </div>
+}

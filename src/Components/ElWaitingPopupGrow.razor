@@ -1,0 +1,43 @@
+@inherits ElementComponentBase
+@using ElementPlus
+@using Microsoft.AspNetCore.Components.Web
+
+@* _painted 而不是 Visible 决定这一块画不画：ShowDelay 计时期间的请求在场上是零节点的
+   （遮罩都不会出现），到点才整块浮出来。ShowDelay=0（默认）时两者同步，行为与本参数加入前一致。 *@
+@if (Visible && _painted)
+{
+    <div class="el-overlay @MaskCls" style="z-index:@ResolvedMaskZIndex" @onclick="OnMaskClickAsync"></div>
+    <div class="el-waiting-popup-grow__wrapper" style="z-index:@ResolvedZIndex">
+        <div class="el-waiting-popup-grow__content @WrapperClass" style="@ContentStyle" @attributes="Attributes">
+            <div class="el-waiting-popup-grow__spinner" style="width:@(SpinnerSize)px;height:@(SpinnerSize)px;">
+                <svg class="ewpg-circular" viewBox="0 0 50 50" style="width:@(SpinnerSize)px;height:@(SpinnerSize)px;">
+                    <circle class="ewpg-path" cx="25" cy="25" r="20" fill="none" />
+                </svg>
+            </div>
+            @if (!string.IsNullOrEmpty(Title))
+            {
+                <div class="el-waiting-popup-grow__title">@Title</div>
+            }
+            @if (!string.IsNullOrEmpty(Message))
+            {
+                <div class="el-waiting-popup-grow__message">@Message</div>
+            }
+            @if (ChildContent != null)
+            {
+                <div class="el-waiting-popup-grow__extra">@ChildContent</div>
+            }
+            @if (ShowCancelButton)
+            {
+                <div class="el-waiting-popup-grow__actions" style="@ActionsStyle">
+                    <ElButton Type="CancelButtonType"
+                              Size="CancelButtonSize"
+                              Plain="CancelButtonPlain"
+                              Round="CancelButtonRound"
+                              Color="@CancelButtonColor"
+                              Dark="CancelButtonDark"
+                              OnClick="OnCancelClickAsync">@CancelText</ElButton>
+                </div>
+            }
+        </div>
+    </div>
+}

@@ -1,0 +1,128 @@
+@page "/watermark"
+@using System.Linq
+
+<h1 class="demo-page-title">ElWatermark 整页水印（MainLayout 示例）</h1>
+<p class="demo-page-sub">
+    演示把水印铺满一个真实的 MainLayout（顶栏 + 侧边导航 + 内容区）。修复了「水印没显示全 / 被裁掉一角」的问题：
+    旋转后水印框会按外接矩形 + gap 补偿，横向双份、纵向错位半格拼贴，任意角度都完整且不漏白。
+</p>
+
+<div class="demo-section">
+    <h3>实时调节（任意角度都不会缺角）</h3>
+    <div class="demo-row demo-row-wrap">
+        <label class="demo-field">
+            <span>文本内容</span>
+            <ElInput TValue="string" @bind-Value="@wmContent" Style="width:200px;" />
+        </label>
+        <label class="demo-field">
+            <span>旋转角度：@wmRotate°</span>
+            <input type="range" min="-90" max="90" step="1" @bind="wmRotate" />
+        </label>
+        <label class="demo-field">
+            <span>间距 X：@wmGapX</span>
+            <input type="range" min="40" max="300" step="10" @bind="wmGapX" />
+        </label>
+        <label class="demo-field">
+            <span>字号：@wmFontSize px</span>
+            <input type="range" min="12" max="40" step="1" @bind="wmFontSize" />
+        </label>
+        <label class="demo-field">
+            <span>颜色</span>
+            <select @bind="wmColor">
+                <option value="rgba(0,0,0,.15)">浅灰</option>
+                <option value="rgba(64,158,255,.18)">浅蓝</option>
+                <option value="rgba(245,108,108,.18)">浅红</option>
+                <option value="rgba(103,194,58,.18)">浅绿</option>
+            </select>
+        </label>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>整页水印（MainLayout 风格布局）</h3>
+    <p class="demo-note">下方是一个完整布局：顶栏 + 左侧导航 + 右侧内容卡片，全部被水印覆盖。把浏览器拉大拉小、或拖动上面的角度滑块，水印始终铺满、不漏白、不缺角。</p>
+
+    <ElWatermark Content="@wmContent"
+                 Rotate="@wmRotate"
+                 Gap="@(new[] { wmGapX, wmGapY })"
+                 ZIndex="6"
+                 Font="@wmFont">
+        <div class="demo-app">
+            <header class="demo-app-header">
+                <strong>某某市人民医院 · 电子病历系统</strong>
+                <span class="demo-app-user">操作员：Kevin Carter（演示）</span>
+            </header>
+            <div class="demo-app-body">
+                <aside class="demo-app-aside">
+                    <div class="demo-app-nav active">门诊医生站</div>
+                    <div class="demo-app-nav">住院病历</div>
+                    <div class="demo-app-nav">检查检验</div>
+                    <div class="demo-app-nav">处方管理</div>
+                    <div class="demo-app-nav">质控统计</div>
+                </aside>
+                <main class="demo-app-main">
+                    <div class="demo-app-cards">
+                        <div class="demo-app-card">
+                            <h4>待诊患者</h4>
+                            <div class="demo-app-num">12</div>
+                            <p>今日已叫号 8 人</p>
+                        </div>
+                        <div class="demo-app-card">
+                            <h4>新开医嘱</h4>
+                            <div class="demo-app-num">34</div>
+                            <p>待审核 5 条</p>
+                        </div>
+                        <div class="demo-app-card">
+                            <h4>危急值</h4>
+                            <div class="demo-app-num danger">2</div>
+                            <p>需在 1 小时内处理</p>
+                        </div>
+                        <div class="demo-app-card">
+                            <h4>病历书写率</h4>
+                            <div class="demo-app-num">96%</div>
+                            <p>较昨日 +3%</p>
+                        </div>
+                    </div>
+                    <div class="demo-app-block">
+                        <h4>患者基本信息（Mock）</h4>
+                        <p>姓名：Kevin Carter　性别：男　年龄：54　科别：心血管内科　床号：12-3</p>
+                        <p>主诉：阵发性胸闷 3 天，活动后加重。初步诊断：冠状动脉粥样硬化性心脏病。</p>
+                    </div>
+                </main>
+            </div>
+            <footer class="demo-app-footer">本页面为演示数据，请勿用于真实诊疗</footer>
+        </div>
+    </ElWatermark>
+</div>
+
+<div class="demo-section">
+    <h3>多行水印（ContentList）与图片水印</h3>
+    <div class="demo-row">
+        <ElWatermark ContentList="@wmLines" Rotate="-20" Gap="@(new[] { 120, 80 })" ZIndex="6">
+            <div class="demo-wm-box">多行文本水印：机构名 + 密级，两行交错铺满。</div>
+        </ElWatermark>
+        <div class="demo-wm-box demo-wm-naked">
+            右侧这块<strong>没有</strong>水印，用于对比。
+        </div>
+    </div>
+    <p class="demo-note">官方 API 对照：Content / ContentList / Image / Font / Gap[ x,y ] / Offset[ x,y ] / Rotate / ZIndex / Width / Height / Protect（防篡改默认开启，删除水印或改样式会自动恢复）。</p>
+</div>
+
+@code {
+    private string wmContent = "某某市人民医院";
+    private double wmRotate = -22;
+    private int wmGapX = 120;
+    private int wmGapY = 100;
+    private int wmFontSize = 16;
+    private string wmColor = "rgba(0,0,0,.15)";
+
+    private List<string> wmLines = new List<string> { "某某市人民医院", "内部资料 严禁外传" };
+
+    private WatermarkFont wmFont => new WatermarkFont
+    {
+        Color = wmColor,
+        FontSize = wmFontSize,
+        FontWeight = "normal",
+        FontGap = 4
+    };
+}

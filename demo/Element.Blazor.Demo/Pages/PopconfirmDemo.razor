@@ -1,0 +1,51 @@
+@page "/popconfirm"
+@using ElementPlus
+
+<h1 class="demo-page-title">ElPopconfirm 气泡确认框（对齐 Element Plus Popconfirm）</h1>
+<p class="demo-page-sub">
+    点击元素时弹出的二次确认气泡。支持标题/正文、确认/取消按钮文案与类型、图标类型、自定义操作区插槽与 confirm/cancel 事件。
+</p>
+
+<div class="demo-section">
+    <h3>基础用法</h3>
+    <div class="demo-row demo-row-wrap">
+        <ElPopconfirm Title="确定删除该条记录吗？" OnConfirm="OnConfirm" OnCancel="OnCancel">
+            <Reference><ElButton Type="ButtonType.Danger">删除</ElButton></Reference>
+        </ElPopconfirm>
+    </div>
+    <p class="demo-note">最近一次操作：@lastAction</p>
+</div>
+
+<div class="demo-section">
+    <h3>自定义按钮文案 / 图标类型</h3>
+    <div class="demo-row demo-row-wrap">
+        <ElPopconfirm Title="是否提交审批？" ConfirmButtonText="提交" CancelButtonText="再想想"
+                      ConfirmButtonType="ButtonType.Success" Type="PopconfirmType.Success">
+            <Reference><ElButton>提交审批</ElButton></Reference>
+        </ElPopconfirm>
+        <ElPopconfirm Title="操作不可恢复" Type="PopconfirmType.Error" IconColor="#f56c6c">
+            <Reference><ElButton Type="ButtonType.Warning">危险操作</ElButton></Reference>
+        </ElPopconfirm>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>自定义操作区插槽（actions）</h3>
+    <ElPopconfirm Title="选择处理方式">
+        <ActionsContent>
+            <div class="demo-row">
+                <ElButton Size="ButtonSize.Small" Type="ButtonType.Primary" OnClick="OnConfirm">归档</ElButton>
+                <ElButton Size="ButtonSize.Small" Type="ButtonType.Info" OnClick="OnCancel">转交</ElButton>
+            </div>
+        </ActionsContent>
+        <Reference><ElButton>更多操作</ElButton></Reference>
+    </ElPopconfirm>
+</div>
+
+@code {
+    private string lastAction = "无";
+
+    private void OnConfirm() => lastAction = "已确认";
+
+    private void OnCancel() => lastAction = "已取消";
+}

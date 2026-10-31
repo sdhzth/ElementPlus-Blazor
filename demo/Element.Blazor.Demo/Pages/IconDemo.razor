@@ -1,0 +1,161 @@
+@page "/icon"
+@using ElementPlus
+@using System.Linq
+@using Microsoft.AspNetCore.Components.Web
+
+<h1 class="demo-page-title">图标 / ElIcon</h1>
+<p class="demo-page-sub">对齐官方：通过 <code>Name</code>（字符串）或 <code>Icon</code>（枚举）选择图标，支持 <code>Size</code> / <code>Color</code> / <code>Spin</code>（加载动画）/ 点击事件。字体里缺失的字形会自动回退到语义最接近的已有字形。</p>
+
+<div class="demo-section">
+    <h3>基础用法（Name）</h3>
+    <div class="demo-row">
+        <ElIcon Name="edit" />
+        <ElIcon Name="delete" />
+        <ElIcon Name="search" />
+        <ElIcon Name="share" />
+        <ElIcon Name="star-on" />
+        <ElIcon Name="time" />
+        <ElIcon Name="user" />
+        <ElIcon Name="setting" />
+        <ElIcon Name="close" />
+        <ElIcon Name="arrow-down" />
+    </div>
+    <p class="demo-note"><code>Name</code> 支持 <code>close</code> / <code>el-icon-close</code> / <code>Close</code> 三种写法，自动归一化为 kebab-case。</p>
+</div>
+
+<div class="demo-section">
+    <h3>尺寸与颜色</h3>
+    <div class="demo-row">
+        <ElIcon Name="edit" Size="12px" />
+        <ElIcon Name="edit" Size="18px" />
+        <ElIcon Name="edit" Size="24px" />
+        <ElIcon Name="edit" Size="32px" Color="#67c23a" />
+        <ElIcon Name="star-on" Color="#e6a23c" Size="24px" />
+        <ElIcon Name="delete" Color="#f56c6c" Size="24px" />
+        <ElIcon Name="user" Color="#409eff" Size="24px" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>加载动画（Spin）</h3>
+    <div class="demo-row">
+        <ElIcon Name="loading" Spin="true" Size="24px" />
+        <ElIcon Name="loading" Spin="true" Size="32px" Color="#409eff" />
+        <ElIcon Name="circle-check" Spin="true" Size="28px" Color="#67c23a" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>点击事件</h3>
+    <div class="demo-row">
+        <ElIcon Name="star-on" Color="#e6a23c" Size="28px" OnClick="OnIconClick" Title="点击我" />
+        <span class="demo-badge">已点击：@iconClickCount 次</span>
+    </div>
+    <p class="demo-note"><code>OnClick</code> 为 <code>EventCallback&lt;MouseEventArgs&gt;</code>；<code>Title</code> 提供悬停提示。</p>
+</div>
+
+<div class="demo-section">
+    <h3>全部图标（按分类，共 @IconCount 枚 / @Catalog.Length 类）</h3>
+    <p class="demo-note">与 <code>Icon</code> 枚举一一对应（源 <code>ElIcon.razor.Icon.cs</code>，<code>None</code> 除外）；
+        下面写的是可传给 <code>Name</code> / 枚举对应的 kebab-case 名。字体缺失的字形经 <code>FontAliases</code> 兜底，
+        页面显示的就是最终渲染效果。</p>
+    @foreach (var group in Catalog)
+    {
+        <h4 class="demo-icon-cat">@group.Category（@group.Icons.Length）</h4>
+        <div class="demo-icon-grid">
+            @foreach (var icon in group.Icons)
+            {
+                var name = Kebab(icon);
+                <div class="demo-icon-cell" title="el-icon-@name">
+                    <ElIcon Icon="@icon" Size="22px" />
+                    <span>@name</span>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private int iconClickCount;
+
+    private void OnIconClick(MouseEventArgs e) => iconClickCount++;
+
+    private static readonly (string Category, Icon[] Icons)[] Catalog =
+    {
+        ("通用", new Icon[] {
+            Icon.PlatformEleme, Icon.User, Icon.UserFilled, Icon.Avatar, Icon.Loading, Icon.Loading2, Icon.InfoFilled,
+            Icon.Info, Icon.SuccessFilled, Icon.Success, Icon.WarningFilled, Icon.Warning, Icon.QuestionFilled,
+            Icon.Question, Icon.CirclePlusOutline, Icon.Close, Icon.CloseBold, Icon.Check, Icon.CheckBold, Icon.Plus,
+            Icon.Minus, Icon.Remove, Icon.CirclePlus, Icon.CircleCheck, Icon.CircleClose, Icon.CircleCloseFilled,
+            Icon.CircleCheckFilled,
+        }),
+        ("编辑", new Icon[] {
+            Icon.Edit, Icon.EditOutline, Icon.EditPen, Icon.DocumentAdd, Icon.DocumentCopy, Icon.DocumentDelete,
+            Icon.DocumentRemove, Icon.Document, Icon.FolderAdd, Icon.FolderDelete, Icon.Folder, Icon.FolderOpened,
+        }),
+        ("数据", new Icon[] {
+            Icon.DataLine, Icon.DataBoard, Icon.DataAnalysis, Icon.Histogram, Icon.PieChart, Icon.TrendCharts,
+            Icon.Odometer,
+        }),
+        ("媒体", new Icon[] {
+            Icon.VideoPlay, Icon.VideoPause, Icon.VideoCamera, Icon.VideoCameraFilled, Icon.SwitchButton, Icon.Picture,
+            Icon.PictureFilled, Icon.Camera, Icon.CameraFilled, Icon.Headset, Icon.Microphone, Icon.MicrophoneFilled,
+            Icon.Bell, Icon.BellFilled,
+        }),
+        ("方向 / 导航", new Icon[] {
+            Icon.ArrowLeft, Icon.ArrowRight, Icon.ArrowUp, Icon.ArrowDown, Icon.DArrowLeft, Icon.DArrowRight,
+            Icon.DArrowUp, Icon.DArrowDown, Icon.Top, Icon.TopLeft, Icon.TopRight, Icon.Bottom, Icon.BottomLeft,
+            Icon.BottomRight, Icon.Back, Icon.Right, Icon.Refresh, Icon.RefreshLeft, Icon.RefreshRight,
+        }),
+        ("操作", new Icon[] {
+            Icon.Search, Icon.Filter, Icon.FilterFilled, Icon.Sort, Icon.Menu, Icon.MenuFold, Icon.MenuUnfold,
+            Icon.Expand, Icon.Fold, Icon.FullScreen, Icon.Aim, Icon.Rank, Icon.Select, Icon.SelectFilled,
+        }),
+        ("安全 / 设置", new Icon[] {
+            Icon.Lock, Icon.Unlock, Icon.Setting, Icon.Tools, Icon.Operation, Icon.Connection, Icon.Link, Icon.Unlink,
+            Icon.Share, Icon.Promotion, Icon.Money, Icon.CreditCard, Icon.Wallet,
+        }),
+        ("删除 / 危险", new Icon[] {
+            Icon.Delete, Icon.DeleteFilled, Icon.DeleteOutline,
+        }),
+        ("时钟 / 日历", new Icon[] {
+            Icon.Clock, Icon.Timer, Icon.Calendar, Icon.CalendarFilled, Icon.Time,
+        }),
+        ("通讯", new Icon[] {
+            Icon.Message, Icon.MessageFilled, Icon.ChatDotRound, Icon.ChatLineRound, Icon.Phone, Icon.Iphone,
+            Icon.MobilePhone, Icon.Postcard, Icon.Location, Icon.LocationFilled, Icon.Place, Icon.LocationInformation,
+        }),
+        ("办公", new Icon[] {
+            Icon.OfficeBuilding, Icon.House, Icon.HouseFilled, Icon.Shop, Icon.ShopFilled, Icon.Goods, Icon.ShoppingCart,
+            Icon.ShoppingCartFull, Icon.ShoppingBag, Icon.School, Icon.Reading, Icon.ReadingActive, Icon.Notebooks,
+            Icon.Notebook, Icon.Tickets, Icon.Trophy, Icon.Medal,
+        }),
+        ("其他", new Icon[] {
+            Icon.Cpu, Icon.Mouse, Icon.Monitor, Icon.MonitorFilled, Icon.Keyboard, Icon.KeyboardFilled, Icon.Printer,
+            Icon.Scissors, Icon.Paperclip, Icon.MagicStick, Icon.MagicStickFilled, Icon.Stamp, Icon.StampFilled,
+            Icon.PictureOutline, Icon.NoData, Icon.RemoveFilled, Icon.RefreshRightBold,
+        }),
+    };
+
+    private static int IconCount => Catalog.Sum(g => g.Icons.Length);
+
+    private static string Kebab(Icon icon)
+    {
+        var name = icon.ToString();
+        var sb = new System.Text.StringBuilder(name.Length + 4);
+        for (var i = 0; i < name.Length; i++)
+        {
+            var c = name[i];
+            if (char.IsUpper(c))
+            {
+                if (i > 0) sb.Append('-');
+                sb.Append(char.ToLowerInvariant(c));
+            }
+            else
+            {
+                sb.Append(c);
+            }
+        }
+        return sb.ToString();
+    }
+}

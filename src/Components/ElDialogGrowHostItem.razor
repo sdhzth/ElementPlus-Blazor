@@ -1,0 +1,133 @@
+@implements IDisposable
+@* 单个服务化对话框实例：把 <see cref="ElDialogGrowOptions"/> 映射到 <see cref="ElDialogGrow"/> 的参数上，
+   并把「关闭 + 回传结果」转交给宿主（宿主负责从渲染列表摘除并完成 Task）。
+
+   两个容易踩的坑（都已在下面规避）：
+   ① 属性值必须写 @（如 ModalClass="@Opt.ModalClass"）。漏掉 @ 会被当成**字面字符串**
+      "Opt.ModalClass" 输出到 class 属性里，不报编译错，只在运行结果里出现。
+   ② Header / Footer 只能在**确有自定义内容时**才非 null —— ElDialogGrow 里
+      「Header != null」会顶掉默认标题渲染，无条件传一个空 fragment 会让标题栏空白。 *@
+<ElDialogGrow @ref="dialog"
+              Visible="true"
+              Title="@Opt.Title"
+              Width="@Value(Opt.Width, "50%")"
+              Height="@Opt.Height"
+              Top="@Value(Opt.Top, "15vh")"
+              Fullscreen="Opt.Fullscreen"
+              AlignCenter="Opt.AlignCenter"
+              Center="Opt.Center"
+              Modal="Opt.Modal"
+              ShowTitle="Opt.ShowTitle"
+              ShowClose="Opt.ShowClose"
+              CloseOnClickModal="Opt.CloseOnClickModal"
+              CloseOnPressEscape="Opt.CloseOnPressEscape"
+              Draggable="Opt.Draggable"
+              Resizable="Opt.Resizable"
+              ResizeMinWidth="Opt.ResizeMinWidth"
+              ResizeMinHeight="Opt.ResizeMinHeight"
+              OnResize="Opt.Resize"
+              DestroyOnClose="Opt.DestroyOnClose"
+              LockScroll="Opt.LockScroll"
+              AutoFocusFirstElement="Opt.AutoFocusFirstElement"
+              FocusTrap="Opt.FocusTrap"
+              ModalClass="@Opt.ModalClass"
+              WrapperClass="@Opt.WrapperCssClass"
+              ContentClass="@Opt.ContentCssClass"
+              Cls="@Opt.CssClass"
+              Style="@Opt.Style"
+              Role="@Opt.Role"
+              AriaLabel="@Value(Opt.AriaLabel, Opt.Title)"
+              CloseAriaLabel="@Value(Opt.CloseAriaLabel, "Close")"
+              CloseTabIndex="Opt.CloseTabIndex"
+              ZIndex="Opt.ZIndex"
+              Options="Opt"
+              BeforeClose="Opt.CanClose"
+              DialogRef="dialogRef"
+              Header="@headerFragment"
+              Footer="@footerFragment"
+              OnCloseWithResult="HandleClosedAsync">
+    <ChildContent>
+        @if (Opt.ContentComponent != null)
+        {
+            <DynamicComponent Type="@Opt.ContentComponent" Parameters="@Opt.Parameters" />
+        }
+        else if (Opt.ChildContent != null)
+        {
+            @Opt.ChildContent(dialogRef)
+        }
+    </ChildContent>
+</ElDialogGrow>
+
+@code {
+    /// <summary>本次打开的请求。</summary>
+    [Parameter]
+    [EditorRequired]
+    public ElDialogGrowRequest Request { get; set; }
+
+    /// <summary>对话框已关闭（携带回传结果，可能为 <c>null</c>）。</summary>
+    [Parameter]
+    public EventCallback<ElDialogGrowClosedEventArgs> OnClosed { get; set; }
+
+    private ElDialogGrow dialog;
+    private readonly ElDialogGrowRef dialogRef = new();
+
+    private ElDialogGrowOptions Opt => Request?.Option ?? new ElDialogGrowOptions();
+
+    /// <summary>自定义标题栏内容；未设置时保持 <c>null</c>，让 ElDialogGrow 渲染默认标题。</summary>
+    private RenderFragment headerFragment => Opt.TitleContent == null
+        ? null
+        : (RenderFragment)(b => b.AddContent(0, Opt.TitleContent(dialogRef)));
+
+    /// <summary>页脚内容；未设置时保持 <c>null</c>，对话框不渲染 footer 区域。</summary>
+    private RenderFragment footerFragment => Opt.FooterContent == null
+        ? null
+        : (RenderFragment)(b => b.AddContent(0, Opt.FooterContent(dialogRef)));
+
+    protected override void OnInitialized()
+    {
+        if (Request != null)
+        {
+            Request.ForceCloseRequested += HandleForceClose;
+        }
+    }
+
+    /// <summary>
+    /// 服务发起的编程式关闭（<see cref="ElDialogGrowService.Close"/> / <c>TryCloseAsync</c>）：
+    /// 让本对话框走自身的关闭管线 —— 这样既绕过 CanClose 拦截，又保留过渡动画并正确解锁
+    /// body 滚动，最终经 <see cref="HandleClosedAsync"/> 回报宿主把本项摘除。
+    /// </summary>
+    private void HandleForceClose(object result)
+    {
+        _ = InvokeAsync(async () =>
+        {
+            if (dialog != null)
+            {
+                await dialog.ForceCloseAsync(result);
+            }
+            else if (OnClosed.HasDelegate)
+            {
+                // 极端情况：对话框尚未渲染出实例，直接回报宿主以免卡住调用方的 await。
+                await OnClosed.InvokeAsync(new ElDialogGrowClosedEventArgs(Request, result));
+            }
+        });
+    }
+
+    private async Task HandleClosedAsync(object result)
+    {
+        if (OnClosed.HasDelegate)
+        {
+            await OnClosed.InvokeAsync(new ElDialogGrowClosedEventArgs(Request, result));
+        }
+    }
+
+    private static string Value(string value, string fallback)
+        => string.IsNullOrWhiteSpace(value) ? fallback : value;
+
+    public void Dispose()
+    {
+        if (Request != null)
+        {
+            Request.ForceCloseRequested -= HandleForceClose;
+        }
+    }
+}

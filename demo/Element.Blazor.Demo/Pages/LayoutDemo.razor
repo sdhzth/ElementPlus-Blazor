@@ -1,0 +1,282 @@
+@page "/layout"
+
+<h1 class="demo-page-title">布局与容器组件（带 Mock 数据）</h1>
+<p class="demo-page-sub">页头、折叠面板、分段控制器、可选标签、走马灯、日历、倒计时、分组框、分割面板、锚点、固钉、回到顶部、全局配置。</p>
+
+<div class="demo-section" id="sec-pageheader">
+    <h3>ElPageHeader 页头</h3>
+    <ElPageHeader Title="处方详情" Content="患者：Kevin Carter　内科">
+        <ExtraContent>
+            <ElButton Size="ButtonSize.Small">打印</ElButton>
+            <ElButton Size="ButtonSize.Small" Type="ButtonType.Primary">提交</ElButton>
+        </ExtraContent>
+    </ElPageHeader>
+    <p class="demo-note">点击左侧返回箭头可触发 OnBack。</p>
+</div>
+
+<div class="demo-section" id="sec-collapse">
+    <h3>ElCollapse 折叠面板 / ElCollapseItem</h3>
+    <ElCollapse @bind-Values="collapseValues">
+        <ElCollapseItem Name="1" Title="门诊病历">
+            <text>主诉：反复咳嗽 3 天。查体：咽部充血，双肺呼吸音粗。</text>
+        </ElCollapseItem>
+        <ElCollapseItem Name="2" Title="辅助检查">
+            <text>血常规：WBC 11.2×10⁹/L，中性粒细胞比例 78%。</text>
+        </ElCollapseItem>
+        <ElCollapseItem Name="3" Title="已归档（禁用）" Disabled="true">
+            <text>该病案已归档，不可修改。</text>
+        </ElCollapseItem>
+    </ElCollapse>
+</div>
+
+<div class="demo-section" id="sec-segmented">
+    <h3>ElSegmented 分段控制器 / ElCheckTag 可选标签</h3>
+    <div class="demo-row">
+        <ElSegmented TValue="string" @bind-Value="segmentedValue" Options="segmentedOptions" />
+        <ElSegmented TValue="string" @bind-Value="segmentedValue2" Options="segmentedOptions2" Size="ElementSize.Small" />
+    </div>
+    <div class="demo-row" style="margin-top:12px;">
+        <ElCheckTag @bind-Checked="tagA" Type="TagType.Primary"><text>西药</text></ElCheckTag>
+        <ElCheckTag @bind-Checked="tagB" Type="TagType.Success"><text>医保</text></ElCheckTag>
+        <ElCheckTag @bind-Checked="tagC" Type="TagType.Warning"><text>自费</text></ElCheckTag>
+        <ElCheckTag Checked="true" Disabled="true"><text>已禁用</text></ElCheckTag>
+    </div>
+    <p class="demo-note" id="segmented-note">当前视图：@segmentedValue　当前筛选：@SelectedTags()</p>
+</div>
+
+<div class="demo-section" id="sec-carousel">
+    <h3>ElCarousel 走马灯 / ElCarouselItem</h3>
+    <ElCarousel Height="170px" Arrow="CarouselArrow.Always" IndicatorPosition="CarouselIndicatorPosition.Inside" Interval="4000">
+        @for (var i = 0; i < 3; i++)
+        {
+            var idx = i;
+            <ElCarouselItem>
+                <div class="demo-carousel-card" style="@($"background:{CarouselColors[idx]}")">
+                    <span>@(idx + 1) / 3</span>
+                    <strong>@CarouselTitles[idx]</strong>
+                </div>
+            </ElCarouselItem>
+        }
+    </ElCarousel>
+</div>
+
+<div class="demo-section" id="sec-carousel-images">
+    <h3>ElCarousel 图片轮播（ImageFit / 箭头 Hover 隐藏）</h3>
+    <p class="demo-page-sub">
+        轮播项里放的是<b>任意 <code>RenderFragment</code></b>，所以<b>图片照放</b>：<code>&lt;img&gt;</code> 直接塞进
+        <code>ElCarouselItem</code>，组件会自动把它铺满分配到的区域，显示方式由
+        <code>ImageFit</code> 控制（对应 CSS <code>object-fit</code>）：
+        <code>Cover</code> 等比铺满并裁切多余（默认）/ <code>Contain</code> 完整显示不裁切 /
+        <code>Fill</code> 拉伸铺满 / <code>None</code> 按原始尺寸显示。
+        <br />
+        <b>左右箭头</b>：<code>Arrow=Hover</code>（默认）时鼠标移出组件后箭头<b>自动淡出隐藏</b>，移回来才显示；
+        <code>Always</code> 常显、<code>Never</code> 不渲染箭头。隐藏态还会屏蔽鼠标事件，避免点到一个看不见的按钮。
+    </p>
+
+    <div class="demo-row" style="margin-bottom:12px;flex-wrap:wrap;align-items:center;">
+        <span style="font-size:13px;color:#606266;">箭头模式</span>
+        <div id="carousel-arrow-mode" style="width:190px;margin-left:6px;">
+            <ElSelect TValue="string" @bind-Value="carouselArrowText">
+                <ElOption TValue="string" Value="@("Hover")" Text="Hover（移入才显示）" />
+                <ElOption TValue="string" Value="@("Always")" Text="Always（常显）" />
+                <ElOption TValue="string" Value="@("Never")" Text="Never（不显示）" />
+            </ElSelect>
+        </div>
+        <span style="font-size:13px;color:#606266;margin-left:14px;">图片填充</span>
+        <div id="carousel-img-fit" style="width:190px;margin-left:6px;">
+            <ElSelect TValue="string" @bind-Value="carouselImageFitText">
+                <ElOption TValue="string" Value="@("Cover")" Text="Cover（铺满裁切）" />
+                <ElOption TValue="string" Value="@("Contain")" Text="Contain（完整显示）" />
+                <ElOption TValue="string" Value="@("Fill")" Text="Fill（拉伸）" />
+                <ElOption TValue="string" Value="@("None")" Text="None（原始尺寸）" />
+            </ElSelect>
+        </div>
+        <span class="demo-note" id="carousel-current" style="margin-left:14px;">当前：@CarouselCurrentTitle（第 @(carouselIndex + 1) / @carouselImages.Count 张）</span>
+    </div>
+
+    <ElCarousel id="carousel-images" Height="230px" Arrow="carouselArrow" ImageFit="carouselImageFit"
+                IndicatorPosition="CarouselIndicatorPosition.Inside" Interval="3500"
+                Style="width:560px;" OnChange="OnCarouselChange">
+        @foreach (var img in carouselImages)
+        {
+            <ElCarouselItem>
+                <img src="@img.Url" alt="@img.Title" />
+            </ElCarouselItem>
+        }
+    </ElCarousel>
+    <p class="demo-note">图片为本机 SVG（<code>/images/demo-img-*.svg</code>），无需联网。</p>
+</div>
+
+<div class="demo-section" id="sec-calendar">
+    <h3>ElCalendar 日历</h3>
+    <ElCalendar @bind-Value="calendarDate" />
+    <p class="demo-note">选中日期：@(calendarDate?.ToString("yyyy-MM-dd") ?? "未选择")</p>
+</div>
+
+<div class="demo-section" id="sec-countdown">
+    <h3>ElCountdown 倒计时 / ElGroupBox 分组框</h3>
+    <div class="demo-row">
+        <ElCountdown Value="countdownTarget" Format="HH:mm:ss" Title="处方提交剩余时间" />
+    </div>
+    <ElGroupBox Title="患者基本信息">
+        <div class="demo-row">
+            <ElTag Type="TagType.Primary"><text>姓名：Kevin Carter</text></ElTag>
+            <ElTag><text>性别：男</text></ElTag>
+            <ElTag><text>年龄：45</text></ElTag>
+            <ElTag Type="TagType.Warning"><text>过敏史：青霉素</text></ElTag>
+        </div>
+    </ElGroupBox>
+</div>
+
+<div class="demo-section" id="sec-splitter">
+    <h3>ElSplitter 分割面板 / ElSplitterPanel</h3>
+    <div style="height:190px;">
+        <ElSplitter Direction="SplitterDirection.Horizontal">
+            <ElSplitterPanel Size="30%">
+                <div class="demo-panel-fill">左：患者列表</div>
+            </ElSplitterPanel>
+            <ElSplitterPanel Size="70%">
+                <div class="demo-panel-fill" style="background:#f5f7fa;color:#303133;">右：病历详情（可拖拽中间分隔条）</div>
+            </ElSplitterPanel>
+        </ElSplitter>
+    </div>
+</div>
+
+<div class="demo-section" id="sec-anchor">
+    <h3>ElAnchor 锚点 / ElAnchorLink</h3>
+    <div id="anchor-scroll-box" style="height:180px;overflow:auto;border:1px solid #dcdfe6;border-radius:4px;padding:8px;">
+        <ElAnchor Container="#anchor-scroll-box" Type="AnchorType.Underline" Offset="8" @bind-Value="anchorValue">
+            <ElAnchorLink Title="基本信息" Href="#anchor-sec-1" />
+            <ElAnchorLink Title="用药记录" Href="#anchor-sec-2" />
+            <ElAnchorLink Title="注意事项" Href="#anchor-sec-3" />
+        </ElAnchor>
+        <div id="anchor-sec-1" style="height:220px;padding-top:8px;">
+            <strong>基本信息</strong>
+            <p>Kevin Carter，男，45 岁，内科门诊。</p>
+        </div>
+        <div id="anchor-sec-2" style="height:220px;">
+            <strong>用药记录</strong>
+            <p>阿莫西林胶囊 0.5g　tid　po。</p>
+        </div>
+        <div id="anchor-sec-3" style="height:220px;">
+            <strong>注意事项</strong>
+            <p>青霉素过敏者禁用，用药期间注意皮疹。</p>
+        </div>
+    </div>
+    <p class="demo-note">当前锚点：@(string.IsNullOrEmpty(anchorValue) ? "（未激活）" : anchorValue)</p>
+</div>
+
+<div class="demo-section" id="sec-affix">
+    <h3>ElAffix 固钉 / ElBacktop 回到顶部</h3>
+    <p class="demo-note">
+        演示站外壳是「页头 + 多标签页固定、只有内容区滚动」，所以固钉要用 <code>Target</code> 指定滚动容器。
+        下面这个框自己就是滚动容器（<code>Target="#affix-scroll-box"</code>）：在框内向下滚动，按钮会吸附在<b>框顶</b>；
+        滚过 200px 后右下角出现回到顶部按钮。
+    </p>
+    <div id="affix-scroll-box" style="height:220px;overflow:auto;border:1px solid #dcdfe6;border-radius:4px;padding:0 12px;background:#fff;">
+        <ElAffix OffsetTop="0" Position="AffixPosition.Top" Target="#affix-scroll-box">
+            <ElButton Type="ButtonType.Primary" Size="ButtonSize.Small" id="demo-affix-btn">我是固钉按钮（Target=#affix-scroll-box）</ElButton>
+        </ElAffix>
+        <div style="height:70px;"></div>
+        <p class="demo-note">↑ 在框内继续向下滚动，按钮会一直贴在框的顶部。</p>
+        <div style="height:420px;"></div>
+        <p class="demo-note">已滚到框底：按钮全程固定在框顶，回到顶部按钮可把框滚回起点。</p>
+    </div>
+    <ElBacktop VisibilityHeight="200" Right="30" Bottom="40" Target="#affix-scroll-box" />
+</div>
+
+<div class="demo-section" id="sec-config">
+    <h3>ElConfigProvider 全局配置</h3>
+    <div class="demo-row">
+        <ElButton id="btn-default-size">默认尺寸按钮（对照）</ElButton>
+    </div>
+    <ElConfigProvider Size="ElementSize.Small">
+        <div class="demo-row">
+            <ElButton id="btn-cp-size">小尺寸按钮（由 ConfigProvider 注入）</ElButton>
+            <ElButton Type="ButtonType.Primary">确定</ElButton>
+            <ElButton Type="ButtonType.Text">文字按钮</ElButton>
+        </div>
+    </ElConfigProvider>
+    <p class="demo-note">对照上方两个按钮的高度即可看出 ConfigProvider.Size 已通过级联生效。</p>
+</div>
+
+@code {
+    private IList<string> collapseValues = new List<string> { "1" };
+
+    private string segmentedValue = "list";
+    private string segmentedValue2 = "day";
+
+    private bool tagA = true;
+    private bool tagB = true;
+    private bool tagC = false;
+
+    private DateTime? calendarDate = new DateTime(2026, 9, 20);
+    private DateTime countdownTarget = DateTime.Now.AddMinutes(30);
+    private string anchorValue = string.Empty;
+
+    private static readonly string[] CarouselColors = { "#409eff", "#67c23a", "#e6a23c" };
+    private static readonly string[] CarouselTitles = { "门诊叫号大屏", "处方审核提示", "住院床位概览" };
+
+    private class DemoImage
+    {
+        public string Url { get; set; }
+        public string Title { get; set; }
+    }
+
+    private static readonly List<DemoImage> carouselImages = new List<DemoImage>
+    {
+        new DemoImage { Url = "/images/demo-img-ct.svg", Title = "CT · 胸部平扫" },
+        new DemoImage { Url = "/images/demo-img-xray.svg", Title = "DR · 左手正位" },
+        new DemoImage { Url = "/images/demo-img-report.svg", Title = "检验报告单" },
+        new DemoImage { Url = "/images/demo-img-eeg.svg", Title = "心电图 · 十二导联" }
+    };
+
+    private CarouselArrow carouselArrow = CarouselArrow.Hover;
+    private CarouselImageFit carouselImageFit = CarouselImageFit.Cover;
+    private int carouselIndex;
+
+    private string CarouselCurrentTitle =>
+        carouselIndex >= 0 && carouselIndex < carouselImages.Count ? carouselImages[carouselIndex].Title : "—";
+
+    private void OnCarouselChange(int index) => carouselIndex = index;
+
+    // 两个开关用 ElSelect 而不是原生 <select>：拿枚举名当选项值，
+    // getter 回读枚举的 ToString()，所以绑定值永远与真正生效的那个枚举一致。
+    // 这里不用 TryParse 静默忽略：解析不了就是选项值写错了，要当场炸出来，
+    // 不能让它表现为「下拉框点了没反应」——那正是最难查的一类假故障。
+    private string carouselArrowText
+    {
+        get => carouselArrow.ToString();
+        set => carouselArrow = (CarouselArrow)Enum.Parse(typeof(CarouselArrow), value);
+    }
+
+    private string carouselImageFitText
+    {
+        get => carouselImageFit.ToString();
+        set => carouselImageFit = (CarouselImageFit)Enum.Parse(typeof(CarouselImageFit), value);
+    }
+
+    private List<SegmentedOption> segmentedOptions = new List<SegmentedOption>
+    {
+        new SegmentedOption { Label = "列表视图", Value = "list" },
+        new SegmentedOption { Label = "卡片视图", Value = "card" },
+        new SegmentedOption { Label = "表格视图", Value = "table" },
+    };
+
+    private List<SegmentedOption> segmentedOptions2 = new List<SegmentedOption>
+    {
+        new SegmentedOption { Label = "日", Value = "day" },
+        new SegmentedOption { Label = "周", Value = "week" },
+        new SegmentedOption { Label = "月", Value = "month" },
+        new SegmentedOption { Label = "年", Value = "year", Disabled = true },
+    };
+
+    private string SelectedTags()
+    {
+        var picked = new List<string>();
+        if (tagA) picked.Add("西药");
+        if (tagB) picked.Add("医保");
+        if (tagC) picked.Add("自费");
+        return picked.Count == 0 ? "无" : string.Join("、", picked);
+    }
+}

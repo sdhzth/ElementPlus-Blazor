@@ -1,0 +1,95 @@
+@page "/light"
+@inherits ElementComponentBase
+
+<div class="demo-section">
+    <h3>ElLightGrow 状态指示灯</h3>
+    <p class="demo-note">参照 BootstrapBlazor <code>Light</code> 指示灯概念，按 Element Plus 视觉风格自渲染的状态指示灯。常用于在线/离线、运行/停止、正常/告警等状态标识。</p>
+</div>
+
+<div class="demo-section">
+    <h3>基础用法（五种类型）</h3>
+    <div class="demo-row">
+        <div class="demo-light-item"><ElLightGrow Color="MessageType.Primary" /></div>
+        <div class="demo-light-item"><ElLightGrow Color="MessageType.Success" /></div>
+        <div class="demo-light-item"><ElLightGrow Color="MessageType.Warning" /></div>
+        <div class="demo-light-item"><ElLightGrow Color="MessageType.Error" /></div>
+        <div class="demo-light-item"><ElLightGrow Color="MessageType.Info" /></div>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>带文本标签</h3>
+    <div class="demo-row">
+        <div class="demo-light-item"><ElLightGrow Color="MessageType.Success" Text="在线" /></div>
+        <div class="demo-light-item"><ElLightGrow Color="MessageType.Warning" Text="告警" /></div>
+        <div class="demo-light-item"><ElLightGrow Color="MessageType.Error" Text="离线" /></div>
+        <div class="demo-light-item"><ElLightGrow Color="MessageType.Info" Text="未知" /></div>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>闪烁（呼吸动画）</h3>
+    <div class="demo-row">
+        <div class="demo-light-item"><ElLightGrow Color="MessageType.Success" IsFlash="true" Text="运行中" /></div>
+        <div class="demo-light-item"><ElLightGrow Color="MessageType.Error" IsFlash="true" Text="故障" /></div>
+        <div class="demo-light-item"><ElLightGrow Color="MessageType.Primary" IsFlash="true" /></div>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>平面样式（无外发光）</h3>
+    <div class="demo-row">
+        <div class="demo-light-item"><ElLightGrow Color="MessageType.Success" IsFlat="true" Text="常亮" /></div>
+        <div class="demo-light-item"><ElLightGrow Color="MessageType.Error" IsFlat="true" IsFlash="true" Text="平闪" /></div>
+        <div class="demo-light-item"><ElLightGrow Color="MessageType.Warning" IsFlat="true" /></div>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>不同尺寸</h3>
+    <div class="demo-row" style="align-items:center">
+        <div class="demo-light-item"><ElLightGrow Color="MessageType.Success" Size="8" Text="8px" /></div>
+        <div class="demo-light-item"><ElLightGrow Color="MessageType.Success" Size="12" Text="12px" /></div>
+        <div class="demo-light-item"><ElLightGrow Color="MessageType.Success" Size="18" Text="18px" /></div>
+        <div class="demo-light-item"><ElLightGrow Color="MessageType.Success" Size="28" Text="28px" /></div>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>交互示例（运行时切换状态）</h3>
+    <div class="demo-row" style="align-items:center">
+        <ElLightGrow Color="@currentColor" IsFlash="@flashing" Text="@statusText" />
+        <ElButton Type="ButtonType.Primary" OnClick="ToggleStatus">切换状态</ElButton>
+        <ElButton Type="ButtonType.Default" OnClick="ToggleFlash">开关闪烁</ElButton>
+    </div>
+</div>
+
+@code {
+    private MessageType currentColor = MessageType.Success;
+    private bool flashing;
+    private string statusText = "正常";
+
+    private void ToggleStatus()
+    {
+        if (currentColor == MessageType.Success)
+        {
+            currentColor = MessageType.Warning;
+            statusText = "告警";
+        }
+        else if (currentColor == MessageType.Warning)
+        {
+            currentColor = MessageType.Error;
+            statusText = "故障";
+        }
+        else
+        {
+            currentColor = MessageType.Success;
+            statusText = "正常";
+        }
+    }
+
+    private void ToggleFlash()
+    {
+        flashing = !flashing;
+    }
+}

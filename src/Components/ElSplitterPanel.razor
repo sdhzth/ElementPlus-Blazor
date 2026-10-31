@@ -1,0 +1,38 @@
+@inherits ElementComponentBase
+
+<div class="@PanelClass" style="@PanelStyle" @ref="PanelRef" @attributes="Attributes">
+    @ChildContent
+</div>
+
+@if (Resizable && !IsLastPanel)
+{
+    <div class="@BarClass"
+         role="separator"
+         aria-orientation="@AriaOrientation"
+         data-index="@PanelIndex"
+         data-collapsible="@Collapsible.ToString().ToLowerInvariant()"
+         aria-collapsed="@collapsed.ToString().ToLowerInvariant()"
+         @ondblclick="OnDoubleClickAsync">
+        <span class="@DraggerClass"></span>
+
+        @if (Collapsible)
+        {
+            <div class="el-splitter__button el-splitter__button--prev"
+                 role="button"
+                 tabindex="0"
+                 aria-label="折叠"
+                 @onclick="() => ToggleCollapseAsync()">
+                @if (StartCollapsible != null) { @StartCollapsible }
+                else { <span class="el-splitter__button-icon">@(Splitter?.Direction == SplitterDirection.Vertical ? "▲" : "◀")</span> }
+            </div>
+            <div class="el-splitter__button el-splitter__button--next"
+                 role="button"
+                 tabindex="0"
+                 aria-label="展开"
+                 @onclick="() => ToggleCollapseAsync()">
+                @if (EndCollapsible != null) { @EndCollapsible }
+                else { <span class="el-splitter__button-icon">@(Splitter?.Direction == SplitterDirection.Vertical ? "▼" : "▶")</span> }
+            </div>
+        }
+    </div>
+}

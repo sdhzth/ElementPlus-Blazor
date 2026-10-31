@@ -1,0 +1,35 @@
+@inherits ElementFieldComponentBase<TValue>
+@typeparam TValue
+@{
+    switch (Status)
+    {
+        case Status.UnChecked:
+            _isChecked = string.Empty;
+            _isIndeterminate = string.Empty;
+            break;
+        case Status.Checked:
+            _isChecked = "is-checked";
+            _isIndeterminate = string.Empty;
+            break;
+        case Status.Indeterminate:
+            _isChecked = string.Empty;
+            _isIndeterminate = "is-indeterminate";
+            break;
+    }
+    if (IsDisabled)
+    {
+        isDisabled = "is-disabled";
+    }
+    var ariaChecked = Status == Status.Indeterminate ? "mixed" : (Status == Status.Checked).ToString().ToLowerInvariant();
+    var isChecked = Status == Status.Checked;
+    var borderClass = Border ? "is-bordered" : string.Empty;
+    <label role="checkbox" aria-checked="@ariaChecked" aria-disabled="@EffectiveDisabled" class="el-checkbox @_isChecked @isDisabled @_isIndeterminate @borderClass @SizeClass @Cls">
+        <span class="el-checkbox__input @_isChecked @isDisabled @_isIndeterminate">
+            <span class="el-checkbox__inner"></span>
+            <input type="checkbox" aria-hidden="true" checked="@isChecked" @onchange="ChangeStatus" class="el-checkbox__original @isDisabled" name="@Name" value="@Value" disabled="@EffectiveDisabled" tabindex="@TabIndex" id="@Id" />
+        </span>
+        <span class="el-checkbox__label">
+            @(ChildContent ?? (RenderFragment)(builder => builder.AddContent(0, Label)))
+        </span>
+    </label>
+}

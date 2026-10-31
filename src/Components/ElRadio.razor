@@ -1,0 +1,24 @@
+@inherits ElementFieldComponentBase<TValue>
+@typeparam TValue
+@{
+    var checkedValue = IsChecked;
+    var isChecked = CheckedClass;
+    var isDisabled = EffectiveDisabled ? "is-disabled" : string.Empty;
+    var isBordered = EffectiveBordered ? "is-bordered" : string.Empty;
+    var size = RadioSizeClass;
+}
+<label role="radio"
+       @ref="radioElement"
+       tabindex="@TabIndex"
+       class="el-radio @isChecked @isDisabled @isBordered @size"
+       @onclick="ChangeRadio"
+       @onkeydown="OnKeyDownAsync"
+       aria-checked="@AriaChecked"
+       aria-disabled="@AriaDisabled"
+       aria-label="@AriaLabel">
+    <span class="el-radio__input @isChecked @isDisabled">
+        <span class="el-radio__inner" style="@(string.IsNullOrEmpty(BorderColor) ? null : $"border-color:{BorderColor}")"></span>
+        <input type="radio" aria-hidden="true" tabindex="-1" disabled="@EffectiveDisabled" checked="@checkedValue" class="el-radio__original" name="@EffectiveName" value="@Value">
+    </span>
+    <span class="el-radio__label">@ChildContent</span>
+</label>

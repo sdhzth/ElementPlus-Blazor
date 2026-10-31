@@ -1,0 +1,41 @@
+@page "/input"
+@using ElementPlus
+
+<h1 class="demo-page-title">输入框 / ElInput</h1>
+<p class="demo-page-sub">对齐官方：支持 @("@bind-Value")、Type（Text/Textarea/Password…）、Clearable、Disabled、Size、ShowPassword、ShowWordLimit、Prefix/Suffix 插槽，以及扩展的 Prepend/Append 插槽。</p>
+
+<div class="demo-section">
+    <h3>基础用法</h3>
+    <div class="demo-row" style="flex-direction:column;align-items:stretch;max-width:420px">
+        <ElInput @bind-Value="text1" Placeholder="请输入内容" Clearable="true" />
+        <ElInput @bind-Value="text2" Type="InputType.Password" ShowPassword="true" Placeholder="密码（可切换显隐）" />
+        <ElInput @bind-Value="text3" Type="InputType.Textarea" Rows="3" Maxlength="50" ShowWordLimit="true" Placeholder="多行文本，带字数限制" />
+    </div>
+    <p class="demo-note">text1=@text1</p>
+</div>
+
+<div class="demo-section">
+    <h3>前后缀与禁用 / 尺寸</h3>
+    <div class="demo-row">
+        <ElInput @bind-Value="text1" PrefixIcon="el-icon-search" Placeholder="搜索" />
+        <ElInput @bind-Value="text1" Disabled="true" Placeholder="禁用" />
+        <ElInput @bind-Value="text1" Size="InputSize.Large" Placeholder="大" />
+        <ElInput @bind-Value="text1" Size="InputSize.Small" Placeholder="小" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>组合前置 / 后置标签（Prepend / Append）</h3>
+    <div class="demo-row">
+        <ElInput @bind-Value="text1">
+            <Prepend>Http://</Prepend>
+            <Append>.com</Append>
+        </ElInput>
+    </div>
+</div>
+
+@code {
+    private string text1 = "";
+    private string text2 = "";
+    private string text3 = "";
+}

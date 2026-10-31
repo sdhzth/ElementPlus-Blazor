@@ -1,0 +1,61 @@
+@inherits ElementComponentBase
+
+<div id="@Id" class="@StatisticClass" style="@Style" aria-label="@AriaLabel" @attributes="Attributes">
+    @if (TitleContent != null || !string.IsNullOrWhiteSpace(Title))
+    {
+        <div class="el-statistic__head">
+            @if (TitleContent != null)
+            {
+                @TitleContent
+            }
+            else
+            {
+                @Title
+            }
+        </div>
+    }
+    <div class="el-statistic__content">
+        @* Prefix side trend *@
+        @if (HasTrend && TrendPlacement == TrendPlacement.Prefix)
+        {
+            <span class="@TrendClass">
+                <i class="@TrendArrowIcon"></i>
+                @DisplayTrend
+            </span>
+        }
+
+        @if (Prefix != null || !string.IsNullOrWhiteSpace(PrefixText))
+        {
+            <span class="el-statistic__prefix">
+                @if (Prefix != null) { @Prefix } else { @PrefixText }
+            </span>
+        }
+
+        <span class="el-statistic__number" style="@ValueStyle">
+            @DisplayValue
+        </span>
+
+        @if (Suffix != null || !string.IsNullOrWhiteSpace(SuffixText))
+        {
+            <span class="el-statistic__suffix">
+                @if (Suffix != null) { @Suffix } else { @SuffixText }
+            </span>
+        }
+
+        @* Suffix side trend *@
+        @if (HasTrend && TrendPlacement == TrendPlacement.Suffix)
+        {
+            <span class="@TrendClass">
+                <i class="@TrendArrowIcon"></i>
+                @DisplayTrend
+            </span>
+        }
+    </div>
+
+    @if (Extra != null)
+    {
+        <div class="el-statistic__extra">
+            @Extra
+        </div>
+    }
+</div>

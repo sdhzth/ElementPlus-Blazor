@@ -1,0 +1,80 @@
+@page "/splitter"
+@using ElementPlus
+
+<h1 class="demo-page-title">分割面板 / ElSplitter</h1>
+<p class="demo-page-sub">对齐官方：支持 <code>Direction</code>（horizontal/vertical）、<code>Lazy</code>（拖拽结束才更新），子面板 <code>ElSplitterPanel</code> 支持 <code>Size</code> / <code>Min</code> / <code>Max</code> / <code>Resizable</code> / <code>Collapsible</code>（双击分隔条折叠）。</p>
+
+<div class="demo-section">
+    <h3>横向基础（可拖拽中间分隔条）</h3>
+    <div style="height:200px;">
+        <ElSplitter Direction="SplitterDirection.Horizontal">
+            <ElSplitterPanel Size="35%">
+                <div class="demo-panel-fill">左面板 35%</div>
+            </ElSplitterPanel>
+            <ElSplitterPanel Size="65%">
+                <div class="demo-panel-fill" style="background:#f5f7fa;color:#303133;">右面板 65%（可拖拽）</div>
+            </ElSplitterPanel>
+        </ElSplitter>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>纵向 + 最小尺寸</h3>
+    <div style="height:220px;">
+        <ElSplitter Direction="SplitterDirection.Vertical">
+            <ElSplitterPanel Size="40%" Min="80px">
+                <div class="demo-panel-fill">上方 40%（最小 80px）</div>
+            </ElSplitterPanel>
+            <ElSplitterPanel Size="60%" Min="80px">
+                <div class="demo-panel-fill" style="background:#f5f7fa;color:#303133;">下方 60%</div>
+            </ElSplitterPanel>
+        </ElSplitter>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>可折叠（双击分隔条）</h3>
+    <div style="height:200px;">
+        <ElSplitter Direction="SplitterDirection.Horizontal">
+            <ElSplitterPanel Size="30%" Collapsible="true">
+                <div class="demo-panel-fill">左（可折叠，双击分隔条）</div>
+            </ElSplitterPanel>
+            <ElSplitterPanel Size="70%">
+                <div class="demo-panel-fill" style="background:#f5f7fa;color:#303133;">右面板</div>
+            </ElSplitterPanel>
+        </ElSplitter>
+    </div>
+    <p class="demo-note">双击中间分隔条可折叠 / 展开左侧面板。折叠按钮平时 <code>opacity:0</code>，鼠标移到分隔条上才显形（对齐官方）。</p>
+</div>
+
+<div class="demo-section">
+    <h3>Lazy（拖拽结束才更新尺寸）</h3>
+    <div style="height:200px;">
+        <ElSplitter Direction="SplitterDirection.Horizontal" Lazy="true">
+            <ElSplitterPanel Size="40%">
+                <div class="demo-panel-fill">左 40%</div>
+            </ElSplitterPanel>
+            <ElSplitterPanel Size="60%">
+                <div class="demo-panel-fill" style="background:#f5f7fa;color:#303133;">右 60%</div>
+            </ElSplitterPanel>
+        </ElSplitter>
+    </div>
+    <p class="demo-note"><code>Lazy="true"</code> 时拖拽过程中只显示一条半透明预览线（--el-splitter-bar-offset），松手才真正改尺寸。</p>
+</div>
+
+<div class="demo-section">
+    <h3>三栏布局</h3>
+    <div style="height:200px;">
+        <ElSplitter Direction="SplitterDirection.Horizontal">
+            <ElSplitterPanel Size="25%">
+                <div class="demo-panel-fill">列表 25%</div>
+            </ElSplitterPanel>
+            <ElSplitterPanel Size="50%">
+                <div class="demo-panel-fill" style="background:#f5f7fa;color:#303133;">详情 50%</div>
+            </ElSplitterPanel>
+            <ElSplitterPanel Size="25%">
+                <div class="demo-panel-fill">属性 25%</div>
+            </ElSplitterPanel>
+        </ElSplitter>
+    </div>
+</div>

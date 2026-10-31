@@ -1,0 +1,14 @@
+# Build outputs
+[Bb]in/
+[Oo]bj/
+*.user
+.vs/
+node_modules/
+
+# NuGet packages
+*.nupkg
+*.snupkg
+
+# OS / editor
+Thumbs.db
+.DS_Store

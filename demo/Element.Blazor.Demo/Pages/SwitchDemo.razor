@@ -1,0 +1,40 @@
+@page "/switch"
+@using ElementPlus
+
+<h1 class="demo-page-title">开关 / ElSwitch</h1>
+<p class="demo-page-sub">对齐官方：支持 @("@bind-Value")、ActiveText / InactiveText、Disabled、Loading、Width、InlinePrompt，以及扩展的 BeforeChange（切换前拦截）。颜色沿用 EP 的 CSS 变量 --el-switch-on-color / --el-switch-off-color（官方已废弃 active-color / inactive-color 属性）。</p>
+
+<div class="demo-section">
+    <h3>基础用法</h3>
+    <div class="demo-row">
+        <ElSwitch @bind-Value="sw1" />
+        <ElSwitch @bind-Value="sw2" ActiveText="开" InactiveText="关" />
+    </div>
+    <p class="demo-note">sw1=@sw1　sw2=@sw2</p>
+</div>
+
+<div class="demo-section">
+    <h3>自定义颜色（CSS 变量）/ 禁用 / 加载</h3>
+    <div class="demo-row">
+        <span style="--el-switch-on-color:#13ce66;--el-switch-off-color:#ff4949">
+            <ElSwitch @bind-Value="sw1" />
+        </span>
+        <ElSwitch @bind-Value="sw1" Disabled="true" />
+        <ElSwitch @bind-Value="sw1" Loading="true" />
+    </div>
+    <p class="demo-note">active-color / inactive-color 已在 EP 中废弃，改为通过 CSS 变量 --el-switch-on-color / --el-switch-off-color 着色（对齐官方）。</p>
+</div>
+
+<div class="demo-section">
+    <h3>内联文字 (InlinePrompt)</h3>
+    <div class="demo-row">
+        <ElSwitch @bind-Value="sw1" ActiveText="开" InactiveText="关" InlinePrompt="true" />
+        <ElSwitch @bind-Value="sw2" ActiveText="ON" InactiveText="OFF" InlinePrompt="true" />
+    </div>
+    <p class="demo-note">InlinePrompt 将文字渲染在开关内部（对齐 EP inline-prompt）。</p>
+</div>
+
+@code {
+    private bool sw1 = true;
+    private bool sw2;
+}

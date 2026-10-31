@@ -1,0 +1,135 @@
+@inherits ElementFieldComponentBase<TValue>
+@typeparam TValue
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@{
+    var suffixIconClsList = new List<string>();
+    suffixIconClsList.Add("el-select__caret");
+    suffixIconClsList.Add(IsLoading ? "el-icon-loading" : "el-icon-arrow-up");
+    if (dropdownVisible)
+    {
+        suffixIconClsList.Add("is-reverse");
+    }
+}
+<div class="@wrapperClsBuilder.ToString()"
+     role="combobox"
+     aria-haspopup="listbox"
+     aria-label="@AriaLabel"
+     aria-expanded="@(dropdownVisible ? "true" : "false")"
+     aria-disabled="@(IsSelectV2Disabled ? "true" : "false")"
+     aria-multiselectable="@(Multiple ? "true" : "false")"
+     aria-busy="@(IsLoading ? "true" : "false")"
+     aria-controls="@dropdownId"
+     aria-activedescendant="@ActiveDescendantId"
+     tabindex="@(IsSelectV2Disabled ? -1 : 0)"
+     @ref="RootElement"
+     @onclick="OpenDropdown"
+     @onkeydown="OnRootKeyDownAsync">
+    @if (Multiple && SelectedOptions.Any())
+    {
+        <div class="el-select__tags">
+            @foreach (var selected in VisibleSelectedOptions)
+            {
+                <span class="@($"el-tag el-tag--{TagType} el-tag--small el-tag--{TagEffect}")" @key="selected.Value">
+                    <span class="el-select__tags-text">@selected.Label</span>
+                    @if (!IsSelectV2Disabled)
+                    {
+                        <i class="el-tag__close el-icon-close" @onclick="e => RemoveTagAsync(selected)" @onclick:stopPropagation></i>
+                    }
+                </span>
+            }
+            @if (CollapsedTagCount > 0)
+            {
+                <span class="@($"el-tag el-tag--{TagType} el-tag--small el-tag--{TagEffect}")" title="@(CollapseTagsTooltip ? string.Join(", ", SelectedOptions.Select(x => x.Label)) : null)">
+                    <span class="el-select__tags-text">+ @CollapsedTagCount</span>
+                </span>
+            }
+        </div>
+    }
+    <ElInput TValue="string"
+            Clearable="false"
+            Disabled="@IsSelectV2Disabled"
+            Readonly="@(!Filterable)"
+            Size="@effectiveSize"
+            SuffixIcon="@string.Join(" ", suffixIconClsList)"
+            Placeholder="@EffectivePlaceholder"
+            Value="@DisplayLabel"
+            ValueChanged="OnFilterInputAsync"
+            ValidateEvent="false"
+            SuppressFormWriteBack="true"
+            OnKeyDown="OpenDropdownFromKeyboard"
+            OnFocus="OnInputFocusAsync"
+            OnBlur="OnInputBlurAsync">
+    </ElInput>
+    @if (ShowClear)
+    {
+        <i class="el-input__icon el-input__clear el-icon-circle-close el-select-v2__clear"
+           @onclick="ClearAsync"
+           @onclick:stopPropagation></i>
+    }
+    @if (dropdownVisible)
+    {
+        <div class="@($"el-select-dropdown el-popper el-select-v2__popper {PopperClass}")" id="@dropdownId" style="@($"max-height:{EffectiveHeight}px;{PopperStyle}")">
+            @* header / footer 插槽（对齐 EP 2.5.2+）：固定在滚动区之外。
+               本组件的下拉是内联在根节点里的（不像 ElSelect 那样走全局弹层宿主），
+               所以必须吞掉冒泡 —— 否则点一下插槽里的搜索框就会冒到根节点的 OpenDropdown 把面板关掉。 *@
+            @if (HeaderContent != null)
+            {
+                <div class="el-select-dropdown__header" @onclick="NoOp" @onclick:stopPropagation="true" @onkeydown="NoOp" @onkeydown:stopPropagation="true">@HeaderContent</div>
+            }
+            <div class="el-scrollbar">
+                <div class="el-select-dropdown__wrap el-scrollbar__wrap" style="max-height:@(EffectiveHeight)px;">
+                    @if (IsLoading)
+                    {
+                        <p class="el-select-dropdown__empty">
+                            <i class="el-icon-loading"></i>
+                            @EffectiveLoadingText
+                        </p>
+                    }
+                    else if (!VirtualRows.Any())
+                    {
+                        <p class="el-select-dropdown__empty">@EmptyText</p>
+                    }
+                    else
+                    {
+                        <ul class="el-scrollbar__view el-select-dropdown__list" role="listbox">
+                            <Virtualize TItem="SelectV2Row" Items="@VirtualRows" ItemSize="@EffectiveItemHeight" OverscanCount="@EffectiveOverscanCount" Context="row">
+                                @if (row.IsGroup)
+                                {
+                                    <li class="el-select-group__wrap" role="presentation" style="height:@(EffectiveItemHeight)px;">
+                                        <span class="el-select-group__title">@row.Group</span>
+                                    </li>
+                                }
+                                else
+                                {
+                                    var option = row.Option;
+                                    var isSelected = IsSelected(option);
+                                    var isActive = activeOptionId == row.Id;
+                                    var clsBuilder = HtmlPropertyBuilder.CreateCssClassBuilder()
+                                        .Add("el-select-dropdown__item")
+                                        .AddIf(option.Disabled, "is-disabled")
+                                        .AddIf(isSelected, "selected")
+                                        .AddIf(isActive, "hover")
+                                        .AddIf(row.IsCreate, "el-select-dropdown__item--create");
+                                    <li id="@row.Id"
+                                        class="@clsBuilder.ToString()"
+                                        style="height:@(EffectiveItemHeight)px;line-height:@(EffectiveItemHeight)px;"
+                                        role="option"
+                                        aria-selected="@(isSelected ? "true" : "false")"
+                                        aria-disabled="@(option.Disabled ? "true" : "false")"
+                                        @onclick="e => SelectOptionAsync(option)"
+                                        @onclick:stopPropagation>
+                                        <span>@option.Label</span>
+                                    </li>
+                                }
+                            </Virtualize>
+                        </ul>
+                    }
+                </div>
+            </div>
+            @if (FooterContent != null)
+            {
+                <div class="el-select-dropdown__footer" @onclick="NoOp" @onclick:stopPropagation="true">@FooterContent</div>
+            }
+        </div>
+    }
+</div>

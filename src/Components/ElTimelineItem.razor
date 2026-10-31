@@ -1,0 +1,51 @@
+@inherits ElementComponentBase
+
+<li id="@Id" class="@ItemClass" style="@Style" role="listitem" aria-label="@AriaLabel" @onclick="() => OnClick.InvokeAsync(null)" @attributes="Attributes">
+    <div class="@TailClass"></div>
+    @if (Dot != null)
+    {
+        <div class="el-timeline-item__dot">
+            @Dot
+        </div>
+    }
+    else
+    {
+        <div class="@NodeClass" style="@NodeStyle">
+            @if (!string.IsNullOrWhiteSpace(Icon))
+            {
+                <i class="@IconClass"></i>
+            }
+        </div>
+    }
+    <div class="el-timeline-item__wrapper">
+        @if (HasTimestamp && Placement == TimelinePlacement.Top)
+        {
+            <div class="@TimestampClass">
+                @if (TimestampContent != null)
+                {
+                    @TimestampContent
+                }
+                else
+                {
+                    @Timestamp
+                }
+            </div>
+        }
+        <div class="el-timeline-item__content">
+            @ChildContent
+        </div>
+        @if (HasTimestamp && Placement == TimelinePlacement.Bottom)
+        {
+            <div class="@TimestampClass">
+                @if (TimestampContent != null)
+                {
+                    @TimestampContent
+                }
+                else
+                {
+                    @Timestamp
+                }
+            </div>
+        }
+    </div>
+</li>

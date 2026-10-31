@@ -1,0 +1,180 @@
+{
+  "el": {
+    "inputNumber": {
+      "decrease": "decrease number",
+      "increase": "increase number"
+    },
+    "carousel": {
+      "leftArrow": "Carousel arrow left",
+      "rightArrow": "Carousel arrow right",
+      "indicator": "Carousel switch to index {index}"
+    },
+    "select": {
+      "placeholder": "Select",
+      "loading": "Loading",
+      "noData": "No data",
+      "noMatch": "No matching data"
+    },
+    "cascader": {
+      "placeholder": "Select",
+      "loading": "Loading",
+      "noData": "No data",
+      "noMatch": "No matching data"
+    },
+    "table": {
+      "emptyText": "No Data",
+      "sortLabel": "Sort by {column}",
+      "filterLabel": "Filter by {column}",
+      "confirmFilter": "Confirm",
+      "resetFilter": "Reset",
+      "clearFilter": "All",
+      "applyFilter": "Apply",
+      "clearAdvancedFilter": "Clear",
+      "filterRelationAnd": "And",
+      "filterRelationOr": "Or",
+      "operator": {
+        "contains": "contains",
+        "notContains": "not contains",
+        "startsWith": "starts with",
+        "endsWith": "ends with",
+        "equal": "equal to",
+        "notEqual": "not equal to",
+        "greater": "greater than",
+        "greaterOrEqual": "greater than or equal to",
+        "less": "less than",
+        "lessOrEqual": "less than or equal to",
+        "empty": "is empty",
+        "notEmpty": "is not empty"
+      }
+    },
+    "tree": {
+      "emptyText": "No Data"
+    },
+    "dialog": {
+      "close": "Close this dialog"
+    },
+    "drawer": {
+      "close": "Close this dialog"
+    },
+    "messagebox": {
+      "title": "Message",
+      "confirm": "OK",
+      "cancel": "Cancel",
+      "close": "Close this dialog"
+    },
+    "popconfirm": {
+      "confirmButtonText": "Yes",
+      "cancelButtonText": "No"
+    },
+    "pagination": {
+      "total": "Total {total}",
+      "pagesize": "/page",
+      "goto": "Go to",
+      "page": "Page",
+      "currentPage": "page {pager}",
+      "prev": "Go to previous page",
+      "next": "Go to next page"
+    },
+    "input": {
+      "characters": "{count} / {max} characters"
+    },
+    "datepicker": {
+      "today": "Today",
+      "cancel": "Cancel",
+      "clear": "Clear",
+      "confirm": "OK",
+      "dateTablePrompt": "Use the arrow keys and enter to select the day of the month",
+      "monthTablePrompt": "Use the arrow keys and enter to select the month",
+      "yearTablePrompt": "Use the arrow keys and enter to select the year",
+      "prevYear": "Previous Year",
+      "nextYear": "Next Year",
+      "prevMonth": "Previous Month",
+      "nextMonth": "Next Month",
+      "year": "{year}",
+      "month1": "January",
+      "month2": "February",
+      "month3": "March",
+      "month4": "April",
+      "month5": "May",
+      "month6": "June",
+      "month7": "July",
+      "month8": "August",
+      "month9": "September",
+      "month10": "October",
+      "month11": "November",
+      "month12": "December",
+      "weeks": {
+        "sun": "Sun",
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat"
+      },
+      "weeksFull": {
+        "sun": "Sunday",
+        "mon": "Monday",
+        "tue": "Tuesday",
+        "wed": "Wednesday",
+        "thu": "Thursday",
+        "fri": "Friday",
+        "sat": "Saturday"
+      },
+      "months": {
+        "jan": "Jan",
+        "feb": "Feb",
+        "mar": "Mar",
+        "apr": "Apr",
+        "may": "May",
+        "jun": "Jun",
+        "jul": "Jul",
+        "aug": "Aug",
+        "sep": "Sep",
+        "oct": "Oct",
+        "nov": "Nov",
+        "dec": "Dec"
+      }
+    },
+    "colorpicker": {
+      "defaultLabel": "color picker",
+      "description": "current color is {color}. press enter to select a new color.",
+      "svLabel": "pick saturation and brightness value",
+      "svDescription": "saturation {saturation}, brightness {brightness}, current color is {color}",
+      "hueLabel": "pick hue value",
+      "hueDescription": "hue {hue}, current color is {color}",
+      "alphaLabel": "pick alpha value",
+      "alphaDescription": "alpha {alpha}, current color is {color}",
+      "predefineDescription": "select {value} as the color"
+    },
+    "slider": {
+      "defaultLabel": "slider between {min} and {max}",
+      "defaultRangeStartLabel": "pick start value",
+      "defaultRangeEndLabel": "pick end value"
+    },
+    "transfer": {
+      "noData": "No data",
+      "noMatch": "No matching data",
+      "filterPlaceholder": "Enter keyword"
+    },
+    "upload": {
+      "deleteTip": "Press Delete to remove",
+      "delete": "Delete"
+    },
+    "tour": {
+      "next": "Next",
+      "previous": "Previous",
+      "finish": "Finish",
+      "close": "Close"
+    }
+  },
+  "Message": "Hello world",
+  "Snowman": {
+    "Data": {
+      "Title": "The snowman"
+    },
+    "Body": "    Hooray! It's snowing! It's time to make a snowman.James runs out. He makes a big pile of snow. He puts a big snowball on top. He adds a scarf and a hat. He adds an orange for the nose. He adds coal for the eyes and buttons.In the evening, James opens the door. What does he see? The snowman is moving! James invites him in. The snowman has never been inside a house. He says hello to the cat. He plays with paper towels.A moment later, the snowman takes James's hand and goes out.They go up, up, up into the air! They are flying! What a wonderful night!The next morning, James jumps out of bed. He runs to the door.He wants to thank the snowman. But he's gone."
+  },
+  "SetEnLang": "The English",
+  "SetCnLang": "The Chinese"
+}

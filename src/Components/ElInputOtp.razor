@@ -1,0 +1,33 @@
+@inherits ElementFieldComponentBase<string>
+
+<div class="@wrapperClsBuilder.ToString()"
+     style="@Style"
+     role="group"
+     aria-disabled="@IsInputOtpDisabled">
+    @for (var i = 0; i < Length; i++)
+    {
+        var index = i;
+        @if (index > 0 && !string.IsNullOrEmpty(Separator))
+        {
+            <span class="el-input-otp__separator">@Separator</span>
+        }
+        <input class="el-input-otp__inner"
+               @key="index"
+               @ref="inputElements[index]"
+               value="@GetCellValue(index)"
+               maxlength="1"
+               tabindex="@(index == 0 ? Tabindex : -1)"
+               inputmode="@Inputmode"
+               autocomplete="one-time-code"
+               disabled="@IsInputOtpDisabled"
+               readonly="@Readonly"
+               aria-label="@CellAriaLabel(index)"
+               aria-invalid="@AriaInvalid"
+               aria-describedby="@AriaDescribedby"
+               style="@InputStyle"
+               @oninput="e => OnCellInputAsync(index, e)"
+               @onkeydown="e => OnCellKeyDownAsync(index, e)"
+               @onfocus="() => OnFocus.InvokeAsync()"
+               @onblur="() => OnBlur.InvokeAsync()" />
+    }
+</div>

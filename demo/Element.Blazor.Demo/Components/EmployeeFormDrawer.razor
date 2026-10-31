@@ -1,0 +1,116 @@
+@using ElementPlus
+@inject ElementPlus.MessageBox MessageBox
+@*
+    抽屉里的「内容组件」示例：一个完整的 ElForm 表单 + 确定/取消按钮。
+    通过 ElDrawer 下发的级联 ElDrawerRef：
+      - Drawer.Title = "..."      → 运行时动态改当前抽屉的标题（本例的核心演示点）
+      - await Drawer.CloseAsync() → 走 before-close 校验后关闭抽屉
+    与 EmployeeFormDialog（对话框版）一一对应，区别只是级联引用类型不同。
+*@
+
+<div class="demo-dialog-form">
+    <ElForm @ref="form" Model="@Model" LabelWidth="@("90px")" Validations="validations">
+        <ElFormItem TValue="string" Name="Name" Label="姓名" Prop="Name">
+            <ElInput TValue="string" @bind-Value="Model.Name" Placeholder="请输入姓名" />
+        </ElFormItem>
+        <ElFormItem TValue="int" Name="Age" Label="年龄" Prop="Age">
+            <ElInput TValue="int" @bind-Value="Model.Age" Placeholder="0 ~ 120" />
+        </ElFormItem>
+        <ElFormItem TValue="string" Name="Department" Label="部门" Prop="Department">
+            <ElSelect TValue="string" @bind-Value="Model.Department" Placeholder="请选择部门" Clearable>
+                @foreach (var d in Departments)
+                {
+                    <ElOption TValue="string" Value="@d" Text="@d" />
+                }
+            </ElSelect>
+        </ElFormItem>
+        <ElFormItem TValue="bool" Name="OnDuty" Label="在职" Prop="OnDuty">
+            <ElSwitch TValue="bool" @bind-Value="Model.OnDuty" />
+        </ElFormItem>
+    </ElForm>
+
+    <div class="demo-dialog-form__footer">
+        <ElButton OnClick="RenameTitleAsync">改抽屉标题</ElButton>
+        <ElButton OnClick="Cancel">取消</ElButton>
+        <ElButton Type="ButtonType.Primary" OnClick="SubmitAsync">确定</ElButton>
+    </div>
+</div>
+
+@code {
+    /// <summary>待编辑的数据（由调用方传入；组件直接改它）。</summary>
+    [Parameter]
+    public EmployeeModel Model { get; set; } = new();
+
+    /// <summary>确定后回调，把结果交给页面展示。</summary>
+    [Parameter]
+    public EventCallback<EmployeeModel> OnSubmitted { get; set; }
+
+    /// <summary>抽屉级联引用，由 ElDrawer 通过 CascadingValue 下发。</summary>
+    [CascadingParameter]
+    public ElDrawerRef Drawer { get; set; }
+
+    private ElForm form;
+    private int renameCount;
+
+    private static readonly string[] Departments =
+    {
+        "门诊部", "住院部", "检验科", "影像科", "药剂科"
+    };
+
+    private readonly List<FormFieldValidation> validations = new List<FormFieldValidation>
+    {
+        new FormFieldValidation
+        {
+            Name = "Name",
+            Rules = new List<IValidationRule>
+            {
+                new RequiredRule { ErrorMessage = "请填写姓名" }
+            }
+        },
+        new FormFieldValidation
+        {
+            Name = "Department",
+            Rules = new List<IValidationRule>
+            {
+                new RequiredRule { ErrorMessage = "请选择部门" }
+            }
+        }
+    };
+
+    private async Task SubmitAsync()
+    {
+        if (form != null && !await form.ValidateAsync())
+        {
+            return;
+        }
+
+        if (Model.Age is < 0 or > 120)
+        {
+            await MessageBox.AlertAsync("年龄必须在 0 ~ 120 之间。");
+            return;
+        }
+
+        if (OnSubmitted.HasDelegate)
+        {
+            await OnSubmitted.InvokeAsync(Model);
+        }
+
+        await Drawer.CloseAsync();
+    }
+
+    private async Task Cancel()
+    {
+        await Drawer.CloseAsync();
+    }
+
+    /// <summary>
+    /// 演示「抽屉已经打开，里面的表单运行时改当前抽屉的标题」。
+    /// 走级联 <see cref="ElDrawerRef.Title"/>，赋值后抽屉立即重渲染标题栏。
+    /// </summary>
+    private Task RenameTitleAsync()
+    {
+        renameCount++;
+        Drawer.Title = $"编辑员工信息（第 {renameCount} 次改标题）";
+        return Task.CompletedTask;
+    }
+}

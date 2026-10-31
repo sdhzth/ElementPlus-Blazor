@@ -1,0 +1,51 @@
+@*
+    示例块操作条的源码下发器（demo 专用）。
+
+    每个示例块右下角的「复制代码 / 查看源代码」需要该页整份 .razor 源码。
+    Blazor WASM 在浏览器里读不到磁盘文件，所以：
+      C#（本组件）从程序集内嵌资源里取出源码 → 推给 JS（demo-code.js）
+      → JS 在每个 .demo-section 末尾注入操作条，并把源码切成对应片段。
+
+    之所以不由各页面自己写代码块：示例块在 89 个页面里手写了 486 个，
+    逐页改既容易改坏，也要一直和页面内容同步；这里一次挂载，全站生效。
+
+    放在 <Found> 内、紧随 KeepAliveRouteView，导航一次推一次；同页重复导航会被跳过。
+*@
+@inject IJSRuntime JS
+
+@code {
+    /// <summary>当前路由数据（由 App.razor 的 <c>&lt;Found&gt;</c> 下发）。</summary>
+    [Parameter] public RouteData? RouteData { get; set; }
+
+    private string? lastPushed;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var fullName = RouteData?.PageType?.FullName;
+
+        if (string.IsNullOrEmpty(fullName) || string.Equals(fullName, lastPushed, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        var source = DemoSourceStore.GetPageSource(fullName);
+
+        // 没有内嵌源码的页面（不在 Pages/Components 下）记下来，避免每次导航都查一遍
+        lastPushed = fullName;
+
+        if (source is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await JS.InvokeVoidAsync("demoCodeSetSource", fullName, DemoSourceStore.ToFileName(fullName), source);
+        }
+        catch (Exception)
+        {
+            // JS 侧没加载（被拦截 / 老缓存）时只退化为「无操作条」，页面本身照常
+            lastPushed = null;
+        }
+    }
+}

@@ -1,0 +1,47 @@
+@page "/timepicker"
+@using ElementPlus
+
+<h1 class="demo-page-title">时间选择器 / ElTimePicker</h1>
+<p class="demo-page-sub">对齐官方：支持 @("@bind-Value")（TimeSpan?）、Format、Clearable、Disabled、Size，以及扩展的 IsRange（范围时间）。</p>
+
+<div class="demo-section">
+    <h3>基础用法</h3>
+    <div class="demo-row">
+        <ElTimePicker @bind-Value="time1" Placeholder="选择时间" />
+        <ElTimePicker @bind-Value="time2" Format="HH:mm" Placeholder="时分" />
+    </div>
+    <p class="demo-note">time1=@time1　time2=@time2</p>
+</div>
+
+<div class="demo-section">
+    <h3>时间范围</h3>
+    <div class="demo-row">
+        <ElTimePicker @bind-RangeValue="range1" IsRange="true" RangeSeparator="至" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>禁用与尺寸</h3>
+    <div class="demo-row">
+        <ElTimePicker @bind-Value="time1" Disabled="true" />
+        <ElTimePicker @bind-Value="time1" Size="InputSize.Large" />
+        <ElTimePicker @bind-Value="time1" Size="InputSize.Small" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>TabIndex（Tab 键顺序）</h3>
+    <div class="demo-row">
+        <ElTimePicker @bind-Value="time1" Tabindex="1" Placeholder="Tabindex=1" />
+        <ElTimePicker @bind-Value="time2" Tabindex="2" Placeholder="Tabindex=2" />
+        <ElTimePicker @bind-Value="time3" Tabindex="3" Placeholder="Tabindex=3" />
+    </div>
+    <p class="demo-note">按 Tab 键观察焦点顺序：依次落到 1 → 2 → 3。</p>
+</div>
+
+@code {
+    private TimeSpan? time1 = new TimeSpan(12, 0, 0);
+    private TimeSpan? time2;
+    private TimeSpan? time3;
+    private IList<TimeSpan?> range1 = new List<TimeSpan?>();
+}

@@ -1,0 +1,61 @@
+@page "/affix"
+
+<div class="demo-section">
+    <h3>ElAffix 固钉（对齐 Element Plus Affix）</h3>
+    <p class="demo-page-sub">
+        官方属性：<code>offset</code>（由 <code>Offset</code> / <code>OffsetTop</code> / <code>OffsetBottom</code> 承载）、
+        <code>position</code>（<code>Top</code>/<code>Bottom</code>）、<code>target</code>（滚动容器 CSS 选择器）、<code>z-index</code>；
+        官方事件：<code>change</code>（<code>OnChange</code>）、<code>scroll</code>（<code>OnScroll</code>）。
+        本库扩展：<code>IsFixed</code> 只读状态、<code>Id</code>。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>基础吸顶（滚动下方容器观察）</h3>
+    <div class="demo-row" style="align-items:center; gap:12px;">
+        <span>OffsetTop</span>
+        <input type="range" min="0" max="120" @bind="offsetTop" style="width:200px;" />
+        <span>@offsetTop px</span>
+    </div>
+    <div class="affix-scroll-box">
+        <ElAffix OffsetTop="@offsetTop" ZIndex="120" OnChange="@(v => fixState = v)">
+            <ElButton Type="ButtonType.Primary">吸顶按钮（offset=@offsetTop）</ElButton>
+        </ElAffix>
+        @for (var i = 1; i <= 30; i++)
+        {
+            <p class="demo-note">滚动内容行 @i —— 继续向下滚动，按钮会固定在容器顶部。</p>
+        }
+    </div>
+    <p class="demo-note">当前固钉状态：<b>@(fixState ? "已固定" : "未固定")</b></p>
+</div>
+
+<div class="demo-section">
+    <h3>吸底（Position=Bottom + OffsetBottom）</h3>
+    <div class="affix-scroll-box">
+        @for (var i = 1; i <= 25; i++)
+        {
+            <p class="demo-note">滚动内容行 @i</p>
+        }
+        <ElAffix Position="AffixPosition.Bottom" OffsetBottom="10" ZIndex="120">
+            <ElButton>吸底按钮</ElButton>
+        </ElAffix>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>统一 offset 属性（按 Position 自动映射到上/下）</h3>
+    <div class="affix-scroll-box">
+        <ElAffix Offset="20" Position="AffixPosition.Top">
+            <span class="demo-tag">Offset=20 → OffsetTop</span>
+        </ElAffix>
+        @for (var i = 1; i <= 20; i++)
+        {
+            <p class="demo-note">滚动内容行 @i</p>
+        }
+    </div>
+</div>
+
+@code {
+    private int offsetTop = 20;
+    private bool fixState;
+}

@@ -1,0 +1,243 @@
+@namespace ElementPlus.Blazor.Demo.Components
+
+<div class="demo-section">
+    <h3>③ 动态列 + 整表批量编辑（离开单元格即自动保存，编辑态保持）</h3>
+    <p class="demo-page-sub">
+        <b>动态列</b>：点「添加『备注』列 / 删除『备注』列」即时增删一列（基于 <code>ElTable.ReloadColumns()</code> + 声明式 <code>@@foreach</code> 模式）。
+        <b>整表批量编辑</b>：点「进入编辑」后，<b>每一行同时</b>渲染自己的编辑器 —— 每行一个独立的 <code>ElInput</code> / <code>ElSelect</code>，再点一次恢复只读。
+        <b>离开即保存</b>：文本格<b>失焦</b>、下拉格<b>选中</b>即写回数据源并提示，<b>不会退出编辑态</b>，可以接着改其它行；全程不需要点「更新」。
+    </p>
+
+    <div class="demo-toolbar">
+        <ElButton Type="ButtonType.Primary" Size="ButtonSize.Small" OnClick="AddRemarkColumnAsync">+ 添加「备注」列</ElButton>
+        <ElButton Size="ButtonSize.Small" OnClick="RemoveRemarkColumnAsync">- 删除「备注」列</ElButton>
+        <ElButton Type="@(editMode ? ButtonType.Default : ButtonType.Success)" Size="ButtonSize.Small" OnClick="ToggleEditMode">@(editMode ? "退出编辑" : "进入编辑")</ElButton>
+        <span class="demo-toolbar-status">@editModeStatus</span>
+    </div>
+
+    <ElTable @ref="dynTable" DataSource="dynRows" AutoGenerateColumns="false" HasSelectionColumn="false" Border="true">
+        @foreach (var c in dynColumns)
+        {
+            <ElTableColumn Property="@c.Property" Text="@c.Text" Width="@c.Width" IsEditable="false" OnHeaderClick="OnDynHeaderClick">
+                @{
+                    var row = (DynRow)context;
+                }
+                @if (!editMode || !c.Editable)
+                {
+                    <span>@CellText(row, c.Property)</span>
+                }
+                else if (c.Kind == "select")
+                {
+                    <ElSelect TValue="string" Value="@CellText(row, c.Property)" Label="@CellText(row, c.Property)"
+                              Placeholder="请选择" ValueChanged="@(v => SetCell(row, c, v))">
+                        @foreach (var option in MockData.Categories)
+                        {
+                            <ElOption TValue="string" Value="@option.Value" Text="@option.Text" />
+                        }
+                    </ElSelect>
+                }
+                else if (c.Kind == "int")
+                {
+                    <ElInput TValue="int" Value="@CellInt(row, c.Property)" ValueChanged="@(v => SetCell(row, c, v))"
+                             OnBlur="@(e => OnCellBlur(row, c))" />
+                }
+                else if (c.Kind == "decimal")
+                {
+                    <ElInput TValue="decimal" Value="@CellDecimal(row, c.Property)" ValueChanged="@(v => SetCell(row, c, v))"
+                             OnBlur="@(e => OnCellBlur(row, c))" />
+                }
+                else
+                {
+                    <ElInput TValue="string" Value="@CellText(row, c.Property)" ValueChanged="@(v => SetCell(row, c, v))"
+                             OnBlur="@(e => OnCellBlur(row, c))" Placeholder="（空）" />
+                }
+            </ElTableColumn>
+        }
+    </ElTable>
+
+    <LiveNote Id="dyn-note" Prefix="保存结果：" @ref="dynNote" />
+    <LiveNote Id="dyn-header-note" Prefix="动态列表头点击：" @ref="dynHeaderNote" />
+</div>
+
+@code {
+    // ===== ③ 动态列 + 整表编辑（独立成组件：SetCell 的 ValueChanged 链式重渲染只落在本组件，不连累同级 9 个段） =====
+
+    /// <summary>动态列定义（驱动上面的 @@foreach 声明式列）。修改本集合后调用 ReloadColumns() 才生效。</summary>
+    private class DynCol
+    {
+        public string Id { get; set; }
+        public string Property { get; set; }
+        public string Text { get; set; }
+        public string Width { get; set; }
+        public bool Editable { get; set; } = true;
+        /// <summary>编辑器类型：text（字符串输入框）/ select（下拉）/ int / decimal</summary>
+        public string Kind { get; set; } = "text";
+    }
+
+    /// <summary>③ 用的轻量行模型（含一个可动态增删的「备注」字段）。</summary>
+    private class DynRow
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Category { get; set; }
+        public decimal Price { get; set; }
+        public int Stock { get; set; }
+        public string Remarks { get; set; }
+    }
+
+    private ElTable dynTable;
+    private LiveNote dynNote;
+    private LiveNote dynHeaderNote;
+    private bool editMode = false;
+    private List<DynCol> dynColumns = new List<DynCol>
+    {
+        new DynCol { Id = "Id", Property = "Id", Text = "ID", Width = "60", Editable = false, Kind = "int" },
+        new DynCol { Id = "Name", Property = "Name", Text = "名称", Width = "150", Kind = "text" },
+        new DynCol { Id = "Category", Property = "Category", Text = "类别（ElSelect）", Width = "170", Kind = "select" },
+        new DynCol { Id = "Price", Property = "Price", Text = "单价(元)", Width = "110", Kind = "decimal" },
+        new DynCol { Id = "Stock", Property = "Stock", Text = "库存", Width = "100", Kind = "int" }
+    };
+    private List<DynRow> dynRows = MockData.Products.Take(6).Select((p, i) => new DynRow
+    {
+        Id = i + 1,
+        Name = p.Name,
+        Category = p.Category,
+        Price = p.Price,
+        Stock = p.Stock,
+        Remarks = ""
+    }).ToList();
+
+    private string editModeStatus = "当前：只读（点「进入编辑」开启整表编辑）";
+    private string dynLastAction = "（尚未操作）";
+    private string dynHeaderClickMsg = "（尚未点击动态列表头）";
+
+    /// <summary>
+    /// 重渲染门控：输入过程中（oninput 逐字符）不重渲染本组件，避免「每次按键整张动态表重画」的迟滞感——
+    /// 编辑中的输入框由 ElInput 内部 rawInputText 维护键入显示，数据源已即时落库；
+    /// 仅在失焦 / 下拉选定 / 结构变化（增删列、进出编辑态）时置 true，触发一次重渲染刷新显示。
+    /// </summary>
+    private bool _renderDirty = true;
+
+    // ---- ③ 单元格取值 / 写回（列是运行期决定的，所以用反射读写 DynRow 的属性） ----
+
+    private static object RawCell(DynRow row, string property)
+        => string.IsNullOrEmpty(property) ? null : typeof(DynRow).GetProperty(property)?.GetValue(row);
+
+    private static string CellText(DynRow row, string property)
+        => Convert.ToString(RawCell(row, property)) ?? string.Empty;
+
+    private static int CellInt(DynRow row, string property)
+        => RawCell(row, property) is int v ? v : 0;
+
+    private static decimal CellDecimal(DynRow row, string property)
+        => RawCell(row, property) is decimal v ? v : 0m;
+
+    /// <summary>
+    /// 单元格值变化 → 立即写回数据源（行对象本身就是数据源元素，不经过 OnSave）。
+    /// 用 <c>ValueChanged</c> 绑定（而非 OnChange）：ElInput 在 oninput 时就回调，数据源随键入实时更新，
+    /// 父级 <c>Value</c> 参数拿到的是最新值，失焦时不会再被还原成旧值（即「输入完马上变回原来」的 bug 根因）。
+    /// <b>不改变编辑态</b>：所有行仍保持可编辑，可以接着改下一行。
+    /// 注意：本方法由 ElInput/ElSelect 的 <c>ValueChanged</c> EventCallback 调用，链式渲染只落在 <c>DynEditTable</c>
+    /// 这一个组件上（不连累 TableDemo 的其它 9 个段）；输入过程中再用 <see cref="_renderDirty"/> 门控，
+    /// 连本组件都不重渲染（编辑框由 ElInput 内部维护显示），只在下拉选定等离散动作时重渲染一次。
+    /// </summary>
+    private void SetCell<T>(DynRow row, DynCol col, T value)
+    {
+        var property = typeof(DynRow).GetProperty(col.Property);
+        if (property == null)
+        {
+            return;
+        }
+
+        property.SetValue(row, value);
+        var display = value == null || string.IsNullOrWhiteSpace(value.ToString()) ? "（空）" : value.ToString();
+        dynLastAction = $"自动保存 #{row.Id} · {col.Text} = {display}　（编辑态保持，可继续编辑其它行）";
+        // 只刷新「保存结果」提示小组件（LiveNote 自身 StateHasChanged），不触发本组件重渲染
+        dynNote?.Set(dynLastAction);
+        // 文本/数字输入：边输入边由 ElInput 内部 rawInputText 维护显示，无需重渲染本组件；
+        // 下拉（ElSelect）：离散一次选择，需重渲染本组件以刷新选中 Label。
+        _renderDirty = col.Kind == "select";
+    }
+
+    /// <summary>单元格失焦：补一条提示并触发一次重渲染，把输入框最终值（已落库）正式显示出来（文本/数字格用）。</summary>
+    private void OnCellBlur(DynRow row, DynCol col)
+    {
+        dynLastAction = $"「{col.Text}」失焦 → 已自动保存 #{row.Id}　（编辑态保持，可继续编辑其它行）";
+        dynNote?.Set(dynLastAction);
+        // 失焦时本组件需重渲染一次，使 ElInput 拿到最新 Value 参数、显示规整后的终值
+        _renderDirty = true;
+    }
+
+    private void AddRemarkColumnAsync()
+    {
+        if (dynColumns.Any(c => c.Property == "Remarks"))
+        {
+            dynLastAction = "「备注」列已存在，无需重复添加。";
+            dynNote?.Set(dynLastAction);
+            return;
+        }
+
+        dynColumns.Add(new DynCol { Id = "Remarks", Property = "Remarks", Text = "备注（可编辑）", Width = "160", Kind = "text" });
+        dynTable.ReloadColumns();
+        dynLastAction = "已添加「备注」列。";
+        _renderDirty = true;
+        dynNote?.Set(dynLastAction);
+    }
+
+    private void RemoveRemarkColumnAsync()
+    {
+        var col = dynColumns.FirstOrDefault(c => c.Property == "Remarks");
+        if (col == null)
+        {
+            dynLastAction = "当前没有可删除的「备注」列。";
+            dynNote?.Set(dynLastAction);
+            return;
+        }
+
+        dynColumns.Remove(col);
+        dynTable.ReloadColumns();
+        dynLastAction = "已删除「备注」列。";
+        _renderDirty = true;
+        dynNote?.Set(dynLastAction);
+    }
+
+    /// <summary>
+    /// 一键整表编辑：只切换本组件的 <see cref="editMode"/>，所有行<b>同时</b>渲染各自的编辑器（每行独立实例）。
+    /// 退出时同样只切回只读 —— 因为编辑值在变化时就已经写回数据源，无需「保存」这一步。
+    /// </summary>
+    private void ToggleEditMode()
+    {
+        editMode = !editMode;
+        editModeStatus = editMode
+            ? "当前：整表编辑中 —— 每行都有自己的输入框 / 下拉，离开单元格即自动保存，编辑态不退出。"
+            : "当前：只读（点「进入编辑」开启整表编辑）";
+        dynLastAction = editMode
+            ? "已进入整表编辑：所有行同时可编辑。"
+            : $"已退出编辑（只读）。当前共 {dynRows.Count} 行。";
+        dynTable?.Refresh();
+        _renderDirty = true;
+        dynNote?.Set(dynLastAction);
+        StateHasChanged();
+    }
+
+    /// <summary>重渲染门控：只有结构性变化或失焦/下拉等离散动作才重渲染，输入过程中的连续按键被拦截，消除迟滞。</summary>
+    protected override bool ShouldRender()
+    {
+        if (_renderDirty)
+        {
+            _renderDirty = false;
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// 动态列（含运行时点「添加备注列」生成的列）表头点击：证明 OnHeaderClick 对动态列同样生效。
+    /// 回调参数为该列对应的 TableHeader，可拿到 Text / Property.Name 等。
+    /// </summary>
+    private void OnDynHeaderClick(TableHeader header)
+    {
+        dynHeaderClickMsg = $"点击了动态列表头「{header.Text}」（Property={header.Property?.Name}）";
+        dynHeaderNote?.Set(dynHeaderClickMsg);
+    }
+}

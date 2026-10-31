@@ -1,0 +1,12 @@
+@inherits ElementComponentBase
+
+<div class="@WrapperClass" style="@WrapperStyle" role="marquee" aria-label="@AriaLabel" @attributes="Attributes">
+    <div class="@ItemClass" style="@ItemStyle">
+        @for (var i = 0; i < EffectiveRepeat; i++)
+        {
+            <div class="el-marquee-grow__copy" style="@CopyStyle(i)" @attributes="CopyAttributes(i)">
+                @ContentFragment
+            </div>
+        }
+    </div>
+</div>

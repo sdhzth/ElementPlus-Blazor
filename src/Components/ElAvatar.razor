@@ -1,0 +1,32 @@
+@inherits ElementComponentBase
+
+<span class="@AvatarClass" style="@AvatarStyle" aria-label="@AriaLabel" role="img" @attributes="Attributes">
+    @if (!string.IsNullOrWhiteSpace(Src) && !isImageError)
+    {
+        <img src="@Src" alt="@Alt" srcset="@SrcSet" style="@ImageStyle" @onerror="OnImageErrorAsync" />
+    }
+    else if (!string.IsNullOrWhiteSpace(Src) && isImageError && !string.IsNullOrWhiteSpace(ErrorIcon))
+    {
+        <i class="@ErrorIconClass"></i>
+    }
+    else if (!string.IsNullOrWhiteSpace(Src) && isImageError && !string.IsNullOrWhiteSpace(DisplayText))
+    {
+        <span>@DisplayText</span>
+    }
+    else if (IconContent != null)
+    {
+        @IconContent
+    }
+    else if (!string.IsNullOrWhiteSpace(Icon))
+    {
+        <i class="@IconClass"></i>
+    }
+    else if (!string.IsNullOrWhiteSpace(DisplayText))
+    {
+        <span>@DisplayText</span>
+    }
+    else
+    {
+        @ChildContent
+    }
+</span>

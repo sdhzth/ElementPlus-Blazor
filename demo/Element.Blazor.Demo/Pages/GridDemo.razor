@@ -1,0 +1,74 @@
+@page "/grid"
+@using ElementPlus
+
+<h1 class="demo-page-title">栅格 / ElRow + ElCol（Layout）</h1>
+<p class="demo-page-sub">对齐官方 Layout：基于 24 列的栅格系统。<code>ElRow</code> 提供 <code>Gutter</code>（列间距）、<code>Justify</code>、<code>Align</code>；<code>ElCol</code> 提供 <code>Span</code> / <code>Offset</code> / <code>Push</code> / <code>Pull</code> 与响应式 <code>Xs/Sm/Md/Lg/Xl</code>。</p>
+
+<style>
+    .demo-grid-col {
+        background: var(--el-color-primary-light-9, #ecf5ff);
+        border-radius: 4px;
+        min-height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--el-color-primary, #409eff);
+        font-size: 13px;
+    }
+</style>
+
+<div class="demo-section">
+    <h3>基础列宽（Span）</h3>
+    <ElRow>
+        <ElCol Span="12"><div class="demo-grid-col">span=12</div></ElCol>
+        <ElCol Span="12"><div class="demo-grid-col">span=12</div></ElCol>
+    </ElRow>
+    <ElRow>
+        <ElCol Span="8"><div class="demo-grid-col">span=8</div></ElCol>
+        <ElCol Span="8"><div class="demo-grid-col">span=8</div></ElCol>
+        <ElCol Span="8"><div class="demo-grid-col">span=8</div></ElCol>
+    </ElRow>
+    <ElRow>
+        <ElCol Span="6"><div class="demo-grid-col">span=6</div></ElCol>
+        <ElCol Span="6"><div class="demo-grid-col">span=6</div></ElCol>
+        <ElCol Span="6"><div class="demo-grid-col">span=6</div></ElCol>
+        <ElCol Span="6"><div class="demo-grid-col">span=6</div></ElCol>
+    </ElRow>
+</div>
+
+<div class="demo-section">
+    <h3>列间距（Gutter）</h3>
+    <ElRow Gutter="20">
+        <ElCol Span="8"><div class="demo-grid-col">gutter=20</div></ElCol>
+        <ElCol Span="8"><div class="demo-grid-col">gutter=20</div></ElCol>
+        <ElCol Span="8"><div class="demo-grid-col">gutter=20</div></ElCol>
+    </ElRow>
+</div>
+
+<div class="demo-section">
+    <h3>偏移（Offset）</h3>
+    <ElRow>
+        <ElCol Span="8"><div class="demo-grid-col">span=8</div></ElCol>
+        <ElCol Span="8" Offset="8"><div class="demo-grid-col">span=8 offset=8</div></ElCol>
+    </ElRow>
+</div>
+
+<div class="demo-section">
+    <h3>水平对齐（Justify）</h3>
+    <ElRow Justify="RowJustify.Center" Style="background:#f5f7fa;">
+        <ElCol Span="4"><div class="demo-grid-col">center</div></ElCol>
+        <ElCol Span="4"><div class="demo-grid-col">center</div></ElCol>
+    </ElRow>
+    <ElRow Justify="RowJustify.SpaceBetween" Style="background:#f5f7fa;margin-top:8px;">
+        <ElCol Span="4"><div class="demo-grid-col">between</div></ElCol>
+        <ElCol Span="4"><div class="demo-grid-col">between</div></ElCol>
+    </ElRow>
+</div>
+
+<div class="demo-section">
+    <h3>垂直对齐（Align）</h3>
+    <ElRow Align="RowAlign.Middle" Style="background:#f5f7fa;">
+        <ElCol Span="6"><div class="demo-grid-col" style="height:48px;">middle 高</div></ElCol>
+        <ElCol Span="6"><div class="demo-grid-col" style="height:24px;">middle 矮</div></ElCol>
+    </ElRow>
+</div>

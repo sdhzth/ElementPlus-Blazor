@@ -1,0 +1,17 @@
+@inherits ElementDialogBase
+@using ElementPlus.Markdown.IconHandlers
+
+<ElForm @ref="form">
+    <ElFormItem TValue="string" IsRequired="true" Name="@nameof(FileModel.Name)" Label="名称">
+        <ElInput TValue="string"></ElInput>
+    </ElFormItem>
+    <ElFormItem TValue="string" Name="@nameof(FileModel.Title)" Label="标题">
+        <ElInput TValue="string"></ElInput>
+    </ElFormItem>
+    <ElFormItem TValue="string[]" IsRequired="true" Name="@nameof(FileModel.Urls)" Label="文件">
+        <ElMarkdownFileUpload DisableUpload="DisableUpload" Tip="@Tip" UploadUrl="@UploadUrl" UploadType="UploadType.File" AllowExtensions="AllowExtensions" MaxSize="MaxSize"></ElMarkdownFileUpload>
+    </ElFormItem>
+    <ElFormActionItem Style="text-align:right">
+        <ElButton Type="@ButtonType.Primary" @onclick="Submit">确定</ElButton>
+    </ElFormActionItem>
+</ElForm>

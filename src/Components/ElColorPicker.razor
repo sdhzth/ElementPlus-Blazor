@@ -1,0 +1,42 @@
+@inherits ElementFieldComponentBase<string>
+
+<div class="@WrapperClass"
+     style="@Style"
+     @ref="colorPickerElement"
+     role="combobox"
+     aria-label="@TriggerAriaLabel"
+     aria-description="@TriggerAriaDescription"
+     aria-haspopup="dialog"
+     aria-expanded="@IsDropDownOpen"
+     aria-disabled="@IsColorPickerDisabled"
+     aria-controls="@DropDownId"
+     tabindex="@(IsColorPickerDisabled ? -1 : Tabindex)"
+     @onclick="OnColorPickerClickAsync"
+     @onfocus="OnFocusAsync"
+     @onblur="OnBlurAsync"
+     @onkeydown="OnKeyDownAsync"
+     @attributes="Attributes">
+    <span class="el-color-picker__trigger">
+        <span class="@ColorBlockClass">
+            @if (HasColor)
+            {
+                <span class="el-color-picker__color-inner" style="@ColorInnerStyle"></span>
+            }
+            else
+            {
+                <i class="el-color-picker__empty el-icon-close"></i>
+            }
+        </span>
+        @* EP 口径：触发器上的图标只是状态显示（arrow-down / 无色时的 close），没有任何点击语义，
+           清空只由面板页脚的「清空」承担。原来这里在图标上挂了清空 + stopPropagation，而遗留 CSS
+           又把它拉成一整块（width:100%），实测 6/6 首次点色块被图标吃掉变成「清空」而不是开面板。 *@
+        @if (HasColor)
+        {
+            <i class="@TriggerIconClass"></i>
+        }
+        @if (IsColorPickerDisabled)
+        {
+            <span class="el-color-picker__mask"></span>
+        }
+    </span>
+</div>

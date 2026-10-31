@@ -1,0 +1,30 @@
+@inherits ElementComponentBase
+
+<span class="el-tooltip__trigger" @ref="triggerRef" style="@TriggerStyle" @attributes="Attributes"
+      @onmouseenter="OnMouseOverAsync"
+      @onmouseleave="OnMouseOutAsync"
+      @onclick="OnClickAsync"
+      @onfocusin="OnFocusInAsync"
+      @onfocusout="OnFocusOutAsync"
+      @oncontextmenu="OnContextMenuAsync"
+      @oncontextmenu:preventDefault="PreventContextMenu">
+    @ChildContent
+    @if (ShouldShowPopper)
+    {
+        <div id="@PopperId" class="@PopperClassValue" style="@PopperStyleValue" role="tooltip" x-placement="@EffectivePlacement"
+             @onmouseenter="OnPopperMouseEnterAsync">
+            @if (ContentTemplate != null)
+            {
+                @ContentTemplate
+            }
+            else
+            {
+                @Content
+            }
+            @if (ShowArrow)
+            {
+                <div x-arrow="" class="popper__arrow"></div>
+            }
+        </div>
+    }
+</span>

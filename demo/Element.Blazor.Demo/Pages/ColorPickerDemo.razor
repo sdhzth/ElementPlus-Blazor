@@ -1,0 +1,61 @@
+@page "/colorpicker"
+@using ElementPlus
+
+<h1 class="demo-page-title">颜色选择器 / ElColorPicker</h1>
+<p class="demo-page-sub">对齐官方：支持 @("@bind-Value")、ShowAlpha（透明度）、ColorFormat（输出格式）、Predefine（预设色板）、Clearable、Disabled、Size。</p>
+
+<div class="demo-section">
+    <h3>基础用法</h3>
+    <div class="demo-row">
+        <ElColorPicker @bind-Value="color1" />
+        <ElColorPicker @bind-Value="color2" ShowAlpha="true" />
+        <ElColorPicker @bind-Value="color3" Disabled="true" />
+    </div>
+    <p class="demo-note">当前值：@color1　|　@color2　|　@color3</p>
+</div>
+
+<div class="demo-section">
+    <h3>预设色板 + 输出格式</h3>
+    <div class="demo-row">
+        <ElColorPicker @bind-Value="color4" ColorFormat="hex" Predefine="predefine" />
+        <ElColorPicker @bind-Value="color5" ShowAlpha="true" ColorFormat="rgb" Predefine="predefine" />
+        <ElColorPicker @bind-Value="color6" Clearable="true" />
+    </div>
+    <p class="demo-note">当前值：@color4　|　@color5　|　@color6</p>
+</div>
+
+<div class="demo-section">
+    <h3>尺寸</h3>
+    <div class="demo-row">
+        <ElColorPicker @bind-Value="color1" Size="InputSize.Large" />
+        <ElColorPicker @bind-Value="color1" Size="InputSize.Normal" />
+        <ElColorPicker @bind-Value="color1" Size="InputSize.Small" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>清空（页脚按钮）</h3>
+    <p class="demo-note">对齐官方：EP 的 <code>clearable</code> 默认就是 true，所以左边这台没写参数也有「清空」；右边显式 <code>Clearable="false"</code> 作对照。清空只在面板页脚点，触发器图标不参与。</p>
+    <div class="demo-row">
+        <ElColorPicker @bind-Value="color7" />
+        <ElColorPicker @bind-Value="color8" Clearable="false" />
+    </div>
+    <p class="demo-note">当前值：@color7　|　@color8</p>
+</div>
+
+@code {
+    private string color1 = "#409eff";
+    private string color2 = "rgba(64, 158, 255, 0.5)";
+    private string color3 = "#67c23a";
+    private string color4 = "#f56c6c";
+    private string color5 = "rgba(103, 194, 58, 1)";
+    private string color6 = "#e6a23c";
+    private string color7 = "#909399";
+    private string color8 = "#67c23a";
+
+    private List<string> predefine = new List<string>
+    {
+        "#ff4500", "#ff8c00", "#ffd700", "#90ee90",
+        "#00ced1", "#1e90ff", "#c71585", "#409eff"
+    };
+}

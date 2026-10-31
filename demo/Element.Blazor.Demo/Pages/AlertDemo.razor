@@ -1,0 +1,63 @@
+@page "/alert"
+@using ElementPlus
+
+<h1 class="demo-page-title">ElAlert 警告提示（对齐 Element Plus Alert）</h1>
+<p class="demo-page-sub">
+    用于页面中展示重要的提示信息。支持四种类型、两种主题（light/dark）、可关闭、居中、自定义图标与标题/内容插槽，并提供 close 事件。
+</p>
+
+<div class="demo-section">
+    <h3>基础用法（四种 type）</h3>
+    <div class="demo-col">
+        <ElAlert Title="成功提示的文案" Type="MessageType.Success" ShowIcon="true" />
+        <ElAlert Title="消息提示的文案" Type="MessageType.Info" ShowIcon="true" />
+        <ElAlert Title="警告提示的文案" Type="MessageType.Warning" ShowIcon="true" />
+        <ElAlert Title="错误提示的文案" Type="MessageType.Error" ShowIcon="true" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>主题 effect（light / dark）</h3>
+    <div class="demo-col">
+        <ElAlert Title="light 主题（默认）" Type="MessageType.Success" Effect="AlertEffect.Light" ShowIcon="true" />
+        <ElAlert Title="dark 主题" Type="MessageType.Success" Effect="AlertEffect.Dark" ShowIcon="true" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>带辅助性文字介绍</h3>
+    <div class="demo-col">
+        <ElAlert Type="MessageType.Warning" ShowIcon="true">
+            <ChildContent>
+                这是一句多行描述，补充说明警告的具体原因，例如「库存不足，请尽快补货」。
+            </ChildContent>
+        </ElAlert>
+        <ElAlert Title="带标题与描述" Type="MessageType.Info" ShowIcon="true" Description="描述内容描述内容描述内容。" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>文字居中 / 不可关闭 / 自定义图标</h3>
+    <div class="demo-col">
+        <ElAlert Title="文字居中的提示" Type="MessageType.Success" Center="true" ShowIcon="true" />
+        <ElAlert Title="不可关闭的提示" Type="MessageType.Error" Closable="false" ShowIcon="true" />
+        <ElAlert Title="自定义图标插槽" Type="MessageType.Info" ShowIcon="true">
+            <IconContent><i class="el-icon-star-on" style="color:#f7ba2a"></i></IconContent>
+        </ElAlert>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>close 事件（关闭后记录日志）</h3>
+    <ElAlert Title="点右上角关闭我" Type="MessageType.Info" ShowIcon="true" OnClose="OnAlertClose" />
+    <p class="demo-note">已触发关闭次数：@closeCount</p>
+</div>
+
+@code {
+    private int closeCount;
+
+    private void OnAlertClose()
+    {
+        closeCount++;
+    }
+}

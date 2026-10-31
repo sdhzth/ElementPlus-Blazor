@@ -1,0 +1,61 @@
+@page "/image"
+@using ElementPlus
+
+<h1 class="demo-page-title">图片 / ElImage</h1>
+<p class="demo-page-sub">对齐官方：支持 Src、Fit、Lazy、Width / Height、PreviewSrcList（点击预览）、Alt、Placeholder / ErrorContent 插槽。</p>
+
+<div class="demo-section">
+    <h3>基础用法</h3>
+    <div class="demo-row">
+        <ElImage Src="https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg" Width="200px" />
+        <ElImage Src="https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg" Width="200px" Fit="cover" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>加载失败占位</h3>
+    <div class="demo-row">
+        <ElImage Src="https://invalid.example.com/not-exist.png" Width="200px" ErrorText="加载失败" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>点击预览（PreviewSrcList）</h3>
+    <div class="demo-row">
+        <ElImage Src="https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg"
+                 Width="200px"
+                 PreviewSrcList="@(new List<string> { "https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg" })" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>预览层 teleport 到 body (PreviewTeleported)</h3>
+    <div class="demo-row">
+        <ElImage Src="https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg"
+                 Width="200px"
+                 PreviewTeleported="true"
+                 PreviewSrcList="@(new List<string> { "https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg" })" />
+    </div>
+    <p class="demo-note">PreviewTeleported 将预览层挂到 body，避免被祖先 transform/overflow 裁剪（对齐 EP preview-teleported）。</p>
+</div>
+
+<div class="demo-section">
+    <h3>InitialIndex（预览起始索引）</h3>
+    <div class="demo-row">
+        <ElImage Src="@gallery[0]" Width="200px"
+                 PreviewSrcList="@gallery"
+                 InitialIndex="2"
+                 PreviewTeleported="false" />
+    </div>
+    <p class="demo-note">缩略图显示第 1 张，点击预览时从第 3 张（index=2）开始；左右箭头可继续切换。</p>
+</div>
+
+@code {
+    private List<string> gallery = new List<string>
+    {
+        "https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg",
+        "https://fuss10.elemecdn.com/8/27/f01c15bb73e1ef3793e64e6b7bbccjpeg.jpeg",
+        "https://fuss10.elemecdn.com/1/8e/aeffeb4de74e2fde4bd74fc7b4486jpeg.jpeg",
+        "https://fuss10.elemecdn.com/2/11/6535bcfb26e4c79b48ddde44f4b6fjpeg.jpeg"
+    };
+}

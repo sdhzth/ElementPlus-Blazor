@@ -1,0 +1,1728 @@
+@using System.Linq
+@using System.Collections.ObjectModel
+@using ElementPlus.Markdown
+@page "/grow"
+@inject HttpClient Http
+@using System.Threading
+@implements IDisposable
+
+<h1 class="demo-page-title">自研 / Grow 组件（带 Mock 数据）</h1>
+<p class="demo-page-sub">
+    透视表、图表、热力图、文档预览、富文本编辑器、下拉表格、条码、二维码、Markdown、表单字段、对话框
+    均为本仓库自渲染实现，不引入任何第三方 UI 组件库。
+</p>
+
+<div class="demo-section">
+    <h3>ElPivotDataGridGrow 透视表（订单 Mock 数据）</h3>
+    @if (builtSections > 0)
+    {
+    <ElPivotDataGridGrow TItem="MockData.Order" Data="MockData.Orders" AllowPaging="true" ShowColumnsTotals="true">
+        <Columns>
+            <ElPivotColumnGrow TItem="MockData.Order" Property="Region" Title="区域" />
+            <ElPivotColumnGrow TItem="MockData.Order" Property="Year" Title="年份" />
+        </Columns>
+        <Rows>
+            <ElPivotRowGrow TItem="MockData.Order" Property="Category" Title="品类" />
+            <ElPivotRowGrow TItem="MockData.Order" Property="Product" Title="商品" />
+        </Rows>
+        <Aggregates>
+            <ElPivotAggregateGrow TItem="MockData.Order" Property="Amount" Title="金额" Aggregate="ElPivotAggregateFunction.Sum" FormatString="N2" />
+        </Aggregates>
+    </ElPivotDataGridGrow>
+    }
+</div>
+
+<div class="demo-section">
+    <h3>ElChartGrow 图表（销量 Mock 数据）</h3>
+    @if (builtSections > 1)
+    {
+    <ElChartGrow Title="月度销量" Width="640" Height="320" Cls="demo-chart-basic">
+        <ElChartSeries Items="MockData.SalesPoints" CategoryField="Category" ValueField="Value" Title="销量" ChartType="ElChartType.Column" />
+    </ElChartGrow>
+    }
+</div>
+
+<div class="demo-section">
+    <h3>ElChartGrow 金融 / 统计 / 范围 / 流程族（新增 19 种序列类型）</h3>
+    @if (builtSections > 2)
+    {
+    <p class="demo-page-sub">
+        全部由 <code>ElChartGrowEngine</code> 在 C# 侧算出几何并输出 SVG，不引入任何第三方图表库。
+        多值系列统一走「5 个数值槽」模型：既可用语义别名（<code>OpenField</code>/<code>HighField</code>…
+        ），也可用通用 <code>ValueField2..5</code>。K 线涨跌色默认中国习惯「涨红跌绿」。
+    </p>
+
+    <div class="demo-row" style="align-items:flex-start;flex-wrap:wrap;">
+        <ElChartGrow Title="K 线（Candlestick）" Width="420" Height="280" Cls="demo-chart-candle">
+            <ElChartSeries Items="MockData.PriceCandles" CategoryField="Category"
+                           OpenField="Open" HighField="High" LowField="Low" CloseField="Close"
+                           Title="收盘价" ChartType="ElChartType.Candlestick" />
+        </ElChartGrow>
+
+        <ElChartGrow Title="OHLC 图" Width="420" Height="280" Cls="demo-chart-ohlc">
+            <ElChartSeries Items="MockData.PriceCandles" CategoryField="Category"
+                           OpenField="Open" HighField="High" LowField="Low" CloseField="Close"
+                           Title="开收高低" ChartType="ElChartType.Ohlc" />
+        </ElChartGrow>
+    </div>
+
+    <div class="demo-row" style="align-items:flex-start;flex-wrap:wrap;">
+        <ElChartGrow Title="箱线图（平均住院日分布）" Width="420" Height="280" Cls="demo-chart-boxplot">
+            <ElChartSeries Items="MockData.StayBoxes" CategoryField="Category"
+                           MinField="Min" Q1Field="Q1" MedianField="Median" Q3Field="Q3" MaxField="Max"
+                           Title="住院日" ChartType="ElChartType.BoxPlot" />
+        </ElChartGrow>
+
+        <ElChartGrow Title="范围面积（体温区间）" Width="420" Height="280" Cls="demo-chart-rangearea">
+            <ElChartSeries Items="MockData.TempRanges" CategoryField="Category"
+                           LowField="Low" HighField="High" Title="体温" ChartType="ElChartType.RangeArea" />
+        </ElChartGrow>
+    </div>
+
+    <div class="demo-row" style="align-items:flex-start;flex-wrap:wrap;">
+        <ElChartGrow Title="范围柱状（体温区间）" Width="420" Height="280" Cls="demo-chart-rangecolumn">
+            <ElChartSeries Items="MockData.TempRanges" CategoryField="Category"
+                           LowField="Low" HighField="High" Title="体温" ChartType="ElChartType.RangeColumn" />
+        </ElChartGrow>
+
+        <ElChartGrow Title="范围条形（体温区间）" Width="420" Height="280" Cls="demo-chart-rangebar">
+            <ElChartSeries Items="MockData.TempRanges" CategoryField="Category"
+                           LowField="Low" HighField="High" Title="体温" ChartType="ElChartType.RangeBar" />
+        </ElChartGrow>
+    </div>
+
+    <div class="demo-row" style="align-items:flex-start;flex-wrap:wrap;">
+        <ElChartGrow Title="瀑布图（门诊收入变化）" Width="420" Height="280" Cls="demo-chart-waterfall">
+            <ElChartSeries Items="MockData.RevenueWaterfall" CategoryField="Category"
+                           ValueField="Amount" IsTotalField="IsTotal"
+                           Title="收支" ChartType="ElChartType.Waterfall" />
+        </ElChartGrow>
+
+        <ElChartGrow Title="水平瀑布图" Width="420" Height="280" Cls="demo-chart-hwaterfall">
+            <ElChartSeries Items="MockData.RevenueWaterfall" CategoryField="Category"
+                           ValueField="Amount" IsTotalField="IsTotal"
+                           Title="收支" ChartType="ElChartType.HorizontalWaterfall" />
+        </ElChartGrow>
+    </div>
+
+    <div class="demo-row" style="align-items:flex-start;flex-wrap:wrap;">
+        <ElChartGrow Title="子弹图（KPI 达成）" Width="420" Height="280" Cls="demo-chart-bullet">
+            <ElChartSeries Items="MockData.DeptKpi" CategoryField="Category"
+                           ValueField="Actual" TargetField="Target"
+                           Title="实际 / 目标" ChartType="ElChartType.Bullet" />
+        </ElChartGrow>
+
+        <ElChartGrow Title="高低图（HighLow）" Width="420" Height="280" Cls="demo-chart-highlow">
+            <ElChartSeries Items="MockData.PriceCandles" CategoryField="Category"
+                           HighField="High" LowField="Low" CloseField="Close"
+                           Title="高低收" ChartType="ElChartType.HighLow" />
+        </ElChartGrow>
+    </div>
+
+    <div class="demo-row" style="align-items:flex-start;flex-wrap:wrap;">
+        <ElChartGrow Title="100% 堆叠柱（占比）" Width="420" Height="280" Cls="demo-chart-fullstacked">
+            <ElChartSeries Items="MockData.SalesPoints" CategoryField="Category" ValueField="Value" Title="线上" ChartType="ElChartType.FullStackedColumn" />
+            <ElChartSeries Items="MockData.SalesPointsB" CategoryField="Category" ValueField="Value" Title="线下" ChartType="ElChartType.FullStackedColumn" />
+        </ElChartGrow>
+
+        <ElChartGrow Title="漏斗图" Width="420" Height="280" Cls="demo-chart-funnel">
+            <ElChartSeries Items="MockData.SalesPoints" CategoryField="Category" ValueField="Value" Title="漏斗" ChartType="ElChartType.Funnel" />
+        </ElChartGrow>
+    </div>
+
+    <div class="demo-row" style="align-items:flex-start;flex-wrap:wrap;">
+        <ElChartGrow Title="金字塔图" Width="420" Height="280" Cls="demo-chart-pyramid">
+            <ElChartSeries Items="MockData.SalesPoints" CategoryField="Category" ValueField="Value" Title="金字塔" ChartType="ElChartType.Pyramid" />
+        </ElChartGrow>
+
+        <ElChartGrow Title="蜘蛛柱状图（SpiderColumn）" Width="420" Height="280" Cls="demo-chart-spider">
+            <ElChartSeries Items="MockData.SalesPoints" CategoryField="Category" ValueField="Value" Title="指标" ChartType="ElChartType.SpiderColumn" />
+        </ElChartGrow>
+    </div>
+
+    <div class="demo-row" style="align-items:flex-start;flex-wrap:wrap;">
+        <ElChartGrow Title="热力图（门诊量）" Width="420" Height="280" Cls="demo-chart-heatmap">
+            <ElChartSeries Items="MockData.OutpatientHeat" CategoryField="Cell" GroupField="Slot" ValueField="Count" Title="门诊量" ChartType="ElChartType.Heatmap" />
+        </ElChartGrow>
+
+        <ElChartGrow Title="等值带图（Contour）" Width="420" Height="280" Cls="demo-chart-contour">
+            <ElChartSeries Items="MockData.OutpatientHeat" CategoryField="Cell" GroupField="Slot" ValueField="Count" Title="门诊量" ChartType="ElChartType.Contour" />
+        </ElChartGrow>
+    </div>
+    }
+</div>
+
+<div class="demo-section">
+    <h3>ElChartGrow 标准型序列（Bar / 散点 / 气泡 / 饼 / 环 / 雷达 / 堆叠族 / 100% 堆叠族）</h3>
+    @if (builtSections > 3)
+    {
+    <p class="demo-page-sub">
+        这一组覆盖 <code>ElChartType</code> 中「先有的标准型」，与上一组新增的 19 种合起来让 <code>/grow</code> 覆盖全部 32 种序列。
+    </p>
+
+    <div class="demo-row" style="align-items:flex-start;flex-wrap:wrap;">
+        <ElChartGrow Title="条形图（Bar）" Width="420" Height="280" Cls="demo-chart-bar">
+            <ElChartSeries Items="MockData.SalesPoints" CategoryField="Category" ValueField="Value" Title="销量" ChartType="ElChartType.Bar" />
+        </ElChartGrow>
+
+        <ElChartGrow Title="散点图（Scatter，数值 X 轴）" Width="420" Height="280" Cls="demo-chart-scatter">
+            <ElChartSeries Items="MockData.ScatterPoints" XValueField="X" ValueField="Y" Title="样本" ChartType="ElChartType.Scatter" />
+        </ElChartGrow>
+    </div>
+
+    <div class="demo-row" style="align-items:flex-start;flex-wrap:wrap;">
+        <ElChartGrow Title="气泡图（Bubble，Size 为第三维）" Width="420" Height="280" Cls="demo-chart-bubble">
+            <ElChartSeries Items="MockData.ScatterPoints" XValueField="X" ValueField="Y" SizeField="Size" Title="样本" ChartType="ElChartType.Bubble" />
+        </ElChartGrow>
+
+        <ElChartGrow Title="饼图（Pie）" Width="420" Height="280" Cls="demo-chart-pie">
+            <ElChartSeries Items="MockData.SalesPoints" CategoryField="Category" ValueField="Value" Title="销量" ChartType="ElChartType.Pie" />
+        </ElChartGrow>
+    </div>
+
+    <div class="demo-row" style="align-items:flex-start;flex-wrap:wrap;">
+        <ElChartGrow Title="环图（Donut）" Width="420" Height="280" Cls="demo-chart-donut">
+            <ElChartSeries Items="MockData.SalesPoints" CategoryField="Category" ValueField="Value" Title="销量" ChartType="ElChartType.Donut" />
+        </ElChartGrow>
+
+        <ElChartGrow Title="雷达图（Radar）" Width="420" Height="280" Cls="demo-chart-radar">
+            <ElChartSeries Items="MockData.SalesPoints" CategoryField="Category" ValueField="Value" Title="销量" ChartType="ElChartType.Radar" />
+        </ElChartGrow>
+    </div>
+
+    <div class="demo-row" style="align-items:flex-start;flex-wrap:wrap;">
+        <ElChartGrow Title="堆叠柱（StackedColumn）" Width="420" Height="280" Cls="demo-chart-stackedcol">
+            <ElChartSeries Items="MockData.SalesPoints" CategoryField="Category" ValueField="Value" Title="线上" ChartType="ElChartType.StackedColumn" />
+            <ElChartSeries Items="MockData.SalesPointsB" CategoryField="Category" ValueField="Value" Title="线下" ChartType="ElChartType.StackedColumn" />
+        </ElChartGrow>
+
+        <ElChartGrow Title="堆叠条（StackedBar）" Width="420" Height="280" Cls="demo-chart-stackedbar">
+            <ElChartSeries Items="MockData.SalesPoints" CategoryField="Category" ValueField="Value" Title="线上" ChartType="ElChartType.StackedBar" />
+            <ElChartSeries Items="MockData.SalesPointsB" CategoryField="Category" ValueField="Value" Title="线下" ChartType="ElChartType.StackedBar" />
+        </ElChartGrow>
+    </div>
+
+    <div class="demo-row" style="align-items:flex-start;flex-wrap:wrap;">
+        <ElChartGrow Title="堆叠面积（StackedArea）" Width="420" Height="280" Cls="demo-chart-stackedarea">
+            <ElChartSeries Items="MockData.SalesPoints" CategoryField="Category" ValueField="Value" Title="线上" ChartType="ElChartType.StackedArea" />
+            <ElChartSeries Items="MockData.SalesPointsB" CategoryField="Category" ValueField="Value" Title="线下" ChartType="ElChartType.StackedArea" />
+        </ElChartGrow>
+
+        <ElChartGrow Title="堆叠折线（StackedLine）" Width="420" Height="280" Cls="demo-chart-stackedline">
+            <ElChartSeries Items="MockData.SalesPoints" CategoryField="Category" ValueField="Value" Title="线上" ChartType="ElChartType.StackedLine" />
+            <ElChartSeries Items="MockData.SalesPointsB" CategoryField="Category" ValueField="Value" Title="线下" ChartType="ElChartType.StackedLine" />
+        </ElChartGrow>
+    </div>
+
+    <div class="demo-row" style="align-items:flex-start;flex-wrap:wrap;">
+        <ElChartGrow Title="100% 堆叠条（FullStackedBar）" Width="420" Height="280" Cls="demo-chart-fsbar">
+            <ElChartSeries Items="MockData.SalesPoints" CategoryField="Category" ValueField="Value" Title="线上" ChartType="ElChartType.FullStackedBar" />
+            <ElChartSeries Items="MockData.SalesPointsB" CategoryField="Category" ValueField="Value" Title="线下" ChartType="ElChartType.FullStackedBar" />
+        </ElChartGrow>
+
+        <ElChartGrow Title="100% 堆叠面积（FullStackedArea）" Width="420" Height="280" Cls="demo-chart-fsarea">
+            <ElChartSeries Items="MockData.SalesPoints" CategoryField="Category" ValueField="Value" Title="线上" ChartType="ElChartType.FullStackedArea" />
+            <ElChartSeries Items="MockData.SalesPointsB" CategoryField="Category" ValueField="Value" Title="线下" ChartType="ElChartType.FullStackedArea" />
+        </ElChartGrow>
+    </div>
+
+    <div class="demo-row" style="align-items:flex-start;flex-wrap:wrap;">
+        <ElChartGrow Title="100% 堆叠折线（FullStackedLine）" Width="420" Height="280" Cls="demo-chart-fsline">
+            <ElChartSeries Items="MockData.SalesPoints" CategoryField="Category" ValueField="Value" Title="线上" ChartType="ElChartType.FullStackedLine" />
+            <ElChartSeries Items="MockData.SalesPointsB" CategoryField="Category" ValueField="Value" Title="线下" ChartType="ElChartType.FullStackedLine" />
+        </ElChartGrow>
+    </div>
+    }
+</div>
+
+<div class="demo-section">
+    <h3>ElChartGrow 结构能力：趋势线 / 参考线 / 标注 / 命名次轴 / 悬停提示</h3>
+    @if (builtSections > 4)
+    {
+    <p class="demo-page-sub">
+        趋势线支持线性回归、移动平均、二次拟合、均值 / 中位数 / 众数；参考线按数值或类别定位；
+        命名次轴让两条量级差 10 倍的序列共用一块画布（主轴量程只统计未绑定次轴的序列）；
+        把鼠标移到图上会出十字准线 + 数据点高亮 + HTML 提示框。
+    </p>
+
+    <div class="demo-row" style="align-items:flex-start;flex-wrap:wrap;">
+        <ElChartGrow Title="折线 + 线性趋势线 + 目标参考线 + 异常点标注"
+                     Width="420" Height="280" Cls="demo-chart-trend"
+                     ReferenceLines="MockData.SalesReferenceLines"
+                     Annotations="@chartAnnotations">
+            <ElChartSeries Items="MockData.SalesPoints" CategoryField="Category" ValueField="Value"
+                           Title="销量" ChartType="ElChartType.Line"
+                           TrendLine="ElTrendLineType.Linear" MarkerType="ElMarkerType.Circle" ShowDataLabels="true" />
+        </ElChartGrow>
+
+        <ElChartGrow Title="双坐标轴（柱=销量 / 线=金额，次轴在右）" Width="420" Height="280" Cls="demo-chart-dual">
+            <ElChartAxis Type="ElAxisType.Value" Name="revenue" Title="金额" />
+            <ElChartSeries Items="MockData.SalesPoints" CategoryField="Category" ValueField="Value" Title="销量" ChartType="ElChartType.Column" />
+            <ElChartSeries Items="MockData.RevenuePoints" CategoryField="Category" ValueField="Value"
+                           Title="金额" ChartType="ElChartType.Line" ValueAxisName="revenue" MarkerType="ElMarkerType.Square" />
+        </ElChartGrow>
+    </div>
+
+    <div class="demo-row" style="align-items:flex-start;flex-wrap:wrap;">
+        <ElChartGrow Title="移动平均（窗口 3）" Width="420" Height="280" Cls="demo-chart-ma">
+            <ElChartSeries Items="MockData.SalesPoints" CategoryField="Category" ValueField="Value" Title="销量"
+                           ChartType="ElChartType.Line" TrendLine="ElTrendLineType.MovingAverage" TrendLinePeriod="3" />
+        </ElChartGrow>
+
+        <ElChartGrow Title="二次拟合 + 参考带" Width="420" Height="280" Cls="demo-chart-poly"
+                     ReferenceBands="@chartBands">
+            <ElChartSeries Items="MockData.SalesPoints" CategoryField="Category" ValueField="Value" Title="销量"
+                           ChartType="ElChartType.Area" TrendLine="ElTrendLineType.Polynomial" />
+        </ElChartGrow>
+    </div>
+    }
+</div>
+
+<div class="demo-section">
+    <h3>ElBarcodeGrow / ElQRCodeGrow 条码与二维码</h3>
+    @if (builtSections > 5)
+    {
+    <div class="demo-row" style="align-items:flex-start;">
+        <ElBarcodeGrow Value="ELEMENT-2026" Type="ElBarcodeGrowType.Code128" Height="80px" />
+        <ElQRCodeGrow Value="https://element-plus.org" Size="160px" />
+    </div>
+    }
+</div>
+
+<div class="demo-section">
+    <h3>ElMarkdownEditor Markdown 编辑器（Element.Markdown 可选包）</h3>
+    @if (builtSections > 6)
+    {
+    <p class="demo-page-sub">
+        左侧写字右侧即出的双栏编辑器：左侧是 CodeMirror（Markdown 语法高亮 + 行号 + 折叠 + 连续列表），
+        右侧用 Markdig 实时渲染。编辑器本身在<b>可选包</b> <code>Element.Markdown</code> 里，
+        需要 <code>builder.Services.AddMarkdown()</code> 注册工具栏各个按钮的处理程序。
+        本演示只挑了纯文本相关的 12 个按钮——<code>File</code> / <code>Image</code> 需要配 <code>UploadUrl</code> 才会真正上传。
+    </p>
+    <div class="demo-row" style="margin-bottom:12px;">
+        <ElButton OnClick="@LoadCaseRecord">加载病历模板</ElButton>
+        <ElButton OnClick="@ClearMarkdown">清空</ElButton>
+        <ElButton OnClick="@AppendFollowUp">追加随访表</ElButton>
+        <span class="demo-note">字数：@((markdownText ?? string.Empty).Length)　（在左侧打字时这里会实时累加）</span>
+    </div>
+    <div style="max-width:980px;">
+        <ElMarkdownEditor @bind-Value="markdownText"
+                          Height="420"
+                          EnableSyncScroll="true"
+                          Icons="@markdownIcons" />
+    </div>
+    }
+</div>
+
+<div class="demo-section">
+    <h3>ElMarkdownGrow Markdown 渲染</h3>
+    @if (builtSections > 7)
+    {
+    <ElMarkdownGrow Text="@markdownText" />
+    }
+</div>
+
+<div class="demo-section">
+    <h3>ElHtmlEditorGrow 富文本编辑器</h3>
+    @if (builtSections > 8)
+    {
+    <p class="demo-page-sub">
+        工具栏 45 项（设计 / 源码双视图、表格命令、颜色面板、粘贴净化）全部内置，
+        底层只用浏览器内建的 Selection / Range / execCommand，不依赖任何第三方编辑器。
+        把 <code>Mode</code> 切到 <code>Source</code>（源码视图）后工具栏**依旧完整渲染**——图标不丢、布局不跳动，
+        只是设计类命令一律置灰，仅「源码 / 设计视图」这一项可点。要让某几项彻底不出现，用 <code>HiddenTools</code>。
+    </p>
+    <div class="demo-row">
+        <ElButton Type="@(editorMode == ElHtmlEditorGrowMode.Design ? ButtonType.Primary : ButtonType.Default)"
+                  OnClick="@(() => editorMode = ElHtmlEditorGrowMode.Design)">设计视图</ElButton>
+        <ElButton Type="@(editorMode == ElHtmlEditorGrowMode.Source ? ButtonType.Primary : ButtonType.Default)"
+                  OnClick="@(() => editorMode = ElHtmlEditorGrowMode.Source)">源码视图</ElButton>
+        <ElButton OnClick="@ResetEditor">重置内容</ElButton>
+        <ElButton OnClick="@(() => editorReadOnly = !editorReadOnly)">
+            @(editorReadOnly ? "解除只读" : "切换只读")
+        </ElButton>
+    </div>
+    <div style="margin-top:12px;max-width:880px;">
+        <ElHtmlEditorGrow @bind-Value="editorHtml"
+                          Mode="editorMode"
+                          ReadOnly="editorReadOnly"
+                          Height="260px"
+                          Placeholder="请输入病历文本…"
+                          Change="OnEditorChange" />
+    </div>
+    <p class="demo-note">@editorNote</p>
+    }
+</div>
+
+<div class="demo-section">
+    <h3>ElDropDownTableGrow 下拉表格选择器</h3>
+    @if (builtSections > 9)
+    {
+    <p class="demo-page-sub">
+        把「表格 + 搜索 + 分页」塞进下拉面板。与 ElSelect 不同，它的面板是**原地渲染**的
+        （<code>.el-dropdown-table-grow__panel</code>），所以不依赖 <code>&lt;ElPopup /&gt;</code>；
+        列定义直接复用 <code>ElTableColumn</code>。
+    </p>
+    <div class="demo-row" style="align-items:flex-start;">
+        <ElDropDownTableGrow Items="MockData.Products"
+                             ValueField="Name"
+                             TextField="Name"
+                             Placeholder="选择药品（单选）"
+                             Width="360px"
+                             Height="0"
+                             PageSize="3"
+                             Clearable="true"
+                             Value="@dropSingle"
+                             ValueChanged="@((object v) => dropSingle = v as string)">
+            <ElTableColumn Property="Name" Text="名称" Width="140" />
+            <ElTableColumn Property="Category" Text="类别" Width="90" />
+            <ElTableColumn Property="Price" Text="单价" Width="80" />
+        </ElDropDownTableGrow>
+
+        <ElDropDownTableGrow Items="MockData.Products"
+                             Multiple="true"
+                             ValueField="Name"
+                             TextField="Name"
+                             Placeholder="选择药品（多选）"
+                             Width="420px"
+                             Height="0"
+                             PageSize="3"
+                             Clearable="true"
+                             Values="@dropMulti"
+                             ValuesChanged="@OnDropMultiChanged">
+            <ElTableColumn Property="Name" Text="名称" Width="140" />
+            <ElTableColumn Property="Category" Text="类别" Width="90" />
+            <ElTableColumn Property="Stock" Text="库存" Width="80" />
+        </ElDropDownTableGrow>
+    </div>
+    <p class="demo-note">
+        单选：@(string.IsNullOrEmpty(dropSingle) ? "（未选择）" : dropSingle)
+        　多选：@(dropMulti.Count == 0 ? "（未选择）" : string.Join("、", dropMulti))
+    </p>
+
+    <h4>按指定字段搜索（SearchProperties，可多个）</h4>
+    <p class="demo-page-sub">
+        默认检索行对象的<strong>所有</strong>公开属性；给了 <code>SearchProperties</code> 就只在这些字段里匹配，
+        命中任一字段即算匹配。下面这个只搜「名称 + 类别」：输入 <code>西药</code> 能命中（类别字段），
+        输入 <code>12.5</code> 则命中不了（那是单价字段，已被排除）。
+    </p>
+    <div class="demo-row" style="align-items:flex-start;">
+        <ElDropDownTableGrow Items="MockData.Products"
+                             ValueField="Name"
+                             TextField="Name"
+                             Placeholder="选择药品（单选）"
+                             SearchPlaceholder="只搜 名称、类别"
+                             SearchProperties="dropSearchFields"
+                             Width="320px"
+                             Height="0"
+                             PageSize="3"
+                             Clearable="true"
+                             Value="@dropFieldSingle"
+                             ValueChanged="@((object v) => dropFieldSingle = v as string)">
+            <ElTableColumn Property="Name" Text="名称" Width="140" />
+            <ElTableColumn Property="Category" Text="类别" Width="90" />
+            <ElTableColumn Property="Price" Text="单价" Width="80" />
+        </ElDropDownTableGrow>
+    </div>
+    <p class="demo-note">当前值：@(string.IsNullOrEmpty(dropFieldSingle) ? "（未选择）" : dropFieldSingle)</p>
+
+    <h4>紧凑表格 + 键盘选择 + 超宽面板（Compact / KeyboardSelect / PanelWidth / PanelMaxWidth）</h4>
+    <p class="demo-page-sub">
+        <code>Compact="true"</code> 只收紧<b>面板内</b>的表格与搜索框（行高约 30px、字号 12px、留白收紧），不影响触发器尺寸；
+        触发器也想要小尺寸请用 <code>Size="InputSize.Small"</code>。
+        <code>KeyboardSelect="true"</code> 打开键盘选择增强：面板展开自动聚焦搜索框，搜索框内
+        <code>↑</code>/<code>↓</code> 移动高亮行、<code>Enter</code> 确认（单选=选中并收起，多选=切换勾选）；
+        没有搜索框时直接在触发器上 <code>↑</code>/<code>↓</code>/<code>Enter</code> 也有效。
+        <code>KeyboardSelect</code> 默认<strong>开启</strong>（与 Element Plus 的 el-select 一致），
+        显式设 <code>KeyboardSelect="false"</code> 可退回「搜索框只做过滤、按键不参与选择」的旧行为；
+        <code>Compact</code> 默认关闭。
+        触发器宽度由 <code>Width</code> 管，下拉面板由 <code>PanelWidth</code> 单独管 —— 所以面板可以比触发器宽得多
+        （下面触发器 240px、面板 640px），再用 <code>PanelMaxWidth="90vw"</code> 给小屏兜底；
+        只想给个下限就用 <code>PanelMinWidth</code>。
+    </p>
+    <div class="demo-row" style="align-items:flex-start;">
+        <ElDropDownTableGrow Items="MockData.Products"
+                             Multiple="true"
+                             ValueField="Name"
+                             TextField="Name"
+                             Placeholder="紧凑 + 键盘选择 + 面板 640px"
+                             Width="240px"
+                             PanelWidth="640px"
+                             PanelMaxWidth="90vw"
+                             Size="InputSize.Small"
+                             Compact="true"
+                             KeyboardSelect="true"
+                             Height="0"
+                             ShowPagination="false"
+                             PageSize="6"
+                             Clearable="true"
+                             Values="@dropCompact"
+                             ValuesChanged="@OnDropCompactChanged">
+            <ElTableColumn Property="Id" Text="ID" Width="60" />
+            <ElTableColumn Property="Name" Text="名称" Width="160" />
+            <ElTableColumn Property="Category" Text="类别" Width="100" />
+            <ElTableColumn Property="Price" Text="单价" Width="100" />
+            <ElTableColumn Property="Stock" Text="库存" Width="100" />
+        </ElDropDownTableGrow>
+
+        <ElDropDownTableGrow Items="MockData.Products"
+                             ValueField="Name"
+                             TextField="Name"
+                             Placeholder="正常 + 面板最小宽度 520px"
+                             Width="200px"
+                             PanelMinWidth="520px"
+                             Height="0"
+                             PageSize="3"
+                             Clearable="true"
+                             Value="@dropMinWidth"
+                             ValueChanged="@((object v) => dropMinWidth = v as string)">
+            <ElTableColumn Property="Name" Text="名称" Width="140" />
+            <ElTableColumn Property="Category" Text="类别" Width="90" />
+            <ElTableColumn Property="Price" Text="单价" Width="90" />
+            <ElTableColumn Property="Stock" Text="库存" Width="90" />
+        </ElDropDownTableGrow>
+    </div>
+    <p class="demo-note">
+        紧凑多选：@(dropCompact.Count == 0 ? "（未选择）" : string.Join("、", dropCompact))
+        　最小宽度单选：@(string.IsNullOrEmpty(dropMinWidth) ? "（未选择）" : dropMinWidth)
+    </p>
+
+    <h4>横向溢出的面板（给可拖横条一个对象）</h4>
+    <p class="demo-page-sub">
+        上面几台的列宽总和都 ≤ 面板宽度，所以表体<strong>没有</strong>横向溢出，横条没有可拖的内容。
+        这一台故意把六列（70+180+110+90+90+120＝660px）塞进 360px 的面板：表体容器（EP 给的是
+        <code>overflow-x:auto</code>）于是真出现横向滚动，能拖的就是批次96 装回的那根横条
+        —— 静止 6px、鼠标进面板 12px、移出收回（纵向槽宽仍是 0，表头/表体列对齐的前提没动）。
+    </p>
+    <div class="demo-row" style="align-items:flex-start;">
+        <ElDropDownTableGrow Items="MockData.Products"
+                             ValueField="Name"
+                             TextField="Name"
+                             Placeholder="六列塞进 360px 面板（横向可拖）"
+                             Width="360px"
+                             Height="200"
+                             PageSize="6"
+                             Clearable="true"
+                             Value="@dropWideScroll"
+                             ValueChanged="@((object v) => dropWideScroll = v as string)">
+            <ElTableColumn Property="Id" Text="ID" Width="70" />
+            <ElTableColumn Property="Name" Text="名称" Width="180" />
+            <ElTableColumn Property="Category" Text="类别" Width="110" />
+            <ElTableColumn Property="Price" Text="单价" Width="90" />
+            <ElTableColumn Property="Stock" Text="库存" Width="90" />
+            <ElTableColumn Property="Supplier" Text="供应商" Width="120" />
+        </ElDropDownTableGrow>
+    </div>
+    <p class="demo-note">
+        横向溢出面板当前值：@(string.IsNullOrEmpty(dropWideScroll) ? "（未选择）" : dropWideScroll)
+    </p>
+    }
+</div>
+
+<div class="demo-section">
+    <h3>ElHeatmapGrow 热力图（门诊量 Mock 数据）</h3>
+    @if (builtSections > 10)
+    {
+    <ElHeatmapGrow Data="MockData.OutpatientHeat"
+                   XProperty="Cell"
+                   YProperty="Slot"
+                   ValueProperty="Count"
+                   Title="一周门诊量分布"
+                   Width="640"
+                   Height="320"
+                   ShowValues="true"
+                   FormatString="N0" />
+    }
+</div>
+
+<div class="demo-section">
+    <h3>ElFormFieldGrow 表单字段容器</h3>
+    @if (builtSections > 11)
+    {
+    <p class="demo-page-sub">
+        纯 CSS 实现浮动标签（<code>:focus-within</code> + <code>:placeholder-shown</code>），全程零 JS。
+        无脚本时无法自动感知“值非空”，所以程序化赋值要显式给 <code>HasValue</code>。
+    </p>
+    <div class="demo-row" style="align-items:flex-start;">
+        <ElFormFieldGrow Label="患者姓名（HasValue 上浮）" HasValue="true" Required="true" Width="240px">
+            <ElInput TValue="string" @bind-Value="fieldName" Placeholder="请输入姓名" />
+        </ElFormFieldGrow>
+
+        <ElFormFieldGrow Label="诊断（Float=Always）" Float="ElFormFieldFloat.Always" Width="260px">
+            <ElInput TValue="string" @bind-Value="fieldDiagnosis" Placeholder="请输入诊断" />
+        </ElFormFieldGrow>
+
+        <ElFormFieldGrow Label="空字段（标签不上浮）" Width="240px">
+            <ElInput TValue="string" @bind-Value="fieldEmpty" Placeholder="留空试试" />
+        </ElFormFieldGrow>
+
+        <ElFormFieldGrow Label="带 Helper / 错误态" HasValue="true" Invalid="true" ErrorText="必填项，不能为空" Width="260px">
+            <ElInput TValue="string" @bind-Value="fieldInvalid" Placeholder="校验失败示例" />
+        </ElFormFieldGrow>
+    </div>
+    }
+</div>
+
+<div class="demo-section">
+    <h3>ElViewerGrow OFD 文档预览（组件内置渲染通道）</h3>
+    @if (builtSections > 12)
+    {
+    <p class="demo-page-sub">
+        OFD 由 <code>ElViewerGrow</code> 内置通道渲染：解析与逐页绘制交给按需懒加载的渲染核心
+        （<code>wwwroot/js/ofd/ofd.umd.min.js</code>），页数自动回填，翻页会同步滚动，
+        缩放 / 旋转 / 打印沿用外层画布的 CSS。不打开 OFD 就永远不会下载这段脚本。
+    </p>
+    <div class="demo-row">
+        @foreach (var sample in ofdSamples)
+        {
+            <ElButton Type="@(ofdActive == sample.Label ? ButtonType.Primary : ButtonType.Default)"
+                      OnClick="@(() => SelectOfdSample(sample))">@sample.Label</ElButton>
+        }
+        <ElButton OnClick="LoadOfdFromBytesAsync">按字节加载（HttpClient）</ElButton>
+    </div>
+    <div style="margin-top:12px;">
+        <ElViewerGrow @key="ofdKey" Document="ofdDocument" Height="560px"
+                      MinLoadingMilliseconds="900"
+                      OnStatusChanged="OnOfdStatusChanged" />
+    </div>
+    @if (!string.IsNullOrEmpty(ofdNote))
+    {
+        <p class="demo-note">@ofdNote</p>
+    }
+    }
+</div>
+
+<div class="demo-section">
+    <h3>ElViewerGrow Office 文档预览（docx / xlsx / pptx，内建解析）</h3>
+    @if (builtSections > 13)
+    {
+    <p class="demo-page-sub">
+        Word / Excel / PowerPoint 由组件自己解析：OOXML 本质是「ZIP + 若干 XML」，
+        组件用 .NET 自带的 <code>ZipArchive</code> 与 <code>XDocument</code> 直接读，
+        <b>不下载任何脚本、也不引用任何第三方库</b>（对比：OFD 通道要按需下载渲染核心）。
+        幻灯片的位置与字号按「幻灯片 → 版式 → 母版」这条继承链还原，
+        字号用容器单位随预览宽度等比缩放。
+    </p>
+    <p class="demo-page-sub">
+        注意：这条通道需要<b>文档字节</b>。本地选文件、或用 <code>HttpClient</code> 取流都可以；
+        只给 URL 而不给字节时仍然落到「不支持」—— 浏览器读不到跨域字节，这一条装不出来。
+    </p>
+    <div class="demo-row">
+        @foreach (var sample in officeSamples)
+        {
+            <ElButton Type="@(officeActive == sample.Label ? ButtonType.Primary : ButtonType.Default)"
+                      OnClick="@(() => LoadOfficeSampleAsync(sample))">@sample.Label</ElButton>
+        }
+        <ElButton OnClick="LoadLegacyDocAsync">旧版 .doc（看提示文案）</ElButton>
+        <ElCheckbox TValue="bool" @bind-Value="officeHideButtons"><text>隐藏打印 / 下载按钮（HiddenTools）</text></ElCheckbox>
+    </div>
+    <div style="margin-top:12px;">
+        <ElViewerGrow @key="officeKey" Document="officeDocument" Height="620px"
+                      MinLoadingMilliseconds="900"
+                      HiddenTools="@(officeHideButtons ? new[] { ElViewerToolbarAction.Print, ElViewerToolbarAction.Download } : null)"
+                      OnStatusChanged="OnOfficeStatusChanged" />
+    </div>
+    @if (!string.IsNullOrEmpty(officeNote))
+    {
+        <p class="demo-note">@officeNote</p>
+    }
+    }
+</div>
+
+<div class="demo-section">
+    <h3>ElAccountTableGrow 记账凭证表格</h3>
+    @if (builtSections > 14)
+    {
+    <p class="demo-page-sub">
+        列：摘要 | 会计科目 | 借方金额 | 贷方金额（亿…分 逐位输入，借贷互斥）。<br />
+        列宽由属性设置：<code>AbstractWidth</code>（摘要，默认 <code>auto</code> = 占满剩余宽度）、
+        <code>AccountWidth</code>（会计科目，默认 220px）、<code>AmountCellWidth</code>（金额单格，默认 22px）。<br />
+        <b>非只读模式</b>：鼠标悬浮摘要列出现 <b>+</b> / <b>×</b>（在本行下方增行 / 删除本行）；
+        金额格按 <b>回车</b> 跳到下一格，行尾回车跳到下一行的摘要列并自动进入编辑。<br />
+        末行合计<b>不可编辑</b>，借方 / 贷方合计自动计算；<b>实时</b>以借方合计或贷方合计（取非空一侧）转换为<b>标准财务大写</b>显示于左侧「合计：」之后（双侧均为空时显示「合　计」）。<br />
+        会计科目下拉内置 <b>30 条</b>医院会计科目 mock（科目编码 / 名称 / 类别 / 所属机构 四列，覆盖 5 大类 4 家机构），支持下关键字搜索。<br />
+        「科目名称」列设了 <code>ShowOverflowTooltip="true"</code>：单元格不换行定宽，实测被裁的长科目名（如
+        「应付职工薪酬-基本医疗保险（单位缴纳部分）」）悬停即浮 <code>elTooltip</code> 显示全文，放得下的短名字不弹。<br />
+        数据装载 / 保存：<code>LoadRows(...)</code>（含按属性名约定的实体自动映射）、
+        <code>GetData()</code>（自动过滤空行）、<code>RowsChanged</code> 事件可即时落库。
+    </p>
+    <div class="demo-row" style="align-items:flex-start; flex-direction:column;">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+            <ElSwitch @bind-Value="accountReadOnly" ActiveText="只读" InactiveText="编辑" />
+            <ElButton OnClick="@LoadVoucherDemo">装载示例数据</ElButton>
+            <ElButton OnClick="@(() => voucherRows.Add(new ElAccountTableGrowRow()))">追加空行</ElButton>
+            <span style="font-size:12px; color:#909399;">最近变更：@accountChangeNote</span>
+        </div>
+        <ElAccountTableGrow @ref="accountTable"
+                            Rows="@voucherRows"
+                            Category="1"
+                            ReadOnly="@accountReadOnly"
+                            AccountItems="@AccountSubjects"
+                            AccountValueField="科目名称"
+                            AccountTextField="科目名称"
+                            DefaultRowCount="12"
+                            RowsChanged="@(() => accountChangeNote = DateTime.Now.ToString("HH:mm:ss"))" />
+        <div style="margin-top:8px; font-size:12px; color:#909399;">
+            当前 <code>@voucherRows.Count</code> 行 / 最大 12 行　有效行（GetData）：
+            <code>@voucherRows.Count(r => !r.IsEmpty)</code>　合计借方：@voucherRows.Sum(r => r.AmountIn ?? 0).ToString("N2")　合计贷方：@voucherRows.Sum(r => r.AmountOut ?? 0).ToString("N2")
+            　借贷平衡：@(voucherRows.Sum(r => r.AmountIn ?? 0) == voucherRows.Sum(r => r.AmountOut ?? 0) && voucherRows.Sum(r => r.AmountIn ?? 0) != 0 ? "是（合计行显示大写金额）" : "否")
+        </div>
+    </div>
+    }
+</div><div class="demo-section">
+    <h3>ElViewerGrow 文本预览</h3>
+    @if (builtSections > 15)
+    {
+    <p class="demo-page-sub">
+        纯文本（<code>Text</code> + <code>FileName</code>）走内置通道直接渲染，
+        与 OFD / Office 通道共用同一套工具栏（缩放 / 旋转 / 打印等）。
+    </p>
+    <div class="demo-row">
+        <ElViewerGrow Text="@viewerText" FileName="病历摘要.txt" Height="320px"
+                      MinLoadingMilliseconds="900" />
+    </div>
+    }
+</div>
+
+<div class="demo-section">
+    <h3>ElMarqueeGrow 滚动字幕（可设圆角）</h3>
+    @if (builtSections > 16)
+    {
+    <p class="demo-page-sub">
+        纯 CSS 动画的字幕滚动组件（零 JS、零第三方依赖，按 Element Plus 观感渲染）。<br />
+        支持四个方向、<code>Duration</code> 速度、<code>Repeat</code> 内容份数、<code>Spacing</code> 份间距、
+        <code>PauseOnHover</code> 悬停暂停；内容既可以是 <code>Text</code> 纯文本，也可以是任意 <code>ChildContent</code>。<br />
+        <b>圆角</b>：<code>Round</code> 预设（None 0 / Small 4px / Large 8px / Pill 999px），需要精确值时用
+        <code>RoundRadius</code>（像素，优先级高于 Round）；配合 <code>Bordered</code> / <code>BorderColor</code> / <code>BorderWidth</code> 使用。<br />
+        <b>无缝原理</b>：内容元素自带一个等于容器尺寸的 padding 偏移，动画位移恰为其自身尺寸的 100%，
+        因此内容「一侧进入、另一侧退出」，循环点正好衔接——<b>无需测量内容宽度，任意长度内容都不留空档</b>。
+        <code>Repeat</code> 只是把内容在一次循环里多排几份，让整条字幕更密集。<br />
+        <b>纵向提示</b>：纵向滚动请给 <code>Height</code> 用 <code>px</code> 值（初始偏移量按容器高度算）。
+    </p>
+
+    <div class="demo-row" style="align-items:center;">
+        <label style="font-size:13px;color:#606266;">方向
+            <select @bind="marqueeDirection" style="height:32px;margin-left:6px;">
+                <option value="rtl">从右向左</option>
+                <option value="ltr">从左向右</option>
+                <option value="btt">从下向上</option>
+                <option value="ttb">从上向下</option>
+            </select>
+        </label>
+        <label style="font-size:13px;color:#606266;">圆角
+            <select @bind="marqueeRound" style="height:32px;margin-left:6px;">
+                <option value="none">直角</option>
+                <option value="small">小圆角 4px</option>
+                <option value="large">大圆角 8px</option>
+                <option value="pill">胶囊 999px</option>
+                <option value="custom">自定义 RoundRadius</option>
+            </select>
+        </label>
+        <label style="font-size:13px;color:#606266;">自定义像素
+            <input type="number" @bind="marqueeRadius" min="0" max="40" style="width:72px;height:32px;margin-left:6px;" />
+        </label>
+        <label style="font-size:13px;color:#606266;">时长秒
+            <input type="number" @bind="marqueeDuration" min="2" max="60" style="width:72px;height:32px;margin-left:6px;" />
+        </label>
+        <label style="font-size:13px;color:#606266;">内容份数
+            <input type="number" @bind="marqueeRepeat" min="1" max="8" style="width:64px;height:32px;margin-left:6px;" />
+        </label>
+        <label style="font-size:13px;color:#606266;display:inline-flex;align-items:center;">
+            <input type="checkbox" @bind="marqueeBordered" style="vertical-align:middle;" />
+            <span style="margin-left:6px;">显示边框</span>
+        </label>
+    </div>
+
+    <div style="margin:10px 0;">
+        <ElMarqueeGrow Text="@marqueeText"
+                       Direction="marqueeDirectionValue"
+                       Duration="@marqueeDuration"
+                       Repeat="@marqueeRepeat"
+                       Spacing="32"
+                       Height="44px"
+                       Color="#409eff"
+                       BackgroundColor="#ecf5ff"
+                       Round="marqueeRoundValue"
+                       RoundRadius="marqueeRadiusValue"
+                       Bordered="@marqueeBordered"
+                       BorderColor="#409eff"
+                       PauseOnHover="true" />
+    </div>
+
+    <p class="demo-page-sub" style="margin-top:12px;">圆角预设对比（均带 1px 边框，肉眼可直接看出差异）：</p>
+    <div style="margin:6px 0;">
+        <ElMarqueeGrow Text="Round=None（直角）：门诊大厅自助机 3 号正在维护，请前往 1 号或 2 号办理。"
+                       Round="ElMarqueeRound.None" Bordered="true" BorderColor="#dcdfe6"
+                       BackgroundColor="#ffffff" Height="36px" Repeat="2" />
+    </div>
+    <div style="margin:6px 0;">
+        <ElMarqueeGrow Text="Round=Small（4px）：门诊大厅自助机 3 号正在维护，请前往 1 号或 2 号办理。"
+                       Round="ElMarqueeRound.Small" Bordered="true" BorderColor="#dcdfe6"
+                       BackgroundColor="#ffffff" Height="36px" Repeat="2" />
+    </div>
+    <div style="margin:6px 0;">
+        <ElMarqueeGrow Text="Round=Large（8px）：门诊大厅自助机 3 号正在维护，请前往 1 号或 2 号办理。"
+                       Round="ElMarqueeRound.Large" Bordered="true" BorderColor="#dcdfe6"
+                       BackgroundColor="#ffffff" Height="36px" Repeat="2" />
+    </div>
+    <div style="margin:6px 0;">
+        <ElMarqueeGrow Text="Round=Pill（999px 胶囊）：门诊大厅自助机 3 号正在维护，请前往 1 号或 2 号办理。"
+                       Round="ElMarqueeRound.Pill" Bordered="true" BorderColor="#dcdfe6"
+                       BackgroundColor="#ffffff" Height="36px" Repeat="2" />
+    </div>
+
+    <p class="demo-page-sub" style="margin-top:12px;">纵向滚动 + 自定义 ChildContent（不再是纯文本）：</p>
+    <div style="display:flex;align-items:flex-start;">
+        <ElMarqueeGrow Direction="ElMarqueeDirection.BottomToTop"
+                       Height="130px"
+                       Width="360px"
+                       Duration="10"
+                       Repeat="2"
+                       Spacing="16"
+                       Round="ElMarqueeRound.Small"
+                       Bordered="true"
+                       BorderColor="#67c23a"
+                       Color="#529b2e"
+                       BackgroundColor="#f0f9eb">
+            <ChildContent>
+                <div style="padding:2px 12px;font-size:13px;line-height:22px;">
+                    <div>08:00 全科医学科 · 王×× 问诊完成</div>
+                    <div>08:20 心血管内科 · 李×× 待缴费</div>
+                    <div>08:35 内分泌科 · 张×× 检查中</div>
+                    <div>08:52 呼吸内科 · 赵×× 已取药</div>
+                </div>
+            </ChildContent>
+        </ElMarqueeGrow>
+    </div>
+    }
+</div>
+
+<div class="demo-section">
+    <h3>ElVerifyCodeGrow 验证码输入（算术题 + SVG，点击图片刷新）</h3>
+    @if (builtSections > 17)
+    {
+    <p class="demo-page-sub">
+        左侧（或右侧）为程序生成的算术验证码图片，<b>点击图片</b>或聚焦后按 <code>Enter</code>/<code>Space</code> 即可刷新；
+        右侧（或左侧）为可双向绑定的输入框（<code>@@bind-Value</code>）。<br />
+        支持：<code>Position</code> 左右切换、<code>NoiseComplexity</code> 噪点复杂度、<code>AutoRefreshInterval</code> 定时器自动刷新、
+        <code>ShowBorder</code> 边框显隐、<code>Round</code>/<code>RoundRadius</code> 圆角、<code>FontSize</code> 输入框字符大小、
+        <code>PlaceholderFontSize</code> 占位符字号（与输入框字符大小<b>可分别设置</b>）；每次刷新通过 <code>OnRefresh</code> 暴露新验证码信息。<br />
+        <b>定时刷新倒计时</b>：勾选「定时刷新」并在「刷新间隔」填入毫秒数（<code>AutoRefreshInterval</code>，≤0 表示不刷新）后，
+        验证码图片底部会出现一条进度条，宽度随时间递减直到下一次刷新；改间隔会即时重启倒计时并同步动画时长；
+        每次刷新（自动或点图）都会<b>重置为满格</b>。外观用 <code>ProgressColor</code>（默认 EP 主色 #409eff）、
+        <code>ProgressWidth</code>（不设则与图片等宽）、<code>ProgressHeight</code>（默认 3px），整条开关用 <code>ShowProgressBar</code>。
+    </p>
+
+    <div class="demo-row demo-row-wrap" style="align-items:flex-end;">
+        <label style="font-size:13px;color:#606266;">位置
+            <select @bind="vcPosition" style="height:32px;margin-left:6px;">
+                <option value="Left">图左框右</option>
+                <option value="Right">图右框左</option>
+            </select>
+        </label>
+        <label style="font-size:13px;color:#606266;">噪点复杂度
+            <input type="number" @bind="vcComplexity" min="0" max="20" style="width:64px;height:32px;margin-left:6px;" />
+        </label>
+        <label style="font-size:13px;color:#606266;">图宽×高
+            <input type="number" @bind="vcW" min="80" max="500" style="width:60px;height:32px;margin-left:6px;" />
+            <input type="number" @bind="vcH" min="30" max="120" style="width:60px;height:32px;margin-left:4px;" />
+        </label>
+        <label style="font-size:13px;color:#606266;">字号
+            <input type="number" @bind="vcFontSize" min="12" max="28" style="width:56px;height:32px;margin-left:6px;" />
+        </label>
+        <label style="font-size:13px;color:#606266;">占位符字号
+            <input type="number" @bind="vcPlaceholderFontSize" min="0" max="28" style="width:60px;height:32px;margin-left:6px;" />
+        </label>
+        <label style="font-size:13px;color:#606266;">输入框宽
+            <input type="number" @bind="vcInputWidth" min="0" max="600" style="width:64px;height:32px;margin-left:6px;" />
+        </label>
+        <label style="font-size:13px;color:#606266;display:inline-flex;align-items:center;">
+            <input type="checkbox" @bind="vcAutoRefresh" style="vertical-align:middle;" />
+            <span style="margin-left:6px;">定时刷新</span>
+        </label>
+        <label style="font-size:13px;color:#606266;">刷新间隔
+            <input type="number" @bind="vcInterval" min="0" max="600000" step="500" style="width:80px;height:32px;margin-left:6px;" />
+            <span style="color:#909399;">（毫秒，≤0 不刷新）</span>
+        </label>
+        <label style="font-size:13px;color:#606266;display:inline-flex;align-items:center;">
+            <input type="checkbox" @bind="vcShowProgressBar" style="vertical-align:middle;" />
+            <span style="margin-left:6px;">倒计时进度条</span>
+        </label>
+        <label style="font-size:13px;color:#606266;">进度条色
+            <input type="color" @bind="vcProgressColor" style="width:44px;height:28px;margin-left:6px;padding:0;vertical-align:middle;" />
+        </label>
+        <label style="font-size:13px;color:#606266;">进度条宽
+            <input type="number" @bind="vcProgressWidth" min="0" max="500" style="width:60px;height:32px;margin-left:6px;" />
+            <span style="color:#909399;">（0 = 同图片宽）</span>
+        </label>
+        <label style="font-size:13px;color:#606266;">进度条高
+            <input type="number" @bind="vcProgressHeight" min="1" max="40" style="width:56px;height:32px;margin-left:6px;" />
+        </label>
+        <label style="font-size:13px;color:#606266;display:inline-flex;align-items:center;">
+            <input type="checkbox" @bind="vcShowBorder" style="vertical-align:middle;" />
+            <span style="margin-left:6px;">显示边框</span>
+        </label>
+        <label style="font-size:13px;color:#606266;display:inline-flex;align-items:center;">
+            <input type="checkbox" @bind="vcRound" style="vertical-align:middle;" />
+            <span style="margin-left:6px;">圆角</span>
+        </label>
+        <label style="font-size:13px;color:#606266;">占位符
+            <input type="text" @bind="vcPlaceholder" style="width:130px;height:32px;margin-left:6px;" />
+        </label>
+        <button class="el-button el-button--primary" style="height:32px;" @onclick="ValidateVc">校验</button>
+        <span class="demo-badge">校验结果：@vcValidMsg</span>
+    </div>
+
+    <div style="margin:10px 0;">
+        <ElVerifyCodeGrow @ref="vcRef"
+                          @bind-Value="vcValue"
+                          Position="vcPosition"
+                          NoiseComplexity="vcComplexity"
+                          CaptchaWidth="vcW"
+                          CaptchaHeight="vcH"
+                          FontSize="vcFontSize"
+                          PlaceholderFontSize="vcPlaceholderFontSize > 0 ? vcPlaceholderFontSize : null"
+                          InputWidth="vcInputWidth > 0 ? vcInputWidth : null"
+                          Placeholder="@vcPlaceholder"
+                          AutoRefreshInterval="vcAutoRefresh ? vcInterval : 0"
+                          ShowProgressBar="vcShowProgressBar"
+                          ProgressColor="@vcProgressColor"
+                          ProgressWidth="vcProgressWidth > 0 ? vcProgressWidth : null"
+                          ProgressHeight="vcProgressHeight"
+                          ShowBorder="vcShowBorder"
+                          Round="vcRound"
+                          OnRefresh="OnVcRefresh" />
+    </div>
+
+    <p class="demo-page-sub" style="margin-top:8px;">
+        当前题面：<code>@vcQuestion</code>　绑定值：<code>@vcValue</code>　验证码 Id：<code>@vcCaptchaId</code>
+    </p>
+    }
+</div>
+
+<div class="demo-section">
+    <h3>ElWaitingPopupGrow 等待浮层（遮罩 + 加载圈 + 取消）</h3>
+    @if (builtSections > 18)
+    {
+    <p class="demo-page-sub">
+        全屏半透明遮罩 + 居中卡片：Element Plus 风格的 SVG 旋转加载圈、标题、提示文字，可带「取消」按钮。<br />
+        通过 <code>Show()</code> / <code>Hide()</code>（命令式，@@ref）或 <code>@@bind-Visible</code>（声明式）控制显隐；
+        <code>OnCancel</code> 在点击取消按钮（或 <code>MaskClosable</code> 时点击遮罩）时触发；<br />
+        卡片圆角用 <code>Round</code> / <code>RoundRadius</code>，背景色用 <code>BackgroundColor</code>，
+        <b>标题色</b>用 <code>TitleColor</code>、<b>提示文字色</b>用 <code>MessageColor</code>、
+        <b>转圈动画颜色</b>用 <code>SpinnerColor</code>，取消按钮显隐用 <code>ShowCancelButton</code>。<br />
+        <b>取消按钮本身就是一个 <code>ElButton</code></b>：文字 <code>CancelText</code>、配色 <code>CancelButtonType</code>
+        （Default/Primary/Success/Warning/Danger/Info）、自定义色 <code>CancelButtonColor</code>+<code>CancelButtonDark</code>
+        （不勾=浅底彩字，勾上=实色底白字）、尺寸 <code>CancelButtonSize</code>（Default/Large/Small）、
+        形状 <code>CancelButtonPlain</code>/<code>CancelButtonRound</code>、位置 <code>CancelButtonPosition</code>（居中/靠左/靠右）。
+    </p>
+    <div class="demo-row">
+        <ElButton Type="ButtonType.Primary" OnClick="OpenWaitingImperative">打开（命令式，3 秒后自动关闭）</ElButton>
+        <ElButton OnClick="OpenWaitingBind">打开（@@bind-Visible）</ElButton>
+        <ElButton OnClick="CloseWaitingBind">关闭（@@bind-Visible）</ElButton>
+        <ElCheckbox TValue="bool" @bind-Value="waitingMaskClosable"><text>MaskClosable（点遮罩取消）</text></ElCheckbox>
+        <ElCheckbox TValue="bool" @bind-Value="waitingShowCancel"><text>取消按钮</text></ElCheckbox>
+        <ElCheckbox TValue="bool" @bind-Value="waitingRound"><text>圆角</text></ElCheckbox>
+        <label class="demo-note">圆角半径
+            <input type="number" @bind="waitingRadius" min="0" max="40" style="width:60px;height:28px;margin-left:6px;" />
+            <span style="color:#909399;">（0 = 用「圆角」开关）</span>
+        </label>
+        <label class="demo-note">背景色
+            <input type="color" @bind="waitingBg" style="width:44px;height:28px;margin-left:6px;padding:0;vertical-align:middle;" />
+        </label>
+        <label class="demo-note">标题色
+            <input type="color" @bind="waitingTitleColor" style="width:44px;height:28px;margin-left:6px;padding:0;vertical-align:middle;" />
+        </label>
+        <label class="demo-note">提示文字色
+            <input type="color" @bind="waitingMessageColor" style="width:44px;height:28px;margin-left:6px;padding:0;vertical-align:middle;" />
+        </label>
+        <label class="demo-note">转圈颜色
+            <input type="color" @bind="waitingSpinnerColor" style="width:44px;height:28px;margin-left:6px;padding:0;vertical-align:middle;" />
+        </label>
+        <span class="demo-note">状态：@waitingStatus</span>
+    </div>
+
+    <div class="demo-row" style="margin-top:8px;">
+        <span class="demo-note" style="color:#909399;">取消按钮（本身就是一个 ElButton）：</span>
+        <label class="demo-note">按钮文字
+            <input type="text" @bind="waitingCancelText" style="width:110px;height:28px;margin-left:6px;" />
+        </label>
+        <label class="demo-note">类型
+            <select @bind="waitingBtnType" style="height:28px;margin-left:6px;">
+                <option value="Default">Default</option>
+                <option value="Primary">Primary</option>
+                <option value="Success">Success</option>
+                <option value="Warning">Warning</option>
+                <option value="Danger">Danger</option>
+                <option value="Info">Info</option>
+            </select>
+        </label>
+        <label class="demo-note">尺寸
+            <select @bind="waitingBtnSize" style="height:28px;margin-left:6px;">
+                <option value="Default">Default</option>
+                <option value="Large">Large</option>
+                <option value="Small">Small</option>
+            </select>
+        </label>
+        <label class="demo-note">位置
+            <select @bind="waitingBtnPosition" style="height:28px;margin-left:6px;">
+                <option value="Center">居中</option>
+                <option value="Left">靠左</option>
+                <option value="Right">靠右</option>
+            </select>
+        </label>
+        <label class="demo-note">朴素
+            <input type="checkbox" @bind="waitingBtnPlain" style="margin-left:6px;vertical-align:middle;" />
+        </label>
+        <label class="demo-note">圆角
+            <input type="checkbox" @bind="waitingBtnRound" style="margin-left:6px;vertical-align:middle;" />
+        </label>
+        <label class="demo-note">自定义色
+            <input type="checkbox" @bind="waitingBtnUseColor" style="margin-left:6px;vertical-align:middle;" />
+            <input type="color" @bind="waitingBtnColor" style="width:44px;height:28px;margin-left:6px;padding:0;vertical-align:middle;" />
+        </label>
+        <label class="demo-note">实心
+            <input type="checkbox" @bind="waitingBtnDark" style="margin-left:6px;vertical-align:middle;" />
+            <span style="color:#909399;">（不勾 = 浅底彩字）</span>
+        </label>
+    </div>
+
+    <ElWaitingPopupGrow @ref="waitingRef"
+                        Title="正在保存病历…"
+                        Message="请稍候，正在上传到服务器"
+                        ShowCancelButton="@waitingShowCancel"
+                        CancelText="@waitingCancelText"
+                        CancelButtonType="@waitingBtnTypeValue"
+                        CancelButtonSize="@waitingBtnSizeValue"
+                        CancelButtonPosition="@waitingBtnPositionValue"
+                        CancelButtonPlain="@waitingBtnPlain"
+                        CancelButtonRound="@waitingBtnRound"
+                        CancelButtonColor="@(waitingBtnUseColor ? waitingBtnColor : null)"
+                        CancelButtonDark="@waitingBtnDark"
+                        MaskClosable="@waitingMaskClosable"
+                        Round="@waitingRound"
+                        RoundRadius="waitingRadius > 0 ? waitingRadius : null"
+                        BackgroundColor="@waitingBg"
+                        TitleColor="@waitingTitleColor"
+                        MessageColor="@waitingMessageColor"
+                        SpinnerColor="@waitingSpinnerColor"
+                        OnCancel="OnWaitingCancel" />
+
+    <ElWaitingPopupGrow Visible="@waitingVisible"
+                        Title="处理中…"
+                        Message="通过 @@bind-Visible 控制显隐"
+                        ShowCancelButton="@waitingShowCancel"
+                        CancelText="@waitingCancelText"
+                        CancelButtonType="@waitingBtnTypeValue"
+                        CancelButtonSize="@waitingBtnSizeValue"
+                        CancelButtonPosition="@waitingBtnPositionValue"
+                        CancelButtonPlain="@waitingBtnPlain"
+                        CancelButtonRound="@waitingBtnRound"
+                        CancelButtonColor="@(waitingBtnUseColor ? waitingBtnColor : null)"
+                        CancelButtonDark="@waitingBtnDark"
+                        Round="@waitingRound"
+                        RoundRadius="waitingRadius > 0 ? waitingRadius : null"
+                        BackgroundColor="@waitingBg"
+                        TitleColor="@waitingTitleColor"
+                        MessageColor="@waitingMessageColor"
+                        SpinnerColor="@waitingSpinnerColor"
+                        OnCancel="OnWaitingCancel" />
+    }
+</div>
+
+<div class="demo-section">
+    <h3>ElIpAddressGrow IPv4 地址输入（四段 + 对话框回显）</h3>
+    @if (builtSections > 19)
+    {
+    <p class="demo-page-sub">
+        参考 BootstrapBlazor 的 <c>IpAddress</c> 组件、按 Element 观感渲染：四段各 <c>0-255</c>，段间用 <c>.</c> 分隔，
+        <c>@@bind-Value</c> 绑定点分十进制字符串（不足四段按 <c>0</c> 补齐，非数字字符不进格）。<br />
+        键入行为：打满三位自动进下一格；按 <c>.</c>、在行尾按右方向键或空格也进下一格；段首按左方向键回退一格；
+        段内只剩一位时按退格会把该段清成 <c>0</c> 并回退一格；聚焦即全选（直接输入即覆盖）；
+        粘贴一整串 <c>10.0.0.255</c> 会自动摊到四格并同步回 <c>Value</c>；
+        会让段值超过 255 的数字不会进去（例：已有 <c>25</c> 再按 <c>9</c> 被拦下）。<br />
+        「查看当前值」用 <c>ElDialog</c> 弹出打开那一刻的快照；「套用」把文本框的内容作为父级新值交给组件（可见它重新拆段与钳位）。
+    </p>
+
+    <div class="demo-row" style="align-items:center;">
+        <div class="el-ip-address-demo" style="flex:0 0 240px;">
+            <ElIpAddressGrow @bind-Value="ipValue" Size="@ipSizeValue" Disabled="@ipDisabled" Readonly="@ipReadonly" />
+        </div>
+        <ElButton Type="ButtonType.Primary" OnClick="OpenIpDialog">查看当前值</ElButton>
+        <span class="demo-note">当前 Value：<b>@(string.IsNullOrEmpty(ipValue) ? "（空）" : ipValue)</b></span>
+    </div>
+
+    <div class="demo-row demo-row-wrap" style="margin-top:10px;">
+        <label class="demo-note">尺寸
+            <select @bind="ipSize" style="height:28px;margin-left:6px;">
+                <option value="large">Large</option>
+                <option value="normal">Normal</option>
+                <option value="small">Small</option>
+            </select>
+        </label>
+        <label class="demo-note"><input type="checkbox" @bind="ipDisabled" style="vertical-align:middle;" /><span style="margin-left:6px;">Disabled</span></label>
+        <label class="demo-note"><input type="checkbox" @bind="ipReadonly" style="vertical-align:middle;" /><span style="margin-left:6px;">Readonly</span></label>
+        <label class="demo-note">套用
+            <input type="text" @bind="ipPreset" style="width:130px;height:28px;margin-left:6px;" />
+        </label>
+        <ElButton OnClick="ApplyIpPreset">套用该值</ElButton>
+    </div>
+    }
+</div>
+
+<ElDialog @bind-ModelValue="ipDialogVisible" Title="当前输入的 IP 地址" Width="360px">
+    <ChildContent>
+        <p style="margin:0 0 8px;">对话框打开那一刻组件的 <c>Value</c>（快照，不随之后的输入变化）：</p>
+        <div style="padding:10px 12px;border-radius:6px;background:#f5f7fa;font-size:16px;letter-spacing:1px;">@(string.IsNullOrEmpty(ipDialogValue) ? "（空）" : ipDialogValue)</div>
+        <p class="demo-note" style="margin:8px 0 0;">四段拆分：@IpDialogSegments</p>
+    </ChildContent>
+    <Footer>
+        <ElButton OnClick="@(() => ipDialogVisible = false)">关闭</ElButton>
+    </Footer>
+</ElDialog>
+
+@code {
+
+    // ---------------- 章节分批建（首屏先建前 2 节，其余每批 5 节补齐） ----------------
+    // 为什么：本页一次性建完 20 节（4243 节点 / 34 个图表 / 228 个 svg）会把主线程连续死住约 1 秒，
+    // 期间点击、滚动、切页签全无反应 —— 这是「操作不流畅」里唯一能稳定复现的秒级阻塞。
+    //
+    // 同窗口三臂实测（2026-10-10 19:12~19:21，同机、整机负载 26~51%、Debug、每臂 4 轮、
+    // rAF 中位帧均 8ms、每轮均判定「计时可信」；日志 Temp/grow-baseline-runB.log、
+    // Temp/grow-after-k5-runB.log、Temp/grow-after-k1-runC.log）：
+    //   最长一次冻结   一次性建完 958/1033/967/1008ms
+    //                 → 一批 5 节 459/408/442/475ms   （4 轮全赢，两组不重叠，降 2.1~2.4 倍）
+    //                 → 一节一帧 483/358/358/367ms   （与一批 5 节区间重叠，分不出高下）
+    //   长任务合计     一次性建完 2595/2386/2474/2390ms
+    //                 → 一批 5 节 2699/2580/2805/2664ms（+8%，区间重叠＝基本持平）
+    //                 → 一节一帧 4525~4902ms          （+70~90%，明显更差）
+    //   落定用时       一次性建完 5.6~5.9s → 一批 5 节 5.6~6.2s → 一节一帧 8.4~9.2s
+    //   落定 DOM       三臂完全一致：8553 / 本子树 4243 / svg 228 / 章节 20 / 图表 34，JS 异常 0
+    // 所以取「一批 5 节」：冻结砍掉一半以上，总开销与落定时间跟改前持平。
+    // 一节一帧为什么反而更差：每多渲染一次就要整页重跑一次 Blazor 差分（代价随已建节点数增长），
+    // 18 次差分的额外开销超过了它省下的单次冻结。这条是量出来的，不是推的 —— 一节一帧臂在
+    // 三臂序列的头（runB）和尾（runC）各测一次，总数都是 4.1~4.9s，排除了「先跑的吃亏」这种位置漂移。
+    // 章节标题（h3）不参与闸门，所以页面骨架、锚点与滚动目标一进来就在。
+    private const int GrowSectionCount = 20;
+
+    /// <summary>已建到第几节（&gt;= 该序号的章节正文才渲染）。首屏先建前 <see cref="GrowEagerSections"/> 节。</summary>
+    private const int GrowEagerSections = 2;
+
+    /// <summary>每批补建几节。取 5 是实测最优点：再小（1 节/批）整页差分次数暴涨、总阻塞 +70~90%。</summary>
+    private const int GrowSectionChunk = 5;
+
+    private int builtSections = GrowEagerSections;
+
+    /// <summary>分批建的独立取消源：页签被关掉/被淘汰时停住，不再往已卸载的渲染器上排队。</summary>
+    private CancellationTokenSource? sectionPumpCts;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || sectionPumpCts != null || builtSections >= GrowSectionCount)
+        {
+            return;
+        }
+
+        sectionPumpCts = new CancellationTokenSource();
+        var token = sectionPumpCts.Token;
+        while (builtSections < GrowSectionCount)
+        {
+            try
+            {
+                await Task.Delay(60, token);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+
+            builtSections += GrowSectionChunk;
+            if (builtSections > GrowSectionCount)
+            {
+                builtSections = GrowSectionCount;
+            }
+
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    void IDisposable.Dispose() => sectionPumpCts?.Cancel();
+    // ---------------- ElIpAddressGrow 演示状态 ----------------
+    private string ipValue = "192.168.1.10";
+    private string ipSize = "normal";
+    private bool ipDisabled;
+    private bool ipReadonly;
+    private bool ipDialogVisible;
+    private string ipDialogValue;
+    private string ipPreset = "10.0.0.255";
+
+    private InputSize ipSizeValue => ipSize switch
+    {
+        "large" => InputSize.Large,
+        "small" => InputSize.Small,
+        _ => InputSize.Normal
+    };
+
+    /// <summary>把「套用到输入框」的文本交给组件：四段拆分/截断/钳位是组件自己的契约，这里只转交。</summary>
+    private void ApplyIpPreset() => ipValue = ipPreset;
+
+    /// <summary>对话框里的四段拆解展示（拿组件回传的 Value 现拆，不重复实现组件的规范化规则）。</summary>
+    private string IpDialogSegments
+    {
+        get
+        {
+            var parts = (ipDialogValue ?? string.Empty).Split('.');
+            return parts.Length == 4 ? string.Join(" · ", parts) : "（不是四段）";
+        }
+    }
+
+    /// <summary>弹出对话框回显当前值（快照，不随后续输入变）。</summary>
+    private void OpenIpDialog()
+    {
+        ipDialogValue = ipValue;
+        ipDialogVisible = true;
+    }
+
+    // ---------------- ElMarqueeGrow 演示状态 ----------------
+    private string marqueeDirection = "rtl";
+    private string marqueeRound = "small";
+    private int marqueeRadius = 10;
+    private int marqueeDuration = 14;
+    private int marqueeRepeat = 2;
+    private bool marqueeBordered = true;
+
+    private string marqueeText = "某某市人民医院：请各位患者及家属佩戴口罩、保持一米间距，凭身份证或医保卡在自助机完成挂号缴费；发热患者请直接前往发热门诊。";
+
+    private ElMarqueeDirection marqueeDirectionValue => marqueeDirection switch
+    {
+        "ltr" => ElMarqueeDirection.LeftToRight,
+        "btt" => ElMarqueeDirection.BottomToTop,
+        "ttb" => ElMarqueeDirection.TopToBottom,
+        _ => ElMarqueeDirection.RightToLeft
+    };
+
+    private ElMarqueeRound marqueeRoundValue => marqueeRound switch
+    {
+        "small" => ElMarqueeRound.Small,
+        "large" => ElMarqueeRound.Large,
+        "pill" => ElMarqueeRound.Pill,
+        _ => ElMarqueeRound.None
+    };
+
+    private int? marqueeRadiusValue => marqueeRound == "custom" ? marqueeRadius : (int?)null;
+
+    // ---------------- ElVerifyCodeGrow 演示状态 ----------------
+    private ElVerifyCodeGrow vcRef;
+    private string vcValue;
+    private ElVerifyCodePosition vcPosition = ElVerifyCodePosition.Left;
+    private int vcComplexity = 5;
+    private int vcW = 200;
+    private int vcH = 60;
+    private int vcFontSize = 14;
+    private int vcPlaceholderFontSize;
+    private int vcInputWidth;
+    private string vcPlaceholder = "请输入计算结果";
+    private bool vcAutoRefresh;
+    private int vcInterval = 5000;
+    private bool vcShowProgressBar = true;
+    private string vcProgressColor = ElVerifyCodeGrow.DefaultProgressColor;
+    private int vcProgressWidth;
+    private int vcProgressHeight = 3;
+    private bool vcShowBorder = true;
+    private bool vcRound;
+    private string vcValidMsg = "—";
+    private string vcQuestion;
+    private string vcCaptchaId;
+
+    private void OnVcRefresh(VerifyCodeGeneratedEventArgs e)
+    {
+        vcQuestion = e.Question;
+        vcCaptchaId = e.CaptchaId;
+        vcValidMsg = "—";
+    }
+
+    private async Task ValidateVc()
+    {
+        if (vcRef == null)
+        {
+            vcValidMsg = "组件未就绪";
+            return;
+        }
+
+        var ok = await vcRef.ValidateAsync(vcValue);
+        vcValidMsg = ok ? "通过 ✓" : "错误 ✗";
+    }
+
+    // ---------------- ElChartGrow 辅助元素 ----------------
+    // 参考线直接用工整的 Mock 数据（MockData.SalesReferenceLines）；
+    // 标注与参考带带点业务语义，放在页面里更直观。
+    // 注意：这两个是 IEnumerable<ElChartXxx> 参数，数组/List 都能接。
+    private static readonly ElChartAnnotation[] chartAnnotations =
+    {
+        new ElChartAnnotation { Category = "三月", Value = 280, Text = "异常低点", Color = "#f56c6c" },
+        new ElChartAnnotation { Category = "四月", Value = 530, Text = "峰值", Color = "#67c23a", Marker = ElMarkerType.None },
+    };
+
+    private static readonly ElChartReferenceBand[] chartBands =
+    {
+        new ElChartReferenceBand { From = 350, To = 450, Label = "正常区间", Color = "#e1f3d8" },
+    };
+
+    // ---------------- ElHtmlEditorGrow ----------------
+    // Mode 是 [Flags]：Design 时工具栏不出「源码视图」，Source 时只剩源码工具，
+    // All 则两者都出。这里默认给 Design，与组件自身的默认值一致。
+    private ElHtmlEditorGrowMode editorMode = ElHtmlEditorGrowMode.Design;
+    private bool editorReadOnly;
+    private string editorHtml = HtmlEditorSample;
+    private string editorNote = $"内容长度：{HtmlEditorSample.Length} 字符";
+
+    private void ResetEditor()
+    {
+        editorHtml = HtmlEditorSample;
+        editorNote = $"内容长度：{HtmlEditorSample.Length} 字符";
+    }
+
+    /// <summary>
+    /// 值由 @bind-Value 写回 editorHtml，这里只负责刷新提示，
+    /// 否则会和 ValueChanged 抢着赋值。
+    /// </summary>
+    private void OnEditorChange(string value)
+    {
+        editorNote = $"内容长度：{value?.Length ?? 0} 字符";
+    }
+
+    // ---------------- ElDropDownTableGrow ----------------
+    private string dropSingle;
+
+    // 预置两个已选项，页面上直接能看到多选标签的排版（含关闭图标对齐）。
+    private List<string> dropMulti = new List<string> { "阿莫西林胶囊", "感冒灵颗粒" };
+
+    // 只在这两个字段里搜索（命中任一即算匹配）。
+    private readonly string[] dropSearchFields = { "Name", "Category" };
+
+    private string dropFieldSingle;
+    private string dropMinWidth;
+
+    // 六列总和 660px > 面板 360px：这台专门用来让表体真有横向溢出（横条才有可拖的对象）。
+    private string dropWideScroll;
+
+    // 触发器只有 240px，两个长药名会换行——用来验证标签换行后触发器高度自适应。
+    private List<string> dropCompact = new List<string> { "头孢克肟分散片", "布洛芬缓释片" };
+
+    private void OnDropCompactChanged(System.Collections.IEnumerable values)
+    {
+        dropCompact = values == null
+            ? new List<string>()
+            : values.Cast<object>().Select(x => x?.ToString()).Where(x => !string.IsNullOrEmpty(x)).ToList();
+    }
+
+    private void OnDropMultiChanged(System.Collections.IEnumerable values)
+    {
+        dropMulti = values == null
+            ? new List<string>()
+            : values.Cast<object>().Select(x => x?.ToString()).Where(x => !string.IsNullOrEmpty(x)).ToList();
+    }
+
+    // ---------------- ElFormFieldGrow ----------------
+    private string fieldName = "Kevin Carter";
+    private string fieldDiagnosis = string.Empty;
+    private string fieldEmpty = string.Empty;
+    private string fieldInvalid = string.Empty;
+
+    private const string HtmlEditorSample =
+        "<h3>入院记录</h3>" +
+        "<p><strong>主诉：</strong>头晕伴血压升高 1 周。</p>" +
+        "<ul><li>既往史：高血压 5 年</li><li>过敏史：无</li></ul>" +
+        "<p><em>查体：</em>BP 158/96 mmHg，余未见异常。</p>";
+
+    // ---------------- OFD 预览示例 ----------------
+    // 演示两种取文档的方式：
+    //   1) URL（Src / FromUrl）—— 最贴近「打开一份 OFD」；由内置通道自己 fetch。
+    //   2) 字节（Content / FromBytes）—— 宿主用 HttpClient 取流后交给组件（可自带鉴权头）。
+    //
+    // 注意样例文件的扩展名是 .ofd.bin 而不是 .ofd：.NET 开发服务器（以及不少生产 Web 服务器）
+    // 只服务 MIME 表里认识的扩展名，未登记的扩展名会直接 404。文件的实际类型靠 FileName 告诉
+    // 组件（Kind 由 FileName / ContentType 判定，不看 URL 后缀）。部署时给 .ofd 配上
+    // application/ofd 就能直接用 .ofd 后缀。
+    private sealed class OfdSample
+    {
+        public string Label { get; set; }
+        public string Url { get; set; }
+        public string FileName { get; set; }
+    }
+
+    private static readonly OfdSample[] ofdSamples =
+    {
+        new OfdSample { Label = "出院小结", Url = "/ofd/out.ofd.bin", FileName = "out.ofd" },
+        new OfdSample { Label = "字体样式（2 页）", Url = "/ofd/font-styles.ofd.bin", FileName = "font-styles.ofd" },
+        new OfdSample { Label = "多行样式", Url = "/ofd/MultiSpanStyles.ofd.bin", FileName = "MultiSpanStyles.ofd" },
+        new OfdSample { Label = "综合样例", Url = "/ofd/multi_demo.ofd.bin", FileName = "multi_demo.ofd" },
+        new OfdSample { Label = "信息卡片", Url = "/ofd/modern-info-card.ofd.bin", FileName = "modern-info-card.ofd" },
+        // HCView 6.8 生成的 OFD-H 护理记录单：横向 297x210 单页、每个 XML 前面带 UTF-8 BOM、
+        // 命名空间写成 http://www.ofdspec.org（没有 /2016 后缀）、且整个包没有签名层。
+        // 这份是"第三方生成器的常见写法也能打开"的证人，改动渲染核心时它会先红。
+        new OfdSample { Label = "护理记录单（OFD-H）", Url = "/ofd/hcview.ofd.bin", FileName = "hcview.ofd" },
+        // 住院病案首页 OFD-H（GB/T 48666—2026 口径）：3 页、210x297 竖版、Signatures 走 Loc 属性、
+        // 签名与注释层用默认命名空间、页面里 87 个 PathObject 没有 Boundary —— 三种写法都曾让渲染
+        // 核心整份文档报失败。这份是用户原文件的等观感副本（两份 10.5 MB 的仿宋字稿只留 4 KB 表头，
+        // 渲染读数逐字相同：3 页 / 1367 字 / 87 条 path / 169 个 svg），正文本身是演示数据。
+        new OfdSample { Label = "病案首页（OFD-H）", Url = "/ofd/ofd-h-case-page.ofd.bin", FileName = "ofd-h-case-page.ofd" },
+    };
+
+    private ElViewerDocument ofdDocument = ElViewerDocument.FromUrl(ofdSamples[0].Url, ofdSamples[0].FileName);
+    private string ofdActive = ofdSamples[0].Label;
+    private string ofdLoadNote;
+    private string ofdReadyNote;
+    private int ofdKey;
+
+    /// <summary>加载方式 + 渲染结果合成一句提示（两份信息互不覆盖）。</summary>
+    private string ofdNote => string.Join("　", new[] { ofdLoadNote, ofdReadyNote }.Where(x => !string.IsNullOrEmpty(x)));
+
+    private void SelectOfdSample(OfdSample sample)
+    {
+        ofdDocument = ElViewerDocument.FromUrl(sample.Url, sample.FileName);
+        ofdActive = sample.Label;
+        ofdLoadNote = $"当前文档：{sample.FileName}（由 URL 加载）";
+        ofdReadyNote = null;
+
+        // 换文档时换 key，强制组件重建，避免复用上一份文档的挂载状态。
+        ofdKey++;
+    }
+
+    /// <summary>按字节加载：走 HttpClient 取流后交给组件（宿主侧抓字节的标准写法）。</summary>
+    private async Task LoadOfdFromBytesAsync()
+    {
+        const string url = "/ofd/out.ofd.bin";
+
+        try
+        {
+            var bytes = await Http.GetByteArrayAsync(url);
+
+            ofdDocument = ElViewerDocument.FromBytes(bytes, "out.ofd");
+            ofdActive = "按字节加载";
+            ofdLoadNote = $"已用 HttpClient 取到 {bytes.Length} 字节，交由内置通道渲染。";
+            ofdReadyNote = null;
+            ofdKey++;
+        }
+        catch (Exception exception)
+        {
+            ofdLoadNote = "取流失败：" + exception.Message;
+            ofdReadyNote = null;
+        }
+    }
+
+    /// <summary>把内置通道解析出的页数写进提示，便于确认渲染确实成功了。</summary>
+    private void OnOfdStatusChanged(ElViewerStateChangedEventArgs args)
+    {
+        if (args.Status == ElViewerStatus.Ready && args.PageCount > 0)
+        {
+            ofdReadyNote = $"{ofdActive}　渲染完成：共 {args.PageCount} 页。";
+        }
+        else if (args.Status == ElViewerStatus.Error)
+        {
+            ofdReadyNote = $"{ofdActive}　渲染失败：{args.Message}";
+        }
+    }
+
+    // ---------------- Office 预览示例 ----------------
+    // Office 渲染必须在 C# 侧拿到字节（组件用 ZipArchive 直接解压解析），
+    // 所以演示一律走 HttpClient 取流 → FromBytes，与 OFD（可只给 URL）不同。
+    private sealed class OfficeSample
+    {
+        public string Label { get; set; }
+        public string Url { get; set; }
+        public string FileName { get; set; }
+    }
+
+    private static readonly OfficeSample[] officeSamples =
+    {
+        new OfficeSample { Label = "Word 文档", Url = "/samples/office-sample.docx", FileName = "office-sample.docx" },
+        new OfficeSample { Label = "Excel 表格", Url = "/samples/office-sample.xlsx", FileName = "office-sample.xlsx" },
+        new OfficeSample { Label = "PPT 演示", Url = "/samples/office-sample.pptx", FileName = "office-sample.pptx" },
+        new OfficeSample { Label = "PDF 文档", Url = "/samples/office-sample.pdf", FileName = "office-sample.pdf" },
+    };
+
+    // 初始不挂文档（null → 空态）；OnInitializedAsync 会拉第一份，避免一开始显示「不支持」。
+    private ElViewerDocument officeDocument;
+    private string officeActive = "Word 文档";
+    private string officeLoadNote;
+    private string officeReadyNote;
+    private int officeKey;
+
+    // HiddenTools 演示：勾上后工具栏的打印 / 下载按钮整体移除（不是禁用）。
+    private bool officeHideButtons;
+
+    /// <summary>加载方式 + 渲染结果合成一句提示（两份信息互不覆盖）。</summary>
+    private string officeNote => string.Join("　", new[] { officeLoadNote, officeReadyNote }.Where(x => !string.IsNullOrEmpty(x)));
+
+    /// <summary>按字节加载：Office 必须拿到字节，组件才能用内建 OOXML 解析器渲染。</summary>
+    private async Task LoadOfficeSampleAsync(OfficeSample sample)
+    {
+        try
+        {
+            var bytes = await Http.GetByteArrayAsync(sample.Url);
+
+            officeDocument = ElViewerDocument.FromBytes(bytes, sample.FileName);
+            officeActive = sample.Label;
+            officeLoadNote = $"已用 HttpClient 取到 {bytes.Length} 字节，交由内建 OOXML 解析器渲染。";
+            officeReadyNote = null;
+            officeKey++;
+        }
+        catch (Exception exception)
+        {
+            officeLoadNote = "取流失败：" + exception.Message;
+            officeReadyNote = null;
+        }
+    }
+
+    /// <summary>旧版 .doc（OLE 复合文档）：内建解析器读不了，组件给出「另存为新格式」的可执行提示。</summary>
+    private async Task LoadLegacyDocAsync()
+    {
+        const string url = "/samples/office-legacy.doc";
+
+        try
+        {
+            var bytes = await Http.GetByteArrayAsync(url);
+
+            officeDocument = ElViewerDocument.FromBytes(bytes, "office-legacy.doc");
+            officeActive = "旧版 .doc";
+            officeLoadNote = $"已取到 {bytes.Length} 字节，但这不是 OOXML（是 OLE 复合文档），内建解析器无法读取。";
+            officeReadyNote = null;
+            officeKey++;
+        }
+        catch (Exception exception)
+        {
+            officeLoadNote = "取流失败：" + exception.Message;
+            officeReadyNote = null;
+        }
+    }
+
+    /// <summary>把内建解析结果写进提示（Office 是纯 C# 同步渲染，Ready 即解析完成）。</summary>
+    private void OnOfficeStatusChanged(ElViewerStateChangedEventArgs args)
+    {
+        if (args.Status == ElViewerStatus.Ready)
+        {
+            officeReadyNote = $"{officeActive}　渲染完成（内建 OOXML 解析）。";
+        }
+        else if (args.Status == ElViewerStatus.Unsupported)
+        {
+            officeReadyNote = $"{officeActive}　无法渲染：{args.Message}";
+        }
+        else if (args.Status == ElViewerStatus.Error)
+        {
+            officeReadyNote = $"{officeActive}　渲染失败：{args.Message}";
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadOfficeSampleAsync(officeSamples[0]);
+    }
+
+    // ---------------- ElMarkdownEditor / ElMarkdownGrow ----------------
+    // ElMarkdownEditor 来自可选包 Element.Markdown（左侧 CodeMirror + 右侧 Markdig 实时预览）；
+    // ElMarkdownGrow 则是主包自带的零依赖渲染器，两者共用同一份 markdownText。
+    private const string MarkdownCaseRecord = @"# 门诊病历摘要
+
+- **患者**：Kevin Carter，男，45 岁
+- **主诉**：头晕伴血压升高 1 周
+- **诊断**：原发性高血压
+
+> 建议低盐饮食，规律服药，2 周后复诊。
+
+```csharp
+var bp = new { 收缩压 = 158, 舒张压 = 96 };
+```
+
+| 项目 | 本次 | 上次 |
+| --- | --- | --- |
+| 收缩压 | 158 | 146 |
+| 舒张压 | 96 | 92 |
+";
+
+    private const string MarkdownTableTemplate = @"## 随访记录
+
+| 随访日期 | 收缩压 | 舒张压 | 服药依从性 |
+| --- | --- | --- | --- |
+| 2026-09-01 | 158 | 96 | 良好 |
+| 2026-09-15 | 142 | 88 | 良好 |
+| 2026-09-24 | 136 | 85 | 优 |
+";
+
+    /// <summary>工具栏按钮：只挑纯文本相关的，File / Image 需要配 UploadUrl 才会真正上传。</summary>
+    private static readonly ElementPlus.Markdown.Icon[] markdownIcons = new[]
+    {
+        ElementPlus.Markdown.Icon.Bold, ElementPlus.Markdown.Icon.Italic, ElementPlus.Markdown.Icon.Strikethrough,
+        ElementPlus.Markdown.Icon.BlockQuote, ElementPlus.Markdown.Icon.Heading1,
+        ElementPlus.Markdown.Icon.Heading2, ElementPlus.Markdown.Icon.Heading3,
+        ElementPlus.Markdown.Icon.UnorderedList, ElementPlus.Markdown.Icon.OrderedList,
+        ElementPlus.Markdown.Icon.HorizontalRule, ElementPlus.Markdown.Icon.Link,
+        ElementPlus.Markdown.Icon.CodeInline, ElementPlus.Markdown.Icon.CodeBlock,
+        ElementPlus.Markdown.Icon.Table
+    };
+
+    private string markdownText = MarkdownCaseRecord;
+
+    private void LoadCaseRecord() => markdownText = MarkdownCaseRecord;
+
+    private void ClearMarkdown() => markdownText = string.Empty;
+
+    private void AppendFollowUp() => markdownText = (markdownText ?? string.Empty) + "\n" + MarkdownTableTemplate;
+
+    private const string viewerText = "患者：Kevin Carter\n年龄：45\n科室：内科\n诊断：高血压\n处置：氨氯地平 5mg 每日一次";
+
+    // ---------------- ElAccountTableGrow ----------------
+    /// <summary>会计科目下拉的 mock 数据：编码 / 名称 / 类别 / 所属机构（ElTable 反射自动列，属性名即表头）</summary>
+    private record AccountSubject(string 科目编码, string 科目名称, string 科目类别, string 所属机构);
+
+    /// <summary>医院会计制度风格的科目表，覆盖 5 大类 26 个科目 × 4 家机构</summary>
+    private static readonly object[] AccountSubjects = new object[]
+    {
+        // 资产类
+        new AccountSubject("1001", "库存现金", "资产类", "总院"),
+        new AccountSubject("1002", "银行存款", "资产类", "总院"),
+        new AccountSubject("100201", "银行存款-基本户", "资产类", "总院"),
+        new AccountSubject("100202", "银行存款-医保专户", "资产类", "总院"),
+        new AccountSubject("1003", "零余额账户用款额度", "资产类", "东院区"),
+        new AccountSubject("1004", "零余额账户用款额度", "资产类", "西院区"),
+        new AccountSubject("1122", "应收账款", "资产类", "总院"),
+        new AccountSubject("112201", "应收账款-医保结算", "资产类", "总院"),
+        new AccountSubject("1123", "预付账款", "资产类", "东院区"),
+        new AccountSubject("1221", "其他应收款", "资产类", "西院区"),
+        new AccountSubject("1301", "库存物资", "资产类", "总院"),
+        new AccountSubject("1601", "固定资产", "资产类", "总院"),
+        new AccountSubject("1602", "累计折旧", "资产类", "总院"),
+        // 负债类
+        new AccountSubject("2001", "短期借款", "负债类", "总院"),
+        new AccountSubject("2202", "应付账款", "负债类", "总院"),
+        new AccountSubject("2203", "预收账款", "负债类", "东院区"),
+        new AccountSubject("2204", "应付社会保障费", "负债类", "总院"),
+        new AccountSubject("2211", "应付职工薪酬", "负债类", "总院"),
+        new AccountSubject("221101", "应付职工薪酬-工资", "负债类", "西院区"),
+        // 超长科目名：ElAccountTableGrow 的「科目名称」列带 ShowOverflowTooltip，这一条才会真被裁 → 悬停浮全文
+        new AccountSubject("221102", "应付职工薪酬-基本医疗保险（单位缴纳部分）", "负债类", "总院"),
+        // 净资产类
+        new AccountSubject("3001", "事业基金", "净资产类", "总院"),
+        new AccountSubject("3101", "专用基金", "净资产类", "总院"),
+        // 收入类
+        new AccountSubject("4001", "医疗收入", "收入类", "总院"),
+        new AccountSubject("400101", "医疗收入-门诊收入", "收入类", "总院"),
+        new AccountSubject("400102", "医疗收入-住院收入", "收入类", "东院区"),
+        new AccountSubject("4101", "财政补助收入", "收入类", "总院"),
+        new AccountSubject("4201", "科教项目收入", "收入类", "西院区"),
+        // 费用类
+        new AccountSubject("5001", "医疗业务成本", "费用类", "总院"),
+        new AccountSubject("5101", "财政项目补助支出", "费用类", "总院"),
+        new AccountSubject("5301", "管理费用", "费用类", "总院"),
+    };
+    private ObservableCollection<ElAccountTableGrowRow> voucherRows = new()
+    {
+        new() { Date="2026-09-20", VoucherNo="记-001", Abstracts="收到客户货款", AccountSubject="银行存款", AmountIn=50000m, AmountOut=null },
+        new() { Date="2026-09-20", VoucherNo="记-001", Abstracts="收到客户货款", AccountSubject="应收账款", AmountIn=null, AmountOut=50000m },
+        new() { Date="2026-09-20", VoucherNo="记-002", Abstracts="支付办公用品费", AccountSubject="管理费用", AmountIn=1280m, AmountOut=null },
+        new() { Date="2026-09-20", VoucherNo="记-002", Abstracts="支付办公用品费", AccountSubject="银行存款", AmountIn=null, AmountOut=1280m },
+        new() { Date="2026-09-20", VoucherNo="记-003", Abstracts="门诊收费", AccountSubject="银行存款", AmountIn=23400m, AmountOut=null },
+        new() { Date="2026-09-20", VoucherNo="记-003", Abstracts="门诊收费", AccountSubject="医疗收入", AmountIn=null, AmountOut=23400m },
+    };
+
+    /// <summary>ElAccountTableGrow 只读 / 编辑</summary>
+    private bool accountReadOnly;
+
+    /// <summary>ElAccountTableGrow 实例引用（用于演示 LoadRows / GetData）</summary>
+    private ElAccountTableGrow accountTable;
+
+    /// <summary>ElAccountTableGrow 最近一次数据变更时间</summary>
+    private string accountChangeNote = "—";
+
+    /// <summary>演示 LoadRows：用「属性名约定」自动映射业务实体（摘要/会计科目/借方金额/贷方金额）</summary>
+    private void LoadVoucherDemo()
+    {
+        var data = new[]
+        {
+            new { 摘要 = "提取现金备用", 会计科目 = "库存现金", 借方金额 = 2000m, 贷方金额 = 0m },
+            new { 摘要 = "提取现金备用", 会计科目 = "银行存款", 借方金额 = 0m, 贷方金额 = 2000m },
+            new { 摘要 = "支付水电费", 会计科目 = "管理费用", 借方金额 = 860.5m, 贷方金额 = 0m },
+            new { 摘要 = "支付水电费", 会计科目 = "银行存款", 借方金额 = 0m, 贷方金额 = 860.5m },
+        };
+        accountTable?.LoadRows(data);
+        accountChangeNote = DateTime.Now.ToString("HH:mm:ss") + "（LoadRows 装载）";
+    }
+
+    // ---------------- ElWaitingPopupGrow ----------------
+    private ElWaitingPopupGrow waitingRef;
+    private bool waitingVisible;
+    private bool waitingMaskClosable;
+    private bool waitingShowCancel = true;
+    private bool waitingRound = true;
+    private int waitingRadius;
+    private string waitingBg = "#ffffff";
+    private string waitingTitleColor = "#303133";
+    private string waitingMessageColor = "#606266";
+    private string waitingSpinnerColor = "#409eff";
+    private string waitingStatus = "—";
+
+    // 取消按钮（就是一个 ElButton）——文字 / 类型 / 尺寸 / 位置 / 朴素 / 圆角 / 自定义色 / 实心
+    private string waitingCancelText = "取消";
+    private string waitingBtnType = "Default";
+    private string waitingBtnSize = "Default";
+    private string waitingBtnPosition = "Center";
+    private bool waitingBtnPlain;
+    private bool waitingBtnRound;
+    private bool waitingBtnUseColor;
+    private string waitingBtnColor = "#f56c6c";
+    private bool waitingBtnDark;
+
+    private ButtonType waitingBtnTypeValue => waitingBtnType switch
+    {
+        "Primary" => ButtonType.Primary,
+        "Success" => ButtonType.Success,
+        "Warning" => ButtonType.Warning,
+        "Danger" => ButtonType.Danger,
+        "Info" => ButtonType.Info,
+        _ => ButtonType.Default
+    };
+
+    private ButtonSize waitingBtnSizeValue => waitingBtnSize switch
+    {
+        "Large" => ButtonSize.Large,
+        "Small" => ButtonSize.Small,
+        _ => ButtonSize.Default
+    };
+
+    private ElWaitingPopupGrowActionAlign waitingBtnPositionValue => waitingBtnPosition switch
+    {
+        "Left" => ElWaitingPopupGrowActionAlign.Left,
+        "Right" => ElWaitingPopupGrowActionAlign.Right,
+        _ => ElWaitingPopupGrowActionAlign.Center
+    };
+
+    /// <summary>命令式：@ref 拿实例后 Show()，模拟一段后台工作，3 秒后自动 Hide()。</summary>
+    private async Task OpenWaitingImperative()
+    {
+        waitingStatus = "打开（命令式）";
+        await waitingRef.Show();
+        await Task.Delay(3000);
+        await waitingRef.Hide();
+        waitingStatus = "已自动关闭";
+    }
+
+    /// <summary>声明式：直接翻转绑定的 waitingVisible。</summary>
+    private void OpenWaitingBind()
+    {
+        waitingVisible = true;
+        waitingStatus = "打开（bind）";
+    }
+
+    private void CloseWaitingBind()
+    {
+        waitingVisible = false;
+        waitingStatus = "已关闭（bind）";
+    }
+
+    /// <summary>取消回调：命令式与声明式两个浮层共用；这里只把声明式那一个关掉并给出状态。</summary>
+    private void OnWaitingCancel()
+    {
+        waitingVisible = false;
+        waitingStatus = "已取消";
+    }
+}

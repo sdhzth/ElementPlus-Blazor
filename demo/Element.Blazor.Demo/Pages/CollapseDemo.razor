@@ -1,0 +1,52 @@
+@page "/collapse"
+@using ElementPlus
+
+<h1 class="demo-page-title">折叠面板 / ElCollapse</h1>
+<p class="demo-page-sub">对齐官方：支持 @("@bind-Value")（展开项）、Accordion（手风琴）、以及 ElCollapseItem 的 Name / Title / Disabled。</p>
+
+<div class="demo-section">
+    <h3>基础用法</h3>
+    <div class="demo-row" style="flex-direction:column;align-items:stretch;max-width:560px">
+        <ElCollapse @bind-Value="active1">
+            <ElCollapseItem Name="1" Title="一致性 Consistency">
+                <p>与现实生活一致：与现实生活的流程、逻辑保持一致，遵循用户习惯的语言和概念。</p>
+            </ElCollapseItem>
+            <ElCollapseItem Name="2" Title="反馈 Feedback">
+                <p>通过界面样式和交互动效让用户可以清晰地明了当前的状态。</p>
+            </ElCollapseItem>
+            <ElCollapseItem Name="3" Title="效率 Efficiency" Disabled="true">
+                <p>界面简单直白，让用户快速识别而非回忆。</p>
+            </ElCollapseItem>
+        </ElCollapse>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>手风琴模式（Accordion）</h3>
+    <div class="demo-row" style="flex-direction:column;align-items:stretch;max-width:560px">
+        <ElCollapse @bind-Value="active2" Accordion="true">
+            <ElCollapseItem Name="a" Title="第一项"><p>手风琴模式下一次只能展开一项。</p></ElCollapseItem>
+            <ElCollapseItem Name="b" Title="第二项"><p>点击其它项会收起当前项。</p></ElCollapseItem>
+            <ElCollapseItem Name="c" Title="第三项"><p>常用于分类设置面板。</p></ElCollapseItem>
+        </ElCollapse>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>阻止折叠（before-collapse）</h3>
+    <p class="demo-note">点击「锁定项」会被 before-collapse 拦截，无法展开；「自由项」不受影响。对齐官方 2.9.11+ 的 before-collapse 钩子。</p>
+    <div class="demo-row" style="flex-direction:column;align-items:stretch;max-width:560px">
+        <ElCollapse @bind-Value="active3" BeforeCollapse="OnBeforeCollapse">
+            <ElCollapseItem Name="locked" Title="锁定项（不可展开）"><p>此项被 before-collapse 拦截。</p></ElCollapseItem>
+            <ElCollapseItem Name="free" Title="自由项"><p>此项可正常展开/收起。</p></ElCollapseItem>
+        </ElCollapse>
+    </div>
+</div>
+
+@code {
+    private string active1 = "1";
+    private string active2 = "a";
+    private string active3 = "";
+
+    private Task<bool> OnBeforeCollapse(IList<string> names) => Task.FromResult(!names.Contains("locked"));
+}

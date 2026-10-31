@@ -1,0 +1,26 @@
+@inherits ElementComponentBase
+@if (Visible)
+{
+    <li id="@Owner?.ItemId(this)"
+        role="menuitem"
+        tabindex="-1"
+        class="@ItemClass"
+        aria-disabled="@(Disabled ? "true" : "false")"
+        style="@(string.IsNullOrEmpty(Style) ? null : Style)"
+        @ref="Element"
+        @onclick="OnClickAsync"
+        @attributes="Attributes">
+        @if (!string.IsNullOrWhiteSpace(Icon))
+        {
+            <i class="@NormalizeIcon(Icon)" style="@IconStyle" aria-hidden="true"></i>
+        }
+        @if (ChildContent != null)
+        {
+            @ChildContent
+        }
+        else
+        {
+            @Text
+        }
+    </li>
+}

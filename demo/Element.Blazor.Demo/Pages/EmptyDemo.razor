@@ -1,0 +1,94 @@
+@page "/empty"
+
+<h1 class="demo-page-title">ElEmpty 空状态</h1>
+<p class="demo-page-sub">
+    对齐 Element Plus <a href="https://element-plus.org/zh-CN/component/empty" target="_blank">Empty</a>：默认插画 / 自定义图片 / 图片尺寸 / 描述 / 底部插槽，
+    并支持通过 <code>--el-empty-fill-color-0..9</code> 变量整体换色（与官方一致）。
+    <br />另外，<b>ElTable 本身就能设置空状态</b>：用 <code>Empty</code> 插槽即可把 <code>ElEmpty</code> 放进表格空数据占位区（见页尾示例）。
+</p>
+
+<div class="demo-section">
+    <h3>① 基础用法</h3>
+    <p class="demo-page-sub">不传任何参数：渲染 EP 同款默认插画，描述回落为「暂无数据」。</p>
+    <ElEmpty />
+</div>
+
+<div class="demo-section">
+    <h3>② 自定义描述（Description）</h3>
+    <ElEmpty Description="找不到该条件下的数据" />
+</div>
+
+<div class="demo-section">
+    <h3>③ 自定义图片（Image，传入图片 URL）</h3>
+    <ElEmpty Image="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='20' fill='%23409eff'/%3E%3C/svg%3E"
+             Description="用一张自定义图片替换默认插画" />
+</div>
+
+<div class="demo-section">
+    <h3>④ 图片尺寸（ImageSize，单位 px）</h3>
+    <ElEmpty ImageSize="200" Description="ImageSize=200" />
+</div>
+
+<div class="demo-section">
+    <h3>⑤ 底部内容（默认插槽 ChildContent）</h3>
+    <ElEmpty Description="购物车里还没有商品">
+        <ElButton Type="ButtonType.Primary">去逛逛</ElButton>
+    </ElEmpty>
+</div>
+
+<div class="demo-section">
+    <h3>⑥ 自定义图片插槽（ImageContent）</h3>
+    <ElEmpty Description="用插槽完全接管插画">
+        <ImageContent>
+            <svg viewBox="0 0 64 64" width="120" height="120" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="30" fill="#fde2e2" />
+                <text x="32" y="40" font-size="28" text-anchor="middle" fill="#f56c6c">!</text>
+            </svg>
+        </ImageContent>
+    </ElEmpty>
+</div>
+
+<div class="demo-section">
+    <h3>⑦ 自定义描述插槽（DescriptionContent）</h3>
+    <ElEmpty>
+        <DescriptionContent>
+            <span style="color:#e6a23c;font-weight:700;">网络连接开小差了，请稍后重试</span>
+        </DescriptionContent>
+    </ElEmpty>
+</div>
+
+<div class="demo-section">
+    <h3>⑧ 自定义配色（--el-empty-fill-color-0..9 变量）</h3>
+    <p class="demo-page-sub">与官方一致，通过覆盖这 10 个 CSS 变量整体替换默认插画配色。</p>
+    <div style="--el-empty-fill-color-0:#ffeaea;--el-empty-fill-color-1:#ffd0d0;--el-empty-fill-color-2:#ffbcbc;--el-empty-fill-color-3:#ff9a9a;--el-empty-fill-color-4:#ff7a7a;--el-empty-fill-color-5:#ff5c5c;--el-empty-fill-color-6:#ff3d3d;--el-empty-fill-color-7:#ff1f1f;--el-empty-fill-color-8:#e60000;--el-empty-fill-color-9:#b30000;">
+        <ElEmpty Description="红色系空状态" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>⑨ ElTable 空状态（Empty 插槽内嵌 ElEmpty）</h3>
+    <p class="demo-page-sub">
+        ElTable 自带空状态能力：<code>EmptyText</code> / <code>EmptyTextOverride</code> 设置纯文本，或用 <code>Empty</code> 插槽放任意内容（这里放一个 <code>ElEmpty</code>）。
+    </p>
+    <ElTable DataSource="emptyRows" Border="true">
+        <ChildContent>
+            <ElTableColumn Property="Name" Text="名称" Width="160" />
+            <ElTableColumn Property="Value" Text="数值" Width="120" />
+        </ChildContent>
+        <Empty>
+            <ElEmpty Description="暂无数据，点击新增一行" ImageSize="100">
+                <ElButton Type="ButtonType.Primary">新增</ElButton>
+            </ElEmpty>
+        </Empty>
+    </ElTable>
+</div>
+
+@code {
+    private System.Collections.Generic.List<EmptyRow> emptyRows = new();
+
+    private sealed class EmptyRow
+    {
+        public string Name { get; set; }
+        public int Value { get; set; }
+    }
+}

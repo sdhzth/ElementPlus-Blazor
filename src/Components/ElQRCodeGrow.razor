@@ -1,0 +1,12 @@
+@inherits ElementComponentBase
+
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="@Layout.ViewBox"
+     width="@Size"
+     height="@Size"
+     shape-rendering="@ShapeRendering"
+     class="@QrCodeClass"
+     role="img"
+     aria-label="@AriaLabel"
+     style="@Style"
+     @attributes="Attributes">@((MarkupString)InnerMarkup)</svg>

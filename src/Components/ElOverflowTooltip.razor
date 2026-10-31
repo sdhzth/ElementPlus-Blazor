@@ -1,0 +1,30 @@
+@inherits ElementComponentBase
+@* 截断悬停看全文的宿主（本库内部共用件，不是 EP 组件）：把要渲染的那段文字交给 ElementTagRenderer，
+   Enabled 时外面套一层手动 ElTooltip。浮层必须待在裁剪盒**外面**——ElTooltip 的浮层渲染在它自己的
+   触发 span 内部，放进 overflow:hidden 的那一层就会被一起裁掉（菜单那次踩过，见 docs/menu-alignment.md §9）。
+   浮层的坐标由本件钉成 position:fixed（见 TextClip.BuildFixedPopperStyle），因为表格的
+   .el-table__body-wrapper 是 overflow:auto，absolute 浮层哪怕待在裁剪盒外面、也照样会被这层滚动容器裁掉。
+   Enabled=false 时不加任何包装，DOM 与不挂本件时逐字节一致。 *@
+@if (Enabled)
+{
+    <ElTooltip Trigger="@PopperTrigger.Manual" ModelValue="@EllipsisTooltipVisible" Content="@EllipsisTooltipText"
+               Placement="@PopperPlacementValue" Offset="@TextClip.PopperGap" Effect="@Effect" Style="@TriggerStyle"
+               PopperStyle="@PopperStyleValue">
+        <ElementTagRenderer Tag="@Tag" Class="@Class" Style="@ClipStyle" Attributes="@ClipAttributes"
+                            ElementCaptured="@OnElementCaptured">
+            @ChildContent
+        </ElementTagRenderer>
+    </ElTooltip>
+}
+else if (ContentOnlyWhenDisabled)
+{
+    @* 关着时连包装元素都不输出：宿主的裁剪盒（如 .el-table-v2__cell）由它自己写，DOM 与不挂本件时一致。 *@
+    @ChildContent
+}
+else
+{
+    <ElementTagRenderer Tag="@Tag" Class="@Class" Style="@ClipStyle" Attributes="@ClipAttributes"
+                        ElementCaptured="@OnElementCaptured">
+        @ChildContent
+    </ElementTagRenderer>
+}

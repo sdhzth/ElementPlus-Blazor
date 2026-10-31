@@ -1,0 +1,27 @@
+@page "/input-otp"
+@using ElementPlus
+
+<h1 class="demo-page-title">OTP 输入 / ElInputOtp</h1>
+<p class="demo-page-sub">对齐官方：支持 @("@bind-Value")、Length（位数）、ShowPassword、Separator、Disabled、Readonly、Size，常用于验证码 / 一次性口令场景。</p>
+
+<div class="demo-section">
+    <h3>基础用法（6 位）</h3>
+    <div class="demo-row">
+        <ElInputOtp @bind-Value="otp1" Length="6" />
+    </div>
+    <p class="demo-note">otp1=@otp1</p>
+</div>
+
+<div class="demo-section">
+    <h3>显示密码 / 分隔符 / 禁用</h3>
+    <div class="demo-row">
+        <ElInputOtp @bind-Value="otp2" Length="4" ShowPassword="true" Separator="-" />
+        <ElInputOtp @bind-Value="otp1" Length="6" Disabled="true" />
+    </div>
+    <p class="demo-note">otp2=@otp2</p>
+</div>
+
+@code {
+    private string otp1 = "";
+    private string otp2 = "";
+}

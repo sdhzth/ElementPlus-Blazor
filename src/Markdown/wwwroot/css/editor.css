@@ -1,0 +1,71 @@
+﻿.CodeMirror-wrap pre.CodeMirror-line, .CodeMirror-wrap pre.CodeMirror-line-like {
+    word-break: break-word !important;
+}
+
+.editormd-toolbar {
+    line-height: 1px !important;
+}
+
+/* ==== 编辑器两栏的滚动条复位成库口径（2026-10-10 批次⑫）====
+   vendor 的 editormd.min.css 里有四条 `.editormd ::-webkit-scrollbar…` 规则
+   （width:7px / height:10px / 轨道 background:rgba(0,0,0,.1) 常显 / 拇指 rgba(0,0,0,.3) 常显）。
+   它们的选择器带一个 class，特异性 (0,1,x) 高于 index.css 全局基线的 `*::-webkit-scrollbar` (0,0,x)，
+   于是全站「纵向 4px / 横向 6px + 平时全透明、悬停才显形」在 Markdown 编辑器上**整条被顶掉** ——
+   headful 实测 `.CodeMirror-scroll` 槽宽 6px（横 10px）、`.editormd-preview` 6px，且静止状态就是灰条常显，
+   正是用户截图里红箭头指的那一条。
+   本文件在 index.html 里排在 editormd.min.css 之后，因此用**与 vendor 完全相同的选择器**
+   （同特异性、后来者赢）复位，不去改第三方压缩包。 */
+.editormd ::-webkit-scrollbar {
+    width: 4px;
+    height: 6px;
+    background: transparent;
+}
+
+.editormd ::-webkit-scrollbar:hover {
+    background: transparent;
+}
+
+.editormd ::-webkit-scrollbar-track,
+.editormd ::-webkit-scrollbar-track-piece,
+.editormd ::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+.editormd ::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 4px;
+    box-shadow: none;
+    transition: background .2s ease;
+}
+
+/* 指针移入滚动容器才浮现（与 index.css 的 `*:hover::-webkit-scrollbar-thumb` 同语义） */
+.editormd :hover::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, .16);
+}
+
+/* 再压到条上加深，提示可拖拽 */
+.editormd ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, .32);
+    box-shadow: none;
+}
+
+/* ==== 「移到栏上才显形」改用 class 驱动（2026-10-18 批次83 #100）====
+   编辑栏用的不是 `.CodeMirror-scroll` 的原生滚条：headful 实测该元素右缘在 x=850，
+   而外层 `.CodeMirror{overflow:hidden}` 只到 x=801 —— 那 4px 被裁掉了，看不见也拖不到。
+   真正显示、真正能拖的是 CM 自己的替身 `.CodeMirror-vscrollbar`（实测 x 795..800，z-index:6），
+   它是 `.CodeMirror` 的子元素、不是被悬停的那个滚动容器本身，所以上面那条
+   `:hover::-webkit-scrollbar-thumb` 只在指针正好压在 4px 条上时成立。
+   为什么这一级要换成 class，两条实测（Edge 155 headful，日志同名落 Temp）：
+   ① :hover 形状不可靠 —— b53-md-hover-diag7.log N1~N6：原生光标已在栏内（页面回报 clientX/Y
+      确认落点、`.CodeMirror:hover` 为真）连测 6 次条带全 0，同一时刻同一 clip 换成 class 立刻 0.865；
+      合成（CDP）事件却会重取 —— 只写 :hover 就是「探针绿、真实用户看不见」。
+   ② class 只能挂滚动元素自身 —— b54-md-repaint-diag.log A1/A2 + b54-md-native-cursor-3.log D/E：
+      挂在 .CodeMirror-vscrollbar 自身时 `getComputedStyle(el,'::-webkit-scrollbar-thumb')` =
+      rgba(0,0,0,.16) 且画面 ratio 0.8649（零鼠标事件、零 CSSOM 变更）；挂在其祖先 .CodeMirror 时
+      同一条规则计算值仍是 rgba(0,0,0,0)，合成事件把鼠标移进栏内也一样 0（后代形状的选择器不匹配）。
+   故显形由 dom.js 的 mouseover/mouseleave 把 md-bar-hover 挂到「该栏的滚动元素自身」驱动。 */
+.editormd .CodeMirror-vscrollbar.md-bar-hover::-webkit-scrollbar-thumb,
+.editormd .CodeMirror-hscrollbar.md-bar-hover::-webkit-scrollbar-thumb,
+.editormd .editormd-preview.md-bar-hover::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, .16);
+}

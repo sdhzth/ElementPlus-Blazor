@@ -1,0 +1,29 @@
+@using Microsoft.AspNetCore.Components
+
+<p class="demo-note" id="@Id">@Prefix@_message</p>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    [Parameter]
+    public string Prefix { get; set; } = string.Empty;
+
+    private string _message = string.Empty;
+
+    /// <summary>
+    /// 更新提示文案并<b>只重渲染本小组件</b>（不触发父页 StateHasChanged）。
+    /// 用于消除「③ 段每次按键都让整个 TableDemo（10 个 ElTable + 轮播）全页重渲染」的迟滞感：
+    /// 单元格值经 ValueChanged 已写回数据源（输入本身由 ElInput 内部维护），这里只需把「自动保存」提示刷新出来。
+    /// </summary>
+    public void Set(string message)
+    {
+        if (string.Equals(message, _message, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        _message = message;
+        StateHasChanged();
+    }
+}

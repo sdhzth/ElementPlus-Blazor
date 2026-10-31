@@ -1,0 +1,33 @@
+@page "/badge"
+@using ElementPlus
+
+<h1 class="demo-page-title">徽标 / ElBadge</h1>
+<p class="demo-page-sub">对齐官方：支持 Value（数字）、Type（Primary/Success/Warning/Danger/Info）、以及作为包裹子组件的未读角标。</p>
+
+<div class="demo-section">
+    <h3>基础用法</h3>
+    <div class="demo-row">
+        <ElBadge Value="12"><span class="demo-badge-box">评论</span></ElBadge>
+        <ElBadge Value="3" Type="BadgeType.Danger"><span class="demo-badge-box">消息</span></ElBadge>
+        <ElBadge Value="99" Type="BadgeType.Primary"><span class="demo-badge-box">通知</span></ElBadge>
+        <ElBadge Value="200" Type="BadgeType.Warning"><span class="demo-badge-box">动态</span></ElBadge>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>点状（Dot 角标）</h3>
+    <div class="demo-row">
+        <ElBadge Dot="true"><span class="demo-badge-box">待处理</span></ElBadge>
+        <ElBadge Dot="true" Type="BadgeType.Danger"><span class="demo-badge-box">告警</span></ElBadge>
+    </div>
+</div>
+
+<style>
+    .demo-badge-box {
+        display: inline-block;
+        padding: 12px 18px;
+        border: 1px solid var(--el-border-color, #dcdfe6);
+        border-radius: 4px;
+        background: #fff;
+    }
+</style>

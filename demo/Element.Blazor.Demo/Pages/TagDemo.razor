@@ -1,0 +1,32 @@
+@page "/tag"
+@using ElementPlus
+
+<h1 class="demo-page-title">标签 / ElTag</h1>
+<p class="demo-page-sub">对齐官方：支持 Type（Primary/Success/Info/Warning/Danger）、Theme（Light/Dark/Plain）、Size、Closable、Icon、Color（自定义颜色）。</p>
+
+<div class="demo-section">
+    <h3>类型与主题</h3>
+    <div class="demo-row">
+        <ElTag Type="TagType.Primary">基础</ElTag>
+        <ElTag Type="TagType.Success">成功</ElTag>
+        <ElTag Type="TagType.Info">信息</ElTag>
+        <ElTag Type="TagType.Warning">警告</ElTag>
+        <ElTag Type="TagType.Danger">危险</ElTag>
+    </div>
+    <div class="demo-row">
+        <ElTag Type="TagType.Primary" Theme="TagTheme.Dark">Dark</ElTag>
+        <ElTag Type="TagType.Success" Theme="TagTheme.Dark">Dark</ElTag>
+        <ElTag Type="TagType.Primary" Theme="TagTheme.Plain">Plain</ElTag>
+        <ElTag Type="TagType.Danger" Theme="TagTheme.Plain">Plain</ElTag>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>可关闭 / 自定义颜色 / 尺寸</h3>
+    <div class="demo-row">
+        <ElTag Type="TagType.Success" Closable="true">可关闭</ElTag>
+        <ElTag Color="#f50">自定义色</ElTag>
+        <ElTag Type="TagType.Info" Size="TagSize.Small">小号</ElTag>
+        <ElTag Type="TagType.Warning" Size="TagSize.Large">大号</ElTag>
+    </div>
+</div>

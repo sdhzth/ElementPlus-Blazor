@@ -1,0 +1,49 @@
+@page "/typography"
+@using ElementPlus
+
+<h1 class="demo-page-title">排版 / ElTypography</h1>
+<p class="demo-page-sub">对齐官方 Typography：<code>ElTypography</code> 为排版根容器，<code>ElTypographyTitle</code> 支持 <code>Level</code> 1~5（渲染 h1~h5）、<code>Type</code>（primary/success/warning/danger/info）、<code>Copyable</code>（一键复制）、<code>Truncated</code>（单行截断）、<code>LineClamp</code>（多行截断）。</p>
+
+<div class="demo-section">
+    <h3>标题层级</h3>
+    <ElTypography>
+        <ElTypographyTitle Level="1" Content="一级标题 H1" />
+        <ElTypographyTitle Level="2" Content="二级标题 H2" />
+        <ElTypographyTitle Level="3" Content="三级标题 H3" />
+        <ElTypographyTitle Level="4" Content="四级标题 H4" />
+        <ElTypographyTitle Level="5" Content="五级标题 H5" />
+    </ElTypography>
+</div>
+
+<div class="demo-section">
+    <h3>语义类型</h3>
+    <ElTypography>
+        <ElTypographyTitle Level="3" Type="TextType.Primary" Content="Primary 主要" />
+        <ElTypographyTitle Level="3" Type="TextType.Success" Content="Success 成功" />
+        <ElTypographyTitle Level="3" Type="TextType.Warning" Content="Warning 警告" />
+        <ElTypographyTitle Level="3" Type="TextType.Danger" Content="Danger 危险" />
+        <ElTypographyTitle Level="3" Type="TextType.Info" Content="Info 信息" />
+    </ElTypography>
+</div>
+
+<div class="demo-section">
+    <h3>可复制（Copyable）</h3>
+    <ElTypography>
+        <ElTypographyTitle Level="3" Copyable="true" Content="点击右侧图标即可复制这段文本" />
+    </ElTypography>
+    <p class="demo-note">点击标题后的复制图标，会把 <code>Content</code> 写入剪贴板。</p>
+</div>
+
+<div class="demo-section">
+    <h3>单行截断（Truncated）</h3>
+    <div style="max-width:320px;border:1px solid #dcdfe6;border-radius:4px;padding:8px;">
+        <ElTypographyTitle Level="4" Truncated="true" Content="这是一段很长很长的标题文本，用于演示单行截断效果，超出容器宽度后会以省略号结尾。" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>多行截断（LineClamp）</h3>
+    <div style="max-width:320px;border:1px solid #dcdfe6;border-radius:4px;padding:8px;">
+        <ElTypographyTitle Level="4" LineClamp="2" Content="这是一段用于演示多行截断效果的标题文本，超出两行后以省略号结尾，常用于标题摘要、卡片标题等场景。" />
+    </div>
+</div>

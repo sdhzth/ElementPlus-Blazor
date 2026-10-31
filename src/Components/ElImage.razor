@@ -1,0 +1,60 @@
+@inherits ElementComponentBase
+
+<div id="@Id" class="@ImageClass" style="@WrapperStyle" aria-label="@AriaLabel" @attributes="Attributes">
+    @if (loadFailed)
+    {
+        <div class="el-image__error">
+            @if (ErrorContent != null)
+            {
+                @ErrorContent
+            }
+            else
+            {
+                @ErrorText
+            }
+        </div>
+    }
+    else if (string.IsNullOrWhiteSpace(Src))
+    {
+        <div class="el-image__placeholder">
+            @if (Placeholder != null)
+            {
+                @Placeholder
+            }
+        </div>
+    }
+    else
+    {
+        <img class="el-image__inner" src="@Src" alt="@Alt" srcset="@SrcSet" referrerpolicy="@ReferrerPolicy" loading="@LoadingMode" style="@ImageStyle" @onerror="OnErrorAsync" @onclick="OpenPreviewAsync" />
+    }
+
+    @if (ShowViewer)
+    {
+        <div class="el-image-viewer__wrapper @(PreviewTeleported ? "el-image-viewer__wrapper--teleported" : null)" tabindex="-1"
+             @ref="_viewerWrapper"
+             @onwheel:preventDefault="true" @onwheel="OnPreviewWheelAsync">
+            <div class="el-image-viewer__mask" @onclick="@(HideOnClickModal ? ClosePreviewAsync : default)"></div>
+            <span class="el-image-viewer__btn el-image-viewer__close" @onclick="ClosePreviewAsync">
+                <i class="el-icon-circle-close"></i>
+            </span>
+            @if (PreviewList.Count > 1)
+            {
+                <span class="el-image-viewer__btn el-image-viewer__prev" @onclick="ShowPreviousAsync">
+                    <i class="el-icon-arrow-left"></i>
+                </span>
+                <span class="el-image-viewer__btn el-image-viewer__next" @onclick="ShowNextAsync">
+                    <i class="el-icon-arrow-right"></i>
+                </span>
+            }
+            <div class="el-image-viewer__canvas @(previewDragging ? "is-dragging" : null)"
+                 @onpointerdown="OnPreviewPointerDownAsync"
+                 @onpointermove="OnPreviewPointerMoveAsync"
+                 @onpointerup="OnPreviewPointerUpAsync"
+                 @onpointerleave="OnPreviewPointerUpAsync"
+                 @ondblclick="OnPreviewDoubleClickAsync"
+                 title="滚轮缩放，按住拖动平移，双击复位">
+                <img src="@CurrentPreviewSrc" alt="@Alt" draggable="false" style="@PreviewImageStyle" />
+            </div>
+        </div>
+    }
+</div>

@@ -1,0 +1,73 @@
+@inherits ElementFieldComponentBase<TValue>
+@typeparam TValue
+@{
+    var suffixIconClsList = new List<string>();
+    suffixIconClsList.Add("el-select__caret");
+    suffixIconClsList.Add(Loading ? "el-icon-loading" : "el-icon-arrow-up");
+    if (!Loading && dropDownOption != null && dropDownOption.IsShow)
+    {
+        suffixIconClsList.Add("is-reverse");
+    }
+}
+@* 焦点真源是内层 input（对齐 Element Plus）：根节点只做事件代理（点击 / keydown 冒泡），
+   tabindex 固定 -1 —— 一旦设成 0，键盘 Tab 会先停在根节点上，浏览器给 tabindex 元素画的是
+   默认黑色焦点环（不是 Element 的内描边风格），并且要再按一次 Tab 才能离开本控件。
+   style="@Style" 落在根节点（对齐 ElCascader 等同类）：Element Plus 的 .el-select 宽度取自
+   --el-select-width（默认 100%），只有内联 style 能压过它；缺这一句时消费端写的
+   Style="width:130px" 会静默失效，在 flex 行里被拉成一整行宽。 *@
+<div class="@warpperClsBuilder.ToString()"
+     style="@Style"
+     @onclick="OnSelectClick"
+     @onkeydown="OnKeyDownAsync"
+     @ref="elementSelect"
+     role="combobox"
+     aria-haspopup="listbox"
+     aria-label="@AriaLabel"
+     aria-multiselectable="@AriaMultiple"
+     aria-expanded="@AriaExpanded"
+     aria-disabled="@AriaDisabled"
+     aria-controls="@DropDownId"
+     aria-busy="@AriaBusy"
+     name="@Name"
+     tabindex="-1">
+    @if (Multiple && SelectedOptions.Any())
+    {
+        <div class="el-select__tags">
+            @foreach (var selected in VisibleSelectedOptions)
+            {
+                <span class="@($"el-tag el-tag--{TagType} el-tag--small el-tag--{TagEffect}")" @key="selected.Key">
+                    <span class="el-select__tags-text">@selected.Text</span>
+                    @if (!IsSelectDisabled)
+                    {
+                        <i class="el-tag__close el-icon-close" @onclick="e => RemoveTagAsync(selected)" @onclick:stopPropagation></i>
+                    }
+                </span>
+            }
+            @if (CollapsedTagCount > 0)
+            {
+                <span class="@($"el-tag el-tag--{TagType} el-tag--small el-tag--{TagEffect}")" title="@(CollapseTagsTooltip ? string.Join(", ", SelectedOptions.Select(x => x.Text)) : null)">
+                    <span class="el-select__tags-text">+ @CollapsedTagCount</span>
+                </span>
+            }
+        </div>
+    }
+    <ElInput TValue="string"
+            @ref="innerInput"
+            Tabindex="@(IsSelectDisabled ? -1 : 0)"
+            Clearable="Clearable"
+            Disabled="IsSelectDisabled"
+            Readonly="@(!Filterable)"
+            Size="@EffectiveSize"
+            @bind-EnableClearButton="EnableClearButton"
+            SuffixIcon="@string.Join(" ",suffixIconClsList)"
+            Placeholder="@EffectivePlaceholder"
+            ValueChanged="UpdateValue"
+            Value="@DisplayLabel"
+            AdditionalClearIcon="el-select__caret"
+            ValidateEvent="false"
+            SuppressFormWriteBack="true"
+            OnClear="OnInputClearAsync"
+            OnFocus="OnInputFocusAsync"
+            OnBlur="OnInputBlurAsync">
+    </ElInput>
+</div>

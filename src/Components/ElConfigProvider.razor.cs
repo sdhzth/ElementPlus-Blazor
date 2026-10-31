@@ -1,0 +1,125 @@
+using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
+using System;
+using System.Threading.Tasks;
+
+namespace ElementPlus
+{
+    public partial class ElConfigProvider : ElementComponentBase
+    {
+        private string appliedNamespace;
+
+        protected ElementReference NamespaceRoot { get; set; }
+
+        [Parameter]
+        public RenderFragment ChildContent { get; set; }
+
+        [Parameter]
+        public ElementConfig Config { get; set; }
+
+        [Parameter]
+        public ElementSize? Size { get; set; }
+
+        [Parameter]
+        public string Namespace { get; set; }
+
+        [Parameter]
+        public int? ZIndex { get; set; }
+
+        [Parameter]
+        public string Locale { get; set; }
+
+        [Parameter]
+        public ButtonConfigContext Button { get; set; }
+
+        [Parameter]
+        public LinkConfigContext Link { get; set; }
+
+        [Parameter]
+        public DialogConfigContext Dialog { get; set; }
+
+        [Parameter]
+        public MessageConfigContext Message { get; set; }
+
+        [Parameter]
+        public TableConfigContext Table { get; set; }
+
+        protected ElementConfig ResolvedConfig { get; private set; } = new ElementConfig();
+
+        protected bool ShouldRewriteNamespace => ResolvedConfig.Namespace != ElementConfig.DefaultNamespace;
+
+        protected override void OnParametersSet()
+        {
+            base.OnParametersSet();
+            var config = ElementConfiguration?.Clone() ?? new ElementConfig();
+            if (Config != null)
+            {
+                config = Merge(config, Config);
+            }
+            if (Size.HasValue)
+            {
+                config.Size = Size.Value;
+            }
+            if (!string.IsNullOrWhiteSpace(Namespace))
+            {
+                config.Namespace = Namespace.Trim();
+            }
+            if (ZIndex.HasValue)
+            {
+                config.ZIndex = ZIndex.Value;
+            }
+            if (!string.IsNullOrWhiteSpace(Locale))
+            {
+                config.Locale = Locale.Trim();
+            }
+            if (Button != null) config.Button = Button.Clone();
+            if (Link != null) config.Link = Link.Clone();
+            if (Dialog != null) config.Dialog = Dialog.Clone();
+            if (Message != null) config.Message = Message.Clone();
+            if (Table != null) config.Table = Table.Clone();
+            ResolvedConfig = config;
+        }
+
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            await base.OnAfterRenderAsync(firstRender);
+            if (!ShouldRewriteNamespace || appliedNamespace == ResolvedConfig.Namespace)
+            {
+                return;
+            }
+
+            appliedNamespace = ResolvedConfig.Namespace;
+            await JSRuntime.InvokeVoidAsync(
+                "elementConfigApplyNamespace",
+                NamespaceRoot,
+                ResolvedConfig.Namespace,
+                ElementConfig.DefaultNamespace);
+        }
+
+        private static ElementConfig Merge(ElementConfig inheritedConfig, ElementConfig config)
+        {
+            if (config.Size != ElementSize.Default)
+            {
+                inheritedConfig.Size = config.Size;
+            }
+            if (!string.IsNullOrWhiteSpace(config.Namespace))
+            {
+                inheritedConfig.Namespace = config.Namespace.Trim();
+            }
+            if (config.ZIndex != ElementConfig.DefaultZIndex)
+            {
+                inheritedConfig.ZIndex = config.ZIndex;
+            }
+            if (!string.IsNullOrWhiteSpace(config.Locale))
+            {
+                inheritedConfig.Locale = config.Locale.Trim();
+            }
+            if (config.Button != null) inheritedConfig.Button = config.Button.Clone();
+            if (config.Link != null) inheritedConfig.Link = config.Link.Clone();
+            if (config.Dialog != null) inheritedConfig.Dialog = config.Dialog.Clone();
+            if (config.Message != null) inheritedConfig.Message = config.Message.Clone();
+            if (config.Table != null) inheritedConfig.Table = config.Table.Clone();
+            return inheritedConfig;
+        }
+    }
+}

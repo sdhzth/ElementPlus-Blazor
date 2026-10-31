@@ -1,0 +1,69 @@
+@page "/upload"
+@using ElementPlus
+
+<h1 class="demo-page-title">上传 / ElUpload</h1>
+<p class="demo-page-sub">对齐官方：支持 Action / Url、ListType（Text/Picture/PictureCard）、Drag（拖拽）、Multiple、AutoUpload、Limit、Accept、Disabled、HttpHeaders，以及 CrossOrigin 跨域凭证、ClearFilesAsync() 清空与本库扩展的 EnablePasteUpload（粘贴上传）。</p>
+
+<div class="demo-section">
+    <h3>基础用法</h3>
+    <div class="demo-row" style="align-items:flex-start">
+        <ElUpload Action="/api/upload" ListType="UploadListType.Text" EnablePasteUpload="false">
+            <ChildContent>
+                <button class="el-button el-button--primary">点击上传</button>
+            </ChildContent>
+            <Tip>只能上传 jpg/png 文件，且不超过 2MB</Tip>
+        </ElUpload>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>照片墙 / 拖拽上传</h3>
+    <div class="demo-row" style="align-items:flex-start">
+        <ElUpload Action="/api/upload" ListType="UploadListType.PictureCard" EnablePasteUpload="false">
+            <ChildContent>
+                <button class="el-button el-button--primary">+ 上传</button>
+            </ChildContent>
+        </ElUpload>
+        <ElUpload Action="/api/upload" Drag="true" Multiple="true" EnablePasteUpload="false">
+            <ChildContent>
+                <div style="padding:24px;text-align:center">将文件拖到此处，或<em>点击上传</em></div>
+            </ChildContent>
+        </ElUpload>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>粘贴上传 (EnablePasteUpload)</h3>
+    <div class="demo-row" style="align-items:flex-start">
+        <ElUpload @ref="pasteRef" Action="/api/upload" ListType="UploadListType.Text"
+                  EnablePasteUpload="true">
+            <ChildContent>
+                <button class="el-button el-button--primary">点我聚焦后按 Ctrl+V</button>
+            </ChildContent>
+            <Tip>复制一个文件（或截图）后在本页按 Ctrl+V，即进入下面的文件列表</Tip>
+        </ElUpload>
+    </div>
+    <p class="demo-note">
+        EnablePasteUpload 默认是 true，但粘贴监听是<strong>全站一个 document 级监听、后注册者接管</strong>
+        （js/dom.js 的 registerPasteUpload 只保存一个 uploader）。所以同一页放多个上传时，
+        必须像本页上面几节那样把它们的 EnablePasteUpload 显式关掉，粘贴才会稳定落到这一节。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>跨域凭证 (CrossOrigin) 与清空</h3>
+    <div class="demo-row" style="align-items:flex-start">
+        <ElUpload @ref="uploadRef" Action="/api/upload" ListType="UploadListType.Text" CrossOrigin="anonymous" EnablePasteUpload="false">
+            <ChildContent>
+                <button class="el-button el-button--primary">含 crossorigin 上传</button>
+            </ChildContent>
+        </ElUpload>
+        <button class="el-button" @onclick="ClearFiles">清空文件列表</button>
+    </div>
+</div>
+
+@code {
+    private ElUpload uploadRef;
+    private ElUpload pasteRef;
+    private Task ClearFiles() => uploadRef.ClearFilesAsync();
+}

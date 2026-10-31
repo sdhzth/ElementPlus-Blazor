@@ -1,0 +1,50 @@
+@page "/backtop"
+
+<div class="demo-section">
+    <h3>ElBacktop 回到顶部（对齐 Element Plus Backtop）</h3>
+    <p class="demo-page-sub">
+        官方属性：<code>target</code>（滚动容器 CSS 选择器，默认整个页面）、<code>visibility-height</code>（默认 200）、
+        <code>right</code>（默认 40）、<code>bottom</code>（默认 40）；官方事件 <code>click</code>（<code>OnClick</code>）；
+        官方默认插槽可替换图标。本库扩展：<code>Visible</code> 只读状态、<code>ScrollToTopAsync()</code>、
+        <code>Id</code> / <code>AriaLabel</code>。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>页面级回到顶部（滚动页面后出现）</h3>
+    <p class="demo-note">向下滚动本页，右下角会出现回到顶部按钮。</p>
+    <ElBacktop VisibilityHeight="100" Right="60" Bottom="60" OnClick="@(_ => clickCount++)" />
+</div>
+
+<div class="demo-section">
+    <h3>容器内回到顶部（Target=".backtop-scroll-box"）</h3>
+    <div class="backtop-scroll-box">
+        <ElBacktop Target=".backtop-scroll-box" VisibilityHeight="60" Right="16" Bottom="16">
+            <span style="font-size:12px;">TOP</span>
+        </ElBacktop>
+        @for (var i = 1; i <= 40; i++)
+        {
+            <p class="demo-note">容器内容行 @i</p>
+        }
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>编程式调用（ScrollToTopAsync）</h3>
+    <div class="demo-row" style="gap:8px;">
+        <ElButton OnClick="@(() => boxBacktop.ScrollToTopAsync())">容器回到顶部</ElButton>
+        <span class="demo-note">已点击页面级按钮 @clickCount 次</span>
+    </div>
+    <div class="backtop-scroll-box2">
+        <ElBacktop @ref="boxBacktop" Target=".backtop-scroll-box2" VisibilityHeight="60" Right="16" Bottom="16" />
+        @for (var i = 1; i <= 30; i++)
+        {
+            <p class="demo-note">第二容器内容行 @i</p>
+        }
+    </div>
+</div>
+
+@code {
+    private int clickCount;
+    private ElBacktop boxBacktop;
+}

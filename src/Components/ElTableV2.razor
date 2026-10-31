@@ -1,0 +1,211 @@
+@inherits ElementComponentBase
+@{
+    var flat = BuildFlatRows();
+    var flatTotal = flat.Count;
+    var vStart = ComputeStartIndex(flatTotal);
+    var vEnd = ComputeEndIndex(flatTotal);
+    var visibleRows = vStart <= vEnd ? flat.Skip(vStart).Take(vEnd - vStart + 1).ToList() : new List<TableV2FlatRow>();
+    var paddingStyle = BuildBodyPaddingStyle(vStart, vEnd, flatTotal);
+    var footerHeight = FooterContent != null ? (FooterHeight > 0 ? FooterHeight : 50) : FooterHeight;
+}
+
+<div id="@Id" class="@TableClass" style="@TableStyle" role="table" aria-label="@AriaLabel" aria-rowcount="@flatTotal" @attributes="Attributes" @ref="_rootRef">
+    <div class="el-table-v2__header" role="rowgroup" style="height:@(HeaderHeight)px">
+        <div class="@HeaderRowClass" role="row" style="height:@(HeaderHeight)px">
+            @if (ShowLegacyExpandColumn)
+            {
+                <div class="el-table-v2__cell el-table-v2__expand-column" role="columnheader"></div>
+            }
+            @foreach (var column in Columns)
+            {
+                <div class="@GetHeaderCellClass(column)" role="columnheader" style="@GetColumnStyle(column, true)" @onclick="() => OnHeaderSortAsync(column)">
+                    <span class="el-table-v2__header-cell-text">
+                        @if (column.HeaderTemplate != null)
+                        {
+                            @column.HeaderTemplate
+                        }
+                        else
+                        {
+                            @column.Title
+                        }
+                    </span>
+                    @if (column.Sortable)
+                    {
+                        <span class="@GetSortClass(column)"></span>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="el-table-v2__body" role="rowgroup">
+        @* 粘性固定行（对齐 EP fixed-data）：钉在表头下方 *@
+        @foreach (var fixedRow in FixedRows)
+        {
+            <div class="el-table-v2__row el-table-v2__fixed-row" role="row"
+                 style="height:@(RowHeightSafe)px;position:sticky;top:@(HeaderHeight)px;z-index:2">
+                @foreach (var column in Columns)
+                {
+                    <div class="@CellClass(column, fixedRow)" role="cell" title="@CellTitle(column.GetValue(fixedRow), column)"
+                         style="@GetColumnStyle(column);height:@(RowHeightSafe)px">
+                        <ElOverflowTooltip Enabled="@CellOverflowEnabled(column)" ContentOnlyWhenDisabled="true"
+                                           Tag="span" Class="el-table-v2__cell-text" TriggerStyle="display:block;max-width:100%"
+                                           Placement="top" Effect="dark">
+                            @if (column.Template != null)
+                            {
+                                @column.Template(fixedRow)
+                            }
+                            else
+                            {
+                                @column.GetValue(fixedRow)
+                            }
+                        </ElOverflowTooltip>
+                    </div>
+                }
+            </div>
+        }
+
+        @* 虚拟滚动占位撑开总高度 *@
+        <div style="@paddingStyle">
+            @foreach (var flatRow in visibleRows)
+            {
+                var row = flatRow.Row;
+                <div class="@GetRowClass(flatRow, flatRow.Index - vStart)"
+                     role="row"
+                     style="@GetRowCellStyle(row);height:@(RowHeightSafe)px"
+                     @onclick="() => OnRowClickedAsync(row)"
+                     @ondblclick="() => OnRowDoubleClickedAsync(row)"
+                     @oncontextmenu="() => OnRowContextClickedAsync(row)"
+                     @onmouseenter="() => OnRowMouseEnteredAsync(row)"
+                     @onmouseleave="() => OnRowMouseLeftAsync(row)"
+                     @attributes="GetRowAttributes(row)">
+                    @if (ShowLegacyExpandColumn)
+                    {
+                        <div class="el-table-v2__cell el-table-v2__expand-column" style="height:@(RowHeightSafe)px">
+                            @if (flatRow.Expandable)
+                            {
+                                <span class="el-table-v2__expand-icon @(flatRow.IsExpanded ? "is-expanded" : string.Empty)"
+                                      style="font-size:@(IconSize)px"
+                                      @onclick="() => ToggleExpandAsync(flatRow)">
+                                    <i class="el-icon-arrow-right"></i>
+                                </span>
+                            }
+                        </div>
+                    }
+                    @foreach (var column in Columns)
+                    {
+                        @* 单元格默认只有 EP 的原生 title（components/cell.tsx:14）。EllipsisTooltip 打开时
+                           改挂 elTooltip：浮层渲染在触发 span 内部，所以裁剪要从 .el-table-v2__cell 让给内层
+                           .el-table-v2__cell-text（同名来自 EP table-v2.scss:222-226），单元格换成 overflow:visible，
+                           否则浮层会被单元格一起裁掉。关着时这里除了 title 之外与改动前逐字节一致。 *@
+                        <div class="@CellClass(column, row)" role="cell" title="@CellTitle(column.GetValue(row), column)"
+                             style="@GetColumnStyle(column);height:@(RowHeightSafe)px">
+                            <ElOverflowTooltip Enabled="@CellOverflowEnabled(column)" ContentOnlyWhenDisabled="true"
+                                               Tag="span" Class="el-table-v2__cell-text" TriggerStyle="display:block;max-width:100%"
+                                               Placement="top" Effect="dark">
+                                @if (IsExpandColumn(column))
+                                {
+                                    @if (flatRow.Depth > 0)
+                                    {
+                                        <span class="el-table-v2__indent" style="width:@(flatRow.Depth * IndentSize)px"></span>
+                                    }
+                                    @if (flatRow.Expandable)
+                                    {
+                                        <span class="el-table-v2__expand-icon @(flatRow.IsExpanded ? "is-expanded" : string.Empty)"
+                                              style="font-size:@(IconSize)px"
+                                              @onclick="() => ToggleExpandAsync(flatRow)">
+                                            <i class="el-icon-arrow-right"></i>
+                                        </span>
+                                    }
+                                }
+                                @if (column.Template != null)
+                                {
+                                    @column.Template(row)
+                                }
+                                else
+                                {
+                                    @column.GetValue(row)
+                                }
+                            </ElOverflowTooltip>
+                        </div>
+                    }
+                </div>
+                @if (ExpandContent != null && flatRow.IsExpanded)
+                {
+                    <div class="el-table-v2__expanded-row">
+                        @ExpandContent(row)
+                    </div>
+                }
+            }
+        </div>
+
+        @if (ShowSummary)
+        {
+            <div class="el-table-v2__row el-table-v2__summary-row" role="row" style="height:@(RowHeightSafe)px">
+                @if (ShowLegacyExpandColumn)
+                {
+                    <div class="el-table-v2__cell" style="height:@(RowHeightSafe)px"></div>
+                }
+                @for (var i = 0; i < Columns.Count; i++)
+                {
+                    var column = Columns[i];
+                    var summaryCell = GetSummaryCell(column, i);
+                    <div class="@SummaryCellClass(column)" role="cell" title="@CellTitle(summaryCell, column)" style="@GetColumnStyle(column);height:@(RowHeightSafe)px">
+                        <ElOverflowTooltip Enabled="@CellOverflowEnabled(column)" ContentOnlyWhenDisabled="true"
+                                           Tag="span" Class="el-table-v2__cell-text" TriggerStyle="display:block;max-width:100%"
+                                           Placement="top" Effect="dark">
+                            @summaryCell
+                        </ElOverflowTooltip>
+                    </div>
+                }
+            </div>
+        }
+
+        @* Empty *@
+        @if (flatTotal == 0 && !Loading)
+        {
+            <div class="el-table-v2__empty el-table-v2__empty-block">
+                @if (EmptyContent != null)
+                {
+                    @EmptyContent
+                }
+                else
+                {
+                    <i class="el-icon-warning-outline"></i>
+                    <p>@EffectiveEmptyText</p>
+                }
+            </div>
+        }
+    </div>
+
+    @if (FooterContent != null || footerHeight > 0)
+    {
+        <div class="el-table-v2__footer" role="contentinfo" style="height:@(footerHeight)px">
+            @FooterContent
+        </div>
+    }
+
+    @* 遮罩层（对齐 EP overlay 插槽） *@
+    @if (OverlayContent != null)
+    {
+        <div class="el-table-v2__overlay">
+            @OverlayContent
+        </div>
+    }
+
+    @* Loading overlay *@
+    @if (Loading)
+    {
+        <div class="el-table-v2__loading-mask">
+            @if (LoadingContent != null)
+            {
+                @LoadingContent
+            }
+            else
+            {
+                <i class="el-icon-loading"></i>
+                <p>@LoadingText</p>
+            }
+        </div>
+    }
+</div>

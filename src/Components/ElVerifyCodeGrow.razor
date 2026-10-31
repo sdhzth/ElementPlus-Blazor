@@ -1,0 +1,25 @@
+@inherits ElementComponentBase
+@using Microsoft.AspNetCore.Components.Web
+
+<div class="@WrapperClass" style="@WrapperStyle" @attributes="Attributes">
+    <div class="el-verify-code-grow__captcha" style="@CaptchaStyle"
+         @onclick="ManualRefreshAsync" tabindex="0" role="button"
+         aria-label="点击刷新验证码" @onkeydown="OnCaptchaKey">
+        @if (!string.IsNullOrEmpty(ImageData))
+        {
+            <img class="el-verify-code-grow__img" src="@ImageData" alt="验证码" />
+        }
+        @if (IsCountdownVisible)
+        {
+            // @key 每次换验证码都会变化 → 元素被重建 → CSS 倒计时动画重新播放（这就是「进度条重置」）。
+            <div class="el-verify-code-grow__progress" @key="CountdownKey" style="@ProgressTrackStyle" aria-hidden="true">
+                <div class="el-verify-code-grow__progress-bar" style="@ProgressBarStyle"></div>
+            </div>
+        }
+    </div>
+    <div class="el-verify-code-grow__field">
+        <input class="el-input__inner" type="text" placeholder="@Placeholder"
+               style="@InputStyle"
+               value="@Value" @oninput="OnInput" disabled="@Disabled" />
+    </div>
+</div>

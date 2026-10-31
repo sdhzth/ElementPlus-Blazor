@@ -1,0 +1,82 @@
+@inherits ElementComponentBase
+
+<section class="@SenderClass" style="@Style" @attributes="Attributes">
+    @if (!string.IsNullOrWhiteSpace(HelpText))
+    {
+        <p class="el-x-sender__help" id="@HelpId">@HelpText</p>
+    }
+    @if (Header != null)
+    {
+        <div class="el-x-sender__header">@Header</div>
+    }
+    @if (Attachments != null)
+    {
+        <div class="el-x-sender__attachments">@Attachments</div>
+    }
+    <div class="el-x-sender__main">
+        @if (Prefix != null)
+        {
+            <div class="el-x-sender__prefix">@Prefix</div>
+        }
+        <textarea class="el-x-sender__input"
+                  id="@InputId"
+                  name="@Name"
+                  @ref="textareaElement"
+                  value="@Value"
+                  placeholder="@Placeholder"
+                  rows="@Rows"
+                  maxlength="@Maxlength"
+                  autocomplete="@Autocomplete"
+                  autofocus="@Autofocus"
+                  disabled="@Disabled"
+                  readonly="@Readonly"
+                  aria-label="@AriaLabel"
+                  aria-invalid="@AriaInvalidValue"
+                  aria-describedby="@EffectiveAriaDescribedBy"
+                  aria-keyshortcuts="@AriaKeyShortcuts"
+                  style="@InputStyle"
+                  @oninput="OnInputAsync"
+                  @onkeydown="OnKeyDownAsync"></textarea>
+        @if (Suffix != null)
+        {
+            <div class="el-x-sender__suffix">@Suffix</div>
+        }
+    </div>
+    <div class="el-x-sender__footer">
+        @if (Footer != null)
+        {
+            <div class="el-x-sender__tools">@Footer</div>
+        }
+        <div class="el-x-sender__actions">
+            @if (ShowClearButton)
+            {
+                <ElButton Type="@ButtonType.Info"
+                          Text="true"
+                          Icon="@ClearButtonIcon"
+                          Disabled="@IsClearDisabled"
+                          OnClick="ClearAsync"
+                          aria-label="@ClearButtonText">
+                    @ClearButtonText
+                </ElButton>
+            }
+            @if (Loading)
+            {
+                <ElButton Type="@ButtonType.Danger"
+                          Plain="true"
+                          Icon="@StopButtonIcon"
+                          OnClick="StopAsync"
+                          aria-label="@StopButtonText">
+                    @StopButtonText
+                </ElButton>
+            }
+            <ElButton Type="@ButtonType.Primary"
+                      Loading="@Loading"
+                      Icon="@SendButtonIcon"
+                      Disabled="@IsSendDisabled"
+                      OnClick="SendAsync"
+                      aria-label="@SendButtonText">
+                @SendButtonText
+            </ElButton>
+        </div>
+    </div>
+</section>

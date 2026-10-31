@@ -1,0 +1,199 @@
+@inherits ElementComponentBase
+<style>
+.el-dropdown-table-grow.is-borderless .el-select__wrapper {
+    border:none !important; box-shadow:none !important; background:transparent !important; padding:0 4px !important; min-height:32px;
+}
+.el-dropdown-table-grow.is-borderless .el-select__placeholder { color:#c0c4cc; }
+.el-dropdown-table-grow.is-borderless .el-select__selected-item { color:#303133; }
+
+/* 键盘焦点态：对齐 Element Plus 新版选择器的 .el-select__wrapper.is-focused（inset 主色描边）。
+   根节点 tabindex="0" 是本控件唯一的焦点载体（内部没有 input），必须保留 Tab 可达，
+   但浏览器给它画的是默认黑色焦点环，不是 Element 风格 —— 清掉焦点环、改用内描边。 */
+.el-dropdown-table-grow:focus {
+    outline: none;
+}
+.el-dropdown-table-grow:focus .el-select__wrapper {
+    box-shadow: 0 0 0 1px var(--el-color-primary) inset;
+}
+
+/* 表头 / 表体列错位根因：表体容器是滚动容器（overflow:auto），表头容器不是（overflow:hidden），
+   两个表格都按 100% 宽度渲染 → 表体被纵向滚动条吃掉宽度，两个表格的列边界越往右偏移越大。
+   这里给面板内滚动条定宽（Webkit 系一旦显式设置 ::-webkit-scrollbar 就改用经典滚动条、占布局宽度），
+   并在表头右侧预留同宽 gutter，两侧列宽即严格对齐。 */
+.el-dropdown-table-grow__panel .el-table__body-wrapper {
+    overflow-y: scroll;
+    /* 表头/表体列对齐的关键：无论系统用「覆盖式」还是「经典」滚动条，
+       两边都用 scrollbar-gutter:stable 预留等宽的滚动条槽，使两个表格的可视宽度严格一致，
+       列边界就不会越往右偏移越大（不要用写死的 padding-right，覆盖式滚动条下会多算 8px 导致错位）。 */
+    scrollbar-gutter: stable;
+}
+/* 面板内滚条，两轴各自的口径（批次96 · #155，2026-10-21 用户裁定「需要」）：
+
+   —— 纵轴（::-webkit-scrollbar 的 width 只管纵向那条）仍是 0，不许动。
+   它是批次⑧ 表头/表体列对齐的前提：宽度取 0 而不是删掉这条规则，是因为本仓「所有组件滚动条一律
+   4px」的全局规则（index.css 全局细滚动条段）仍会命中这两个容器，只有用更高特异性的本条把它压回 0
+   才真正不占槽宽；两侧还必须同一条规则、同值（0），否则表头/表体可视宽度差多少、列边界就往右偏多少。
+   实测结论（不是推断）见 Temp/diag-batch8-scrollbar-zero2.log 的 B 段：headSlot 0 / bodySlot 0、
+   clientW 316/316、三列宽差值全 0、滚轮 inner 0→43 照旧生效。常驻尺子：verify-batch8.cjs 的 G1/G2/G3。
+
+   —— 横轴（height 只管横向那条）按 #154 的库口径装回一根可拖的条：静止 var(--el-sb-h, 6px)、
+   悬停 var(--el-sb-h-hover, 12px)。走钩子而不是写字面数字，是为了跟 index.css 那段同源：
+   用户改全站口径时这里自动跟上，反过来这里也不必再去打特异性战争。
+   Chromium 里 height 不占 clientWidth，所以加高横条不会拽歪列边界（上面那条依赖只在 width 轴上）。
+
+   —— 表头容器只给 0×0：EP 给 .el-table__header-wrapper 的是 overflow:hidden
+   （index.css 里实测到两处 .el-table__header-wrapper{overflow:hidden}），它没有横向可滚的内容，
+   6px 只会画一条拖不动、还从表头底部吃掉 6px 高度、并且让表头/表体的可视高度不相等的条。 */
+.el-dropdown-table-grow__panel .el-table__body-wrapper::-webkit-scrollbar {
+    width: 0;
+    height: var(--el-sb-h, 6px);
+    background: transparent;
+}
+.el-dropdown-table-grow__panel .el-table__header-wrapper::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    background: transparent;
+}
+/* 悬停加高必须在本组件再写一遍，不能指望 index.css 那条全局的 *:hover::-webkit-scrollbar：
+   本条静止档的特异性是 (0,2,0) 且样式表更晚，压得住全局那条 (0,1,0) 的悬停档 ——
+   也就是说组件把静止钉成 6px 的同时，也顺手把全站统一的 12px 挡在了外面。
+   少了下面这条，面板横条会永远停在 6px（批次94 常驻探针 ⑬ 当时量到的正是这个形状）。 */
+.el-dropdown-table-grow__panel .el-table__body-wrapper:hover::-webkit-scrollbar {
+    height: var(--el-sb-h-hover, 12px);
+}
+.el-dropdown-table-grow__panel .el-table__body-wrapper::-webkit-scrollbar-thumb,
+.el-dropdown-table-grow__panel .el-table__header-wrapper::-webkit-scrollbar-thumb {
+    background: rgba(144, 147, 153, .35);
+    border-radius: 4px;
+}
+.el-dropdown-table-grow__panel .el-table__body-wrapper::-webkit-scrollbar-thumb:hover,
+.el-dropdown-table-grow__panel .el-table__header-wrapper::-webkit-scrollbar-thumb:hover {
+    background: rgba(144, 147, 153, .6);
+}
+/* 表头容器与表体容器预留同样的滚动条槽（即使表头内容不溢出也占位），
+   这样表头表格与表体表格的可视宽度一致、各列边界严格对齐。 */
+.el-dropdown-table-grow__panel .el-table__header-wrapper {
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
+}
+
+/* 键盘选择高亮行（KeyboardSelect=true）：特异性高于 .el-table__body tr.hover-row>td / tr:hover>td */
+.el-dropdown-table-grow__panel .el-table .el-table__body tr.is-keyboard-active > td {
+    background-color: var(--el-table-current-row-bg-color, var(--el-color-primary-light-9, #ecf5ff));
+}
+
+/* 面板内滚动条对齐 Element Plus 的观感：只有细圆条、没有两端的方向箭头按钮。
+   面板表体是强制 overflow-y:scroll 的滚动容器（列对齐需要），在「经典滚动条」环境下
+   会在右侧露出两个三角按钮——这里统一隐藏，覆盖面板内所有滚动条。 */
+.el-dropdown-table-grow__panel ::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+}
+</style>
+@{
+    var sizeCssValue = Size == InputSize.Large ? "large" : Size == InputSize.Small ? "small" : null;
+    var wrapperCls = HtmlPropertyBuilder.CreateCssClassBuilder()
+        .Add("el-select")
+        .Add("el-dropdown-table-grow")
+        .AddIf(sizeCssValue != null, $"el-dropdown-table-grow--{sizeCssValue}")
+        .AddIf(Compact, "el-dropdown-table-grow--compact")
+        .AddIf(Disabled, "is-disabled")
+        .AddIf(Borderless, "is-borderless")
+        .AddIf(Visible, "is-open")
+        .Add(Cls);
+    var wrapperStyle = HtmlPropertyBuilder.CreateCssStyleBuilder()
+        .AddIf(!string.IsNullOrWhiteSpace(Width), $"width:{Width}")
+        .Add(Style);
+    // 弹层宽度与触发器宽度解耦：PanelWidth 优先，未给则回落 Width；
+    // 都不给时按内容自适应，仅保证不窄于触发器（min-width:100%）。
+    var panelWidth = !string.IsNullOrWhiteSpace(PanelWidth) ? PanelWidth : Width;
+    var panelStyle = HtmlPropertyBuilder.CreateCssStyleBuilder()
+        .AddIf(!string.IsNullOrWhiteSpace(panelWidth), $"width:{panelWidth}")
+        .AddIf(!string.IsNullOrWhiteSpace(PanelMinWidth), $"min-width:{PanelMinWidth}")
+        .AddIf(!string.IsNullOrWhiteSpace(PanelMaxWidth), $"max-width:{PanelMaxWidth}")
+        .AddIf(string.IsNullOrWhiteSpace(panelWidth) && string.IsNullOrWhiteSpace(PanelMinWidth), "min-width:100%")
+        .AddIf(string.IsNullOrWhiteSpace(panelWidth), "width:auto");
+    var hasValue = selectedItem != null || selectedItems.Any();
+}
+<div @ref="wrapperRef" class="@wrapperCls.ToString()" style="@wrapperStyle.ToString()" @onclick="ToggleAsync" @onkeydown="OnKeyDownAsync"
+     role="combobox" aria-expanded="@Visible.ToString().ToLowerInvariant()" aria-haspopup="grid"
+     aria-disabled="@Disabled.ToString().ToLowerInvariant()" tabindex="@(Disabled ? -1 : 0)">
+    <div class="el-select__wrapper">
+        @if (Multiple && selectedItems.Any())
+        {
+            <div class="el-select__tags">
+                @foreach (var item in selectedItems)
+                {
+                    <span class="el-tag el-tag--info el-tag--small el-tag--light" @key="GetFieldValue(item, ValueField)">
+                        <span class="el-select__tags-text">@DisplayText(item)</span>
+                        @if (!Disabled)
+                        {
+                            <i class="el-tag__close el-icon-close" @onclick="e => RemoveItemAsync(item, e)" @onclick:stopPropagation></i>
+                        }
+                    </span>
+                }
+            </div>
+        }
+        else if (selectedItem != null)
+        {
+            <div class="el-select__selection"><span style="color:inherit">@DisplayText(selectedItem)</span></div>
+        }
+        else
+        {
+            <div class="el-select__selection"><span class="el-select__placeholder">@Placeholder</span></div>
+        }
+
+        @if (Clearable && hasValue)
+        {
+            <span class="el-select__suffix el-dropdown-table-grow__clear" @onclick="ClearAsync" @onclick:stopPropagation>
+                <i class="el-icon-circle-close"></i>
+            </span>
+        }
+        <span class="el-select__suffix"><i class="el-select__caret el-icon-arrow-up @(Visible ? "is-reverse" : "")"></i></span>
+    </div>
+
+    @if (Visible)
+    {
+        @* 不渲染全屏 backdrop：它是 position:fixed 的覆盖层，滚轮的滚动链会走到「视口」而不是
+           .demo-main，等于开着面板时整页滚不动（实测 mainTop 恒 0，关掉面板同一点 0→240→480）。
+           「点外面收起」改由 document 捕获阶段的 mousedown 监听实现（elementPickerOutsideAttach，
+           与 ElDateTimePicker / ElTimePicker 同一套）。 *@
+        <div @ref="panelRef" class="el-dropdown-table-grow__panel" style="@panelStyle.ToString()" role="grid" @onclick:stopPropagation>
+            @if (AllowSearch)
+            {
+                <div class="el-dropdown-table-grow__search">
+                    @* 键盘选择模式下事件不再冒泡给触发器（否则 Enter 确认后会被触发器重新展开） *@
+                    <input class="el-input__inner" type="text" placeholder="@SearchPlaceholder"
+                           @ref="searchInputRef"
+                           @oninput="OnSearchInputAsync"
+                           @onkeydown="OnSearchKeyDownAsync"
+                           @onkeydown:stopPropagation="@KeyboardSelect"
+                           @onclick:stopPropagation />
+                </div>
+            }
+            <ElTable @ref="tableRef"
+                     DataSource="@FilteredDataSource"
+                     Total="@FilteredTotal"
+                     PageSize="@PageSize"
+                     EnablePagination="@ShowPagination"
+                     Stripe="@Stripe"
+                     Border="@Border"
+                     @* 用 MaxHeight 不用 Height：定高把面板钉得比数据还高（实测 5 行 199px 内容配 271px 容器），
+                        空区又带着 overflow-y:scroll 的滚条槽 —— 看着能滚、滚轮却滚不动。EP 下拉按内容收、只受最大高度限制。 *@
+                     MaxHeight="@Height"
+                     Size="@Size"
+                     RowKey="@ValueField"
+                     HasSelectionColumn="@Multiple"
+                     RowClassName="@KeyboardRowClassName"
+                     EmptyText="@(EmptyText ?? "暂无数据")"
+                     RowClick="@OnTableRowClickAsync"
+                     SelectedRowsChanged="@OnTableSelectionChangedAsync"
+                     SelectedRows="@(Multiple ? selectedRowSet : null)">
+                @* 勾选列由 ElTable.HasSelectionColumn 统一渲染（单选不给勾选框）；
+                   ElTableColumn Type="selection" 在本仓库没有实现，声明了只会多出一列空白列。 *@
+                @ChildContent
+            </ElTable>
+        </div>
+    }
+</div>

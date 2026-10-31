@@ -1,0 +1,113 @@
+@page "/dropdown"
+
+<div class="demo-section">
+    <h3>ElDropdown 下拉菜单（对齐 Element Plus Dropdown）</h3>
+    <p class="demo-page-sub">
+        官方属性：<code>placement</code>（本次新增，默认 bottom-start）、<code>max-height</code>（本次新增）、
+        <code>tabindex</code>（本次新增）、<code>role</code>（本次新增，默认 menu）、<code>id</code>、
+        <code>trigger</code>（TriggerMode：hover / click / contextmenu）、<code>hide-on-click</code>、
+        <code>show-timeout</code>（本次对齐官方默认 250ms）、<code>hide-timeout</code>、<code>split-button</code>、
+        <code>disabled</code>、<code>size</code>、<code>type</code>；
+        官方事件 <code>command</code>、<code>visible-change</code> / <code>open</code> / <code>close</code>（本次新增）、
+        <code>click</code>（split-button 左侧按钮）。
+        已知差异：<code>teleported</code> 保留参数但本库弹层统一由 ElPopup 宿主渲染。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>基础用法（TriggerMode=Click，默认）</h3>
+    <ElDropdown OnCommand="@(e => log = e.Command?.ToString())"
+                OnVisibleChange="@(v => visible = v)">
+        <Trigger>
+            <ElButton>操作菜单</ElButton>
+        </Trigger>
+        <Items>
+            <ElDropdownItem Icon="el-icon-view" Command="@("view")">查看</ElDropdownItem>
+            <ElDropdownItem Icon="el-icon-edit" Command="@("edit")">编辑</ElDropdownItem>
+            <ElDropdownItem Icon="el-icon-delete" Command="@("delete")" Divided="true">删除</ElDropdownItem>
+            <ElDropdownItem Command="@("no")" Disabled="true">禁用项</ElDropdownItem>
+        </Items>
+    </ElDropdown>
+    <p class="demo-note">最近命令：@(log ?? "(无)")；当前可见：@(visible ? "是" : "否")</p>
+</div>
+
+<div class="demo-section">
+    <h3>悬停触发（TriggerMode=Hover）+ placement</h3>
+    <div class="demo-row" style="gap:8px;">
+        <ElDropdown TriggerMode="DropdownTrigger.Hover" Placement="bottom-start" ShowTimeout="250" HideTimeout="150">
+            <Trigger><ElButton>bottom-start</ElButton></Trigger>
+            <Items>
+                <ElDropdownItem Command="@("a")">选项 A</ElDropdownItem>
+                <ElDropdownItem Command="@("b")">选项 B</ElDropdownItem>
+            </Items>
+        </ElDropdown>
+        <ElDropdown TriggerMode="DropdownTrigger.Hover" Placement="top-start">
+            <Trigger><ElButton>top-start</ElButton></Trigger>
+            <Items>
+                <ElDropdownItem Command="@("c")">选项 C</ElDropdownItem>
+                <ElDropdownItem Command="@("d")">选项 D</ElDropdownItem>
+            </Items>
+        </ElDropdown>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>右键触发（TriggerMode=ContextMenu）</h3>
+    <ElDropdown TriggerMode="DropdownTrigger.ContextMenu">
+        <Trigger>
+            <span class="demo-tag" style="cursor:context-menu;">在此区域点击右键</span>
+        </Trigger>
+        <Items>
+            <ElDropdownItem Command="@("copy")">复制</ElDropdownItem>
+            <ElDropdownItem Command="@("paste")">粘贴</ElDropdownItem>
+        </Items>
+    </ElDropdown>
+</div>
+
+<div class="demo-section">
+    <h3>分裂按钮（SplitButton）+ type / size</h3>
+    <div class="demo-row" style="gap:8px;">
+        <ElDropdown SplitButton="true" Type="ButtonType.Primary" OnClick="@(_ => log = "split-left")">
+            <ButtonContent>主要操作</ButtonContent>
+            <Items>
+                <ElDropdownItem Command="@("s1")">保存并关闭</ElDropdownItem>
+                <ElDropdownItem Command="@("s2")">另存为模板</ElDropdownItem>
+            </Items>
+        </ElDropdown>
+        <ElDropdown SplitButton="true" Size="ButtonSize.Small">
+            <ButtonContent>小尺寸</ButtonContent>
+            <Items>
+                <ElDropdownItem Command="@("s3")">小项一</ElDropdownItem>
+            </Items>
+        </ElDropdown>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>点击不关闭（HideOnClick=false）+ max-height 滚动</h3>
+    <ElDropdown HideOnClick="false" MaxHeight="120" Role="menu">
+        <Trigger><ElButton>多选（不自动关闭）</ElButton></Trigger>
+        <Items>
+            @for (var i = 1; i <= 12; i++)
+            {
+                var idx = i;
+                <ElDropdownItem Command="@("m" + idx)">选项 @idx</ElDropdownItem>
+            }
+        </Items>
+    </ElDropdown>
+</div>
+
+<div class="demo-section">
+    <h3>禁用状态</h3>
+    <ElDropdown Disabled="true">
+        <Trigger><ElButton Disabled="true">已禁用</ElButton></Trigger>
+        <Items>
+            <ElDropdownItem Command="@("x")">不可达</ElDropdownItem>
+        </Items>
+    </ElDropdown>
+</div>
+
+@code {
+    private string log;
+    private bool visible;
+}

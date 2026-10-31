@@ -1,0 +1,64 @@
+@inherits ElMenuContainer
+<li role="menuitem" tabindex="@(Disabled || (Options != null && Options.Disabled) ? -1 : 0)" aria-haspopup="true"
+    class="@SubMenuClass"
+    aria-disabled="@(Disabled || (Options != null && Options.Disabled))"
+    aria-expanded="@(IsOpened?"true":"")"
+    @onkeydown="OnKeyDownAsync">
+    @* 必须用 mouseenter / mouseleave，不能用 mouseover / mouseout：
+       mouseout 在「鼠标于标题内部跨子元素（图标 → 文字 → 箭头）」时会冒泡触发，会把刚展开的子菜单立刻收起；
+       mouseenter / mouseleave 不冒泡、也不会在子元素边界重复触发，与 EP 的 @mouseenter / @mouseleave 语义一致。 *@
+    <div @onmouseenter="OnOverAsync"
+         @onmouseleave="OnOutAsync"
+         @onclick="OnClickAsync"
+         @ref="Element"
+         class="el-sub-menu__title"
+         title="@EffectiveTitle">
+        @if (!string.IsNullOrWhiteSpace(EffectiveIcon))
+        {
+            <i class="@EffectiveIcon"></i>
+        }
+        @* 截断悬停看全文（本库扩展，口径同 ElMenuItem）：浮层渲染在 ElTooltip 自己的触发 span 内部，
+           所以包在文字 span 外层；触发 span 作为 .el-sub-menu__title（display:flex）的 flex item 必须 min-width:0 才允许收缩。
+           横向模式的子菜单不挂：悬停本身会打开子菜单弹层，再叠一层 tooltip 是两层浮层互相盖。 *@
+        @if (ShowEllipsisTooltip)
+        {
+            <ElTooltip Trigger="@PopperTrigger.Manual" ModelValue="@EllipsisTooltipVisible" Content="@EllipsisTooltipText"
+                       Placement="@("right")" Effect="@EllipsisTooltipEffect"
+                       PopperClass="@Options?.PopperClass" PopperStyle="@EllipsisTooltipPopperStyle"
+                       Style="min-width:0">
+                <span class="el-menu-item__ellipsis-text" @ref="titleTextElement">
+                    @if (TitleTemplate != null)
+                    {
+                        @TitleTemplate
+                    }
+                    else
+                    {
+                        @Label
+                    }
+                </span>
+            </ElTooltip>
+        }
+        else
+        {
+            <span class="@(Options?.Ellipsis == true ? "el-menu-item__ellipsis-text" : null)">
+                @if (TitleTemplate != null)
+                {
+                    @TitleTemplate
+                }
+                else
+                {
+                    @Label
+                }
+            </span>
+        }
+        <i class="el-sub-menu__icon-arrow @ArrowIcon" style="@ArrowStyle"></i>
+    </div>
+    @if (IsVertical)
+    {
+        <ul role="menu" class="el-menu el-menu--inline" style="@ChildStyle" @ref="Container">
+            <CascadingValue Value="this">
+                @ChildContent
+            </CascadingValue>
+        </ul>
+    }
+</li>

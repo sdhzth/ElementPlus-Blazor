@@ -1,0 +1,44 @@
+@inherits ElementComponentBase
+@{
+    var wrapperCls = HtmlPropertyBuilder.CreateCssClassBuilder()
+        .Add("el-chart-grow")
+        .AddIf(!string.IsNullOrWhiteSpace(Cls), Cls);
+    var wrapperStyle = HtmlPropertyBuilder.CreateCssStyleBuilder()
+        .AddIf(Width > 0, $"width:{Width}px")
+        .AddIf(Height > 0, $"height:{Height}px")
+        .Add(Style);
+}
+<div class="@wrapperCls.ToString()" style="@wrapperStyle.ToString()"
+     @onmousemove="HandleMouseMoveAsync" @onmouseleave="HandleMouseLeave"
+     @attributes="Attributes">
+    <CascadingValue Value="this">
+        @ChildContent
+        @((MarkupString)InnerMarkup)
+    </CascadingValue>
+
+    @if (ShowTooltip && _hover != null)
+    {
+        <svg class="el-chart-grow__hitlayer" viewBox="0 0 @Width @Height"
+             width="@Width" height="@Height" aria-hidden="true">
+            @if (ShowTooltipCrosshair)
+            {
+                <line x1="@Fmt(_hover.X)" y1="@Fmt(Layout.PlotTop)" x2="@Fmt(_hover.X)" y2="@Fmt(Layout.PlotBottom)"
+                      stroke="#c0c4cc" stroke-width="1" stroke-dasharray="4 3" />
+            }
+            <circle cx="@Fmt(_hover.X)" cy="@Fmt(_hover.Y)" r="5" fill="#ffffff"
+                    stroke="@_hover.Color" stroke-width="2" />
+        </svg>
+
+        <div class="el-chart-grow__tooltip" style="@TooltipStyle" role="tooltip">
+            @if (!string.IsNullOrEmpty(_hover.Title))
+            {
+                <div class="el-chart-grow__tooltip-title">@_hover.Title</div>
+            }
+            <div class="el-chart-grow__tooltip-row">
+                <span class="el-chart-grow__tooltip-dot" style="background-color:@_hover.Color"></span>
+                <span class="el-chart-grow__tooltip-category">@_hover.Category</span>
+                <span class="el-chart-grow__tooltip-value">@_hover.ValueText</span>
+            </div>
+        </div>
+    }
+</div>

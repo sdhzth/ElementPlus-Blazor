@@ -1,0 +1,88 @@
+@page "/space"
+@using ElementPlus
+
+<h1 class="demo-page-title">间距 / ElSpace</h1>
+<p class="demo-page-sub">对齐官方：支持 <code>Direction</code>（horizontal/vertical）、<code>Alignment</code>、<code>Size</code>（small/default/large）、<code>Spacer</code>（自定义像素）、<code>Wrap</code>、<code>Fill</code> 与 <code>Separator</code>（分隔符）。</p>
+
+@{
+    RenderFragment separator = @<span style="color:#c0c4cc;padding:0 6px;">|</span>;
+}
+
+<div class="demo-section">
+    <h3>基础用法（横向 + 默认间距 12px）</h3>
+    <ElSpace>
+        <ElButton Type="ButtonType.Primary">Button</ElButton>
+        <ElButton>Button</ElButton>
+        <ElButton Type="ButtonType.Success">Button</ElButton>
+    </ElSpace>
+</div>
+
+<div class="demo-section">
+    <h3>方向：纵向</h3>
+    <ElSpace Direction="SpaceDirection.Vertical" Alignment="SpaceAlignment.Start">
+        <ElButton Type="ButtonType.Primary">Button</ElButton>
+        <ElButton>Button</ElButton>
+        <ElButton Type="ButtonType.Success">Button</ElButton>
+    </ElSpace>
+    <p class="demo-note">
+        EP 的 <code>alignment</code> 默认是 <code>center</code>（源码 <code>space.ts</code>：
+        <code>alignment: { type: String, default: "center" }</code>，容器上写 <code>alignItems: props.alignment</code>），
+        纵向时子项各自按自身宽度居中 —— 三个按钮宽度不同，左边缘就参差了。这不是库的偏差，
+        是默认值如此。要对齐左边缘得显式给 <code>Alignment="start"</code>（也可用 <code>Stretch</code> 让子项等宽撑满）。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>尺寸</h3>
+    <div class="demo-row demo-row-wrap">
+        <ElSpace Size="SpaceSize.Small">
+            <ElTag>Small</ElTag>
+            <ElTag>Small</ElTag>
+        </ElSpace>
+        <ElSpace Size="SpaceSize.Default">
+            <ElTag>Default</ElTag>
+            <ElTag>Default</ElTag>
+        </ElSpace>
+        <ElSpace Size="SpaceSize.Large">
+            <ElTag>Large</ElTag>
+            <ElTag>Large</ElTag>
+        </ElSpace>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>自定义间距（Spacer）</h3>
+    <ElSpace Spacer="40">
+        <ElTag Type="TagType.Primary">A</ElTag>
+        <ElTag Type="TagType.Success">B</ElTag>
+        <ElTag Type="TagType.Warning">C</ElTag>
+    </ElSpace>
+</div>
+
+<div class="demo-section">
+    <h3>分隔符（Separator）</h3>
+    <ElSpace Separator="separator">
+        <ElLink Type="LinkType.Primary">首页</ElLink>
+        <ElLink Type="LinkType.Primary">产品</ElLink>
+        <ElLink Type="LinkType.Primary">关于</ElLink>
+    </ElSpace>
+</div>
+
+<div class="demo-section">
+    <h3>自动换行（Wrap）</h3>
+    <ElSpace Wrap="true" Style="max-width:300px;">
+        @for (var i = 1; i <= 8; i++)
+        {
+            <ElTag Type="TagType.Info">标签 @i</ElTag>
+        }
+    </ElSpace>
+</div>
+
+<div class="demo-section">
+    <h3>撑满（Fill）</h3>
+    <ElSpace Fill="true" FillRatio="1">
+        <ElButton>左</ElButton>
+        <ElButton>中</ElButton>
+        <ElButton>右</ElButton>
+    </ElSpace>
+</div>

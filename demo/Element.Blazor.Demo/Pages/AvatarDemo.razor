@@ -1,0 +1,24 @@
+@page "/avatar"
+@using ElementPlus
+
+<h1 class="demo-page-title">头像 / ElAvatar</h1>
+<p class="demo-page-sub">对齐官方：支持 Src、Icon、Shape（Circle/Square）、Size（Default/Large/Small）、Fit、Color、TextColor，以及 OnError 回调。</p>
+
+<div class="demo-section">
+    <h3>基础用法</h3>
+    <div class="demo-row">
+        <ElAvatar Shape="AvatarShape.Circle" Src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c672d5f_avatar.png" />
+        <ElAvatar Shape="AvatarShape.Circle" Icon="el-icon-user-solid" />
+        <ElAvatar Shape="AvatarShape.Square" Size="ElementSize.Large">U</ElAvatar>
+        <ElAvatar Shape="AvatarShape.Square" Size="ElementSize.Small" Color="#409eff" TextColor="#fff">AB</ElAvatar>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>尺寸与形状</h3>
+    <div class="demo-row">
+        <ElAvatar Shape="AvatarShape.Circle" Size="ElementSize.Large" Icon="el-icon-user-solid" />
+        <ElAvatar Shape="AvatarShape.Circle" Size="ElementSize.Default" Icon="el-icon-user-solid" />
+        <ElAvatar Shape="AvatarShape.Circle" Size="ElementSize.Small" Icon="el-icon-user-solid" />
+    </div>
+</div>

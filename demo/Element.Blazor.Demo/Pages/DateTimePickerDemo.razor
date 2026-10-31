@@ -1,0 +1,94 @@
+@page "/datetimepicker"
+@using ElementPlus
+
+<h1 class="demo-page-title">日期时间选择器 / ElDateTimePicker</h1>
+<p class="demo-page-sub">对齐官方：支持 @("@bind-Value")（DateTime?）、Type（DateTime/DateTimeRange）、Format、Clearable、DisabledDate，以及扩展的 DefaultTime。</p>
+
+<div class="demo-section">
+    <h3>基础用法</h3>
+    <div class="demo-row">
+        <ElDateTimePicker @bind-Value="dt1" Placeholder="选择日期时间" />
+    </div>
+    <p class="demo-note">dt1=@(dt1?.ToString("yyyy-MM-dd HH:mm:ss"))</p>
+</div>
+
+<div class="demo-section">
+    <h3>日期时间范围</h3>
+    <div class="demo-row">
+        <ElDateTimePicker @bind-RangeValue="range1" Type="DateTimePickerType.DateTimeRange" RangeSeparator="至" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>禁用与尺寸</h3>
+    <div class="demo-row">
+        <ElDateTimePicker @bind-Value="dt1" Disabled="true" />
+        <ElDateTimePicker @bind-Value="dt1" Size="InputSize.Large" />
+        <ElDateTimePicker @bind-Value="dt1" Size="InputSize.Small" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>面板切换事件 (OnPanelChange，对齐 EP onPanel-change)</h3>
+    <div class="demo-row">
+        <ElDateTimePicker @bind-Value="dt1" DefaultValue="new DateTime(2026, 5, 1)" OnPanelChange="OnDtPanelChange" />
+    </div>
+    <p class="demo-note">最近一次翻月/翻年显示的日期：@(panelChangeDate?.ToString("yyyy-MM-dd") ?? "—")</p>
+</div>
+
+<div class="demo-section">
+    <h3>清空回写值 (ValueOnClear，对齐 EP value-on-clear)</h3>
+    <p class="demo-note">清除时不置空，而是回写到指定的基准值（默认 null）。</p>
+    <div class="demo-row">
+        <ElDateTimePicker @bind-Value="dt2" Clearable="true" ValueOnClear="new DateTime(2026, 1, 1, 0, 0, 0)" />
+    </div>
+    <p class="demo-note">dt2=@(dt2?.ToString("yyyy-MM-dd HH:mm:ss") ?? "—")</p>
+</div>
+
+<div class="demo-section">
+    <h3>快捷选项 (Shortcuts)</h3>
+    <div class="demo-row">
+        <ElDateTimePicker @bind-Value="dtShortcut" Shortcuts="dtShortcuts" Placeholder="带快捷选项" />
+    </div>
+    <p class="demo-note">与 <code>ElDatePicker</code> 同一条宽度口径：带快捷列时弹层 438px（EP <code>.el-date-picker.has-sidebar</code>），侧栏不压日历、面板不出横向滚动条（批次㉕ #124）。</p>
+</div>
+
+<div class="demo-section">
+    <h3>点日期即提交 (CloseOnDatePick，本库扩展)</h3>
+    <p class="demo-note">
+        上面一行是<b>对齐官方 EP 的默认档</b>：日历里点一天，值当场写进输入框，面板<b>保持打开</b>好继续拨时间，
+        <code>change</code> 等面板关闭时才发（EP <code>use-common-picker</code> 的 <code>onPick(date, visible = true)</code>）。
+        下面一行是本库扩展 <code>CloseOnDatePick</code>（官方没有等价属性）：点日期即提交并收起面板，时间沿用当前值，
+        当前值为空时走 <code>DefaultTime</code>。
+    </p>
+    <div class="demo-row" id="dt-pick-keep-open">
+        <ElDateTimePicker @bind-Value="dtPickKeepOpen" DefaultValue="new DateTime(2026, 5, 1)" Placeholder="默认档：点日期不关面板" />
+    </div>
+    <div class="demo-row" id="dt-pick-and-close">
+        <ElDateTimePicker @bind-Value="dtPickAndClose" CloseOnDatePick="true" DefaultValue="new DateTime(2026, 5, 1)"
+                          OnChange="OnPickAndCloseChange" Placeholder="CloseOnDatePick：点日期即关闭" />
+    </div>
+    <p class="demo-note">dtPickKeepOpen=@(dtPickKeepOpen?.ToString("yyyy-MM-dd HH:mm:ss") ?? "—")　dtPickAndClose=@(dtPickAndClose?.ToString("yyyy-MM-dd HH:mm:ss") ?? "—")　参数档 change 次数=@pickAndCloseChanges</p>
+</div>
+
+@code {
+    private DateTime? dt1 = DateTime.Now;
+    private DateTime? dt2;
+    private DateTime? dtShortcut = DateTime.Now;
+    private DateTime? dtPickKeepOpen = new DateTime(2026, 5, 1, 8, 30, 0);
+    private DateTime? dtPickAndClose = new DateTime(2026, 5, 1, 8, 30, 0);
+    private int pickAndCloseChanges;
+    private IList<DateTime?> range1 = new List<DateTime?>();
+    private DateTime? panelChangeDate;
+
+    private static List<DateTimePickerShortcut> dtShortcuts = new List<DateTimePickerShortcut>
+    {
+        new DateTimePickerShortcut { Text = "现在", ValueFactory = () => DateTime.Now },
+        new DateTimePickerShortcut { Text = "今天零点", ValueFactory = () => DateTime.Today },
+        new DateTimePickerShortcut { Text = "一周前此刻", ValueFactory = () => DateTime.Now.AddDays(-7) }
+    };
+
+    private void OnDtPanelChange(DateTime? date) => panelChangeDate = date;
+
+    private void OnPickAndCloseChange(DateTime? date) => pickAndCloseChanges++;
+}

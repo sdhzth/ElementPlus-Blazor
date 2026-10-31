@@ -1,0 +1,38 @@
+@page "/rate"
+@using ElementPlus
+
+<h1 class="demo-page-title">评分 / ElRate</h1>
+<p class="demo-page-sub">对齐官方：支持 @("@bind-Value")（double?）、Max、AllowHalf、ShowText、ShowScore、Colors、Disabled、Clearable。</p>
+
+<div class="demo-section">
+    <h3>基础用法</h3>
+    <div class="demo-row">
+        <ElRate @bind-Value="rate1" />
+        <ElRate @bind-Value="rate2" AllowHalf="true" />
+    </div>
+    <p class="demo-note">rate1=@rate1　rate2=@rate2</p>
+</div>
+
+<div class="demo-section">
+    <h3>显示文字 / 分数 / 禁用</h3>
+    <div class="demo-row">
+        <ElRate @bind-Value="rate1" ShowText="true" Texts="@(new[] { "极差", "失望", "一般", "满意", "惊喜" })" />
+        <ElRate @bind-Value="rate1" ShowScore="true" />
+        <ElRate @bind-Value="rate1" Disabled="true" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>Readonly（只读）</h3>
+    <div class="demo-row">
+        <ElRate @bind-Value="rate3" Readonly="true" ShowScore="true" />
+        <ElRate @bind-Value="rate1" Disabled="true" ShowScore="true" />
+    </div>
+    <p class="demo-note">左侧 Readonly=true：仍显示当前分值但点击不再改变（rate3=@rate3）；右侧 Disabled 作对照，整体灰显。</p>
+</div>
+
+@code {
+    private double? rate1 = 3;
+    private double? rate2 = 3.5;
+    private double? rate3 = 4;
+}

@@ -1,0 +1,66 @@
+@page "/link"
+@using ElementPlus
+
+<h1 class="demo-page-title">文字链接 / ElLink</h1>
+<p class="demo-page-sub">对齐官方：支持 <code>Type</code>（default/primary/success/warning/danger/info）、<code>Disabled</code>、<code>Underline</code>（hover/always/never）、<code>Href</code> / <code>Target</code> / <code>Rel</code>、<code>Icon</code> 与点击事件。</p>
+
+<div class="demo-section">
+    <h3>基础类型</h3>
+    <div class="demo-row">
+        <ElLink Type="LinkType.Default">默认链接</ElLink>
+        <ElLink Type="LinkType.Primary">主要链接</ElLink>
+        <ElLink Type="LinkType.Success">成功链接</ElLink>
+        <ElLink Type="LinkType.Warning">警告链接</ElLink>
+        <ElLink Type="LinkType.Danger">危险链接</ElLink>
+        <ElLink Type="LinkType.Info">信息链接</ElLink>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>禁用状态</h3>
+    <div class="demo-row">
+        <ElLink Type="LinkType.Primary" Disabled="true">禁用链接</ElLink>
+        <ElLink Type="LinkType.Danger" Disabled="true">禁用危险</ElLink>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>下划线模式</h3>
+    <div class="demo-row">
+        <ElLink Type="LinkType.Primary" Underline="LinkUnderline.Hover">悬停显示（默认）</ElLink>
+        <ElLink Type="LinkType.Primary" Underline="LinkUnderline.Always">始终显示</ElLink>
+        <ElLink Type="LinkType.Primary" Underline="LinkUnderline.Never">从不显示</ElLink>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>带图标</h3>
+    <div class="demo-row">
+        <ElLink Type="LinkType.Primary" Icon="el-icon-edit">编辑</ElLink>
+        <ElLink Type="LinkType.Success" Icon="el-icon-check">查看</ElLink>
+        <ElLink Type="LinkType.Danger" Icon="el-icon-delete">删除</ElLink>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>外链（自动安全 rel）</h3>
+    <div class="demo-row">
+        <ElLink Href="https://element-plus.org" Target="_blank" Type="LinkType.Primary">Element Plus 官网</ElLink>
+        <ElLink Href="https://www.baidu.com" Target="_blank">百度</ElLink>
+    </div>
+    <p class="demo-note"><code>Target="_blank"</code> 且未显式设 <code>Rel</code> 时，组件自动补 <code>noreferrer noopener</code>。</p>
+</div>
+
+<div class="demo-section">
+    <h3>点击事件</h3>
+    <div class="demo-row">
+        <ElLink Type="LinkType.Primary" OnClick="OnLinkClick">点我计数</ElLink>
+        <span class="demo-badge">已点击：@linkClickCount 次</span>
+    </div>
+</div>
+
+@code {
+    private int linkClickCount;
+
+    private void OnLinkClick(MouseEventArgs e) => linkClickCount++;
+}

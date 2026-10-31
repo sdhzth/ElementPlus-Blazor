@@ -1,0 +1,89 @@
+@inherits ElementComponentBase
+
+@if (ModelValue && ActiveStep != null)
+{
+    <div id="@Id" class="@TourClass" style="@TourStyle" role="dialog" aria-label="@AriaLabel" data-append-to="@AppendTo" @onkeydown="OnKeyDownAsync" @attributes="Attributes">
+        @if (EffectiveMask)
+        {
+            <div class="el-tour__mask" style="@MaskStyle" @onclick="OnMaskClickAsync">
+                <svg width="100%" height="100%">
+                    <path class="el-tour__hollow" d="@string.Empty"></path>
+                </svg>
+            </div>
+        }
+        <div id="@PanelId" class="@PanelClass" style="@PanelStyle" tabindex="-1" data-target="@ActiveStep.Target" data-placement="@EffectivePlacement" data-offset="@EffectiveOffset" data-gap-offset="@EffectiveGapOffset" data-gap-radius="@EffectiveGapRadius" data-side="@EffectiveSide">
+            @* 官方 tour.vue：mergedShowArrow = !!currentTarget && (step.showArrow ?? props.showArrow)
+               —— 没有目标的那一步一律不出箭头，否则它会以「无 data-side」的姿态钉在面板左上角。 *@
+            @if (EffectiveShowArrow && HasHollowTarget)
+            {
+                <span class="el-tour__arrow"></span>
+            }
+            @if (EffectiveShowClose)
+            {
+                <button type="button" class="el-tour__close" aria-label="@EffectiveCloseAriaLabel" @onclick="CloseAsync">
+                    @if (CloseIcon != null)
+                    {
+                        @CloseIcon
+                    }
+                    else
+                    {
+                        <i class="el-icon-close"></i>
+                    }
+                </button>
+            }
+            <div class="@HeaderClass">
+                @if (ActiveStep.StepHeader != null)
+                {
+                    @ActiveStep.StepHeader(ActiveStep)
+                }
+                else if (Header != null)
+                {
+                    @Header(ActiveStep)
+                }
+                else
+                {
+                    <div class="el-tour__title">@ActiveStep.Title</div>
+                }
+            </div>
+            <div class="el-tour__body">
+                @if (ActiveStep.Content != null)
+                {
+                    @ActiveStep.Content
+                }
+                else
+                {
+                    @ActiveStep.Description
+                }
+            </div>
+            <div class="el-tour__footer">
+                @if (Indicators != null)
+                {
+                    <div class="el-tour-indicators">
+                        @Indicators(ActiveStep)
+                    </div>
+                }
+                else
+                {
+                    <div class="el-tour-indicators">
+                        @for (var i = 0; i < StepList.Count; i++)
+                        {
+                            var index = i;
+                            <span class="@HtmlPropertyBuilder.CreateCssClassBuilder().Add("el-tour-indicator").AddIf(index == ActiveStepIndex, "is-active").ToString()"></span>
+                        }
+                    </div>
+                }
+                <div class="el-tour__actions">
+                    <button type="button" class="el-button el-button--mini" disabled="@(Current == 0)" @attributes="ActiveStep?.PrevButtonProps" @onclick="PreviousAsync">@EffectivePrevText</button>
+                    @if (Current >= StepList.Count - 1)
+                    {
+                        <button type="button" class="el-button el-button--mini @(EffectiveType == "primary" ? "el-button--primary" : "")" @attributes="ActiveStep?.NextButtonProps" @onclick="FinishAsync">@EffectiveFinishText</button>
+                    }
+                    else
+                    {
+                        <button type="button" class="el-button el-button--mini @(EffectiveType == "primary" ? "el-button--primary" : "")" @attributes="ActiveStep?.NextButtonProps" @onclick="NextAsync">@EffectiveNextText</button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}

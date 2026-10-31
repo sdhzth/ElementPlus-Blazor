@@ -1,0 +1,79 @@
+@page "/cascader"
+@using ElementPlus
+
+<h1 class="demo-page-title">级联选择器 / ElCascader</h1>
+<p class="demo-page-sub">对齐官方：支持 @("@bind-Value")（路径数组）、Options（CascaderOption 树）、Clearable、Filterable、Multiple、Size，以及 OnClear 清空事件与扩展的 ShowAllLevels / CollapseTags。</p>
+
+<div class="demo-section">
+    <h3>基础用法</h3>
+    <div class="demo-row">
+        <ElCascader @bind-Value="value1" Options="options" Placeholder="请选择" />
+    </div>
+    <p class="demo-note">当前值：@string.Join(" / ", value1)</p>
+</div>
+
+<div class="demo-section">
+    <h3>可筛选 + 仅显示最后一级</h3>
+    <div class="demo-row">
+        <ElCascader @bind-Value="value2" Options="options" Filterable="true" ShowAllLevels="false" Clearable="true" />
+        <ElCascader @bind-Value="value2" Options="options" Multiple="true" Placeholder="多选" />
+    </div>
+    <p class="demo-note">当前值：@string.Join(" / ", value2)</p>
+</div>
+
+<div class="demo-section">
+    <h3>禁用与尺寸</h3>
+    <div class="demo-row">
+        <ElCascader @bind-Value="value1" Options="options" Disabled="true" />
+        <ElCascader @bind-Value="value1" Options="options" Size="InputSize.Large" />
+        <ElCascader @bind-Value="value1" Options="options" Size="InputSize.Small" />
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>清空事件 (OnClear)</h3>
+    <div class="demo-row">
+        <ElCascader @bind-Value="value3" Options="options" Clearable="true" OnClear="OnCascaderClear" />
+    </div>
+    <p class="demo-note">清空触发次数：@clearCount</p>
+</div>
+
+<div class="demo-section">
+    <h3>Debounce（搜索防抖毫秒）</h3>
+    <div class="demo-row">
+        <ElCascader @bind-Value="value4" Options="options" Filterable="true" Debounce="0" Placeholder="Debounce=0 立即过滤" />
+        <ElCascader @bind-Value="value4" Options="options" Filterable="true" Debounce="800" Placeholder="Debounce=800 明显延迟" />
+    </div>
+    <p class="demo-note">输入 "guide"：左侧边打边出结果，右侧需停手约 0.8 秒才刷新。</p>
+</div>
+
+@code {
+    private IList<string> value1 = new List<string>();
+    private IList<string> value2 = new List<string>();
+    private IList<string> value3 = new List<string>();
+    private IList<string> value4 = new List<string>();
+    private int clearCount;
+    private void OnCascaderClear() => clearCount++;
+
+    private List<CascaderOption> options = new List<CascaderOption>
+    {
+        new CascaderOption
+        {
+            Value = "guide", Label = "指南",
+            Children = new List<CascaderOption>
+            {
+                new CascaderOption { Value = "disciplines", Label = " discipline", Children = new List<CascaderOption> { new CascaderOption { Value = "consistency", Label = "一致性" }, new CascaderOption { Value = "feedback", Label = "反馈" } } },
+                new CascaderOption { Value = "navigation", Label = "导航", Children = new List<CascaderOption> { new CascaderOption { Value = "side", Label = "侧向" }, new CascaderOption { Value = "top", Label = "顶部" } } }
+            }
+        },
+        new CascaderOption
+        {
+            Value = "component", Label = "组件",
+            Children = new List<CascaderOption>
+            {
+                new CascaderOption { Value = "basic", Label = "基础", Children = new List<CascaderOption> { new CascaderOption { Value = "layout", Label = "布局" }, new CascaderOption { Value = "color", Label = "色彩" } } },
+                new CascaderOption { Value = "form", Label = "表单", Children = new List<CascaderOption> { new CascaderOption { Value = "input", Label = "输入框" }, new CascaderOption { Value = "select", Label = "选择器" } } }
+            }
+        }
+    };
+}

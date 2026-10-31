@@ -1,0 +1,44 @@
+@inherits ElementComponentBase
+@* Visible=false ⇒ 进度条整块不进渲染树（不是 display:none，不留一条空轨道）。
+   口径与 ElButton.Visible 一致：「处理中」这类提示条收起时应该连高度都消失。默认 true ⇒ 加参数前的用法一字不变。 *@
+@if (Visible)
+{
+    <div id="@Id" class="@ProgressClass" style="@Style" role="progressbar" aria-label="@AriaLabel" aria-valuenow="@Percentage" aria-valuemin="0" aria-valuemax="100" @attributes="Attributes">
+        @if (Type == ProgressType.Line)
+        {
+            <div class="el-progress-bar">
+                <div class="el-progress-bar__outer" style="@OuterStyle">
+                    <div class="el-progress-bar__inner @InnerModifierClass" style="@InnerStyle">
+                        @if (ShowText && TextInside)
+                        {
+                            <div class="el-progress-bar__innerText">
+                                @TextContent
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            @if (ShowText && !TextInside)
+            {
+                <div class="el-progress__text" style="@TextStyle">
+                    @TextContent
+                </div>
+            }
+        }
+        else
+        {
+            <div class="el-progress-circle" style="@CircleStyle">
+                <svg viewBox="0 0 100 100">
+                    <path class="el-progress-circle__track" d="@TrackPath" stroke="@TrackColor" stroke-width="@StrokeWidth" fill="none" />
+                    <path class="el-progress-circle__path" d="@TrackPath" stroke="@ResolvedStroke" stroke-width="@StrokeWidth" fill="none" stroke-linecap="@StrokeLinecap" style="@CirclePathStyle" />
+                </svg>
+            </div>
+            @if (ShowText)
+            {
+                <div class="el-progress__text" style="@TextStyle">
+                    @TextContent
+                </div>
+            }
+        }
+    </div>
+}

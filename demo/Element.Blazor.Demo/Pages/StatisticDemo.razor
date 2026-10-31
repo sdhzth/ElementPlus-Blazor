@@ -1,0 +1,266 @@
+@page "/statistic"
+@using ElementPlus
+@implements IDisposable
+
+<h1 class="demo-page-title">统计数值 / ElStatistic</h1>
+<p class="demo-page-sub">
+    对齐官方 <a href="https://element-plus.org/zh-CN/component/statistic" target="_blank">Element Plus Statistic</a> 的三段示例：基本用法、倒计时（ElCountdown）、卡片用法；
+    中间一段把官方属性表逐项（value / precision / group-separator / decimal-separator / formatter / prefix / suffix / title / value-style）都演示一遍。
+</p>
+
+<div class="demo-section">
+    <h3>基本用法（官方 statistic/basic）</h3>
+    <ElRow Gutter="16">
+        <ElCol Xs="24" Sm="12" Md="6" Cls="demo-stat-cell">
+            <ElStatistic Title="日活跃用户" Value="268500" />
+        </ElCol>
+        <ElCol Xs="24" Sm="12" Md="6" Cls="demo-stat-cell">
+            <ElStatistic Value="138">
+                <TitleContent>
+                    <span class="demo-stat-inline-title">
+                        男女比例<i class="el-icon-male" style="margin-left:4px;font-size:12px;"></i>
+                    </span>
+                </TitleContent>
+                <Suffix>/100</Suffix>
+            </ElStatistic>
+        </ElCol>
+        <ElCol Xs="24" Sm="12" Md="6" Cls="demo-stat-cell">
+            <ElStatistic Title="累计成交额" Value="@liveValue" />
+        </ElCol>
+        <ElCol Xs="24" Sm="12" Md="6" Cls="demo-stat-cell">
+            <ElStatistic Title="反馈数" Value="562">
+                <Suffix>
+                    <i class="el-icon-chat-line-round" style="vertical-align:-0.125em;font-size:16px;"></i>
+                </Suffix>
+            </ElStatistic>
+        </ElCol>
+    </ElRow>
+    <p class="demo-note">
+        第 3 格对应官方的数值过渡动画：官方用 vueuse 的 <code>useTransition</code> 在 1500ms 内把 0 平滑推到 172000，
+        本库没有那个 composable，这里用 50ms 定时的线性插值做同样的效果，当前显示 @liveValue.ToString("0")。
+    </p>
+    <div class="demo-row">
+        <ElButton Size="ButtonSize.Small" OnClick="StartLiveRamp">重放数值过渡</ElButton>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>数字风格（官方属性表逐项）</h3>
+    <ElRow Gutter="16">
+        <ElCol Xs="24" Sm="12" Md="8" Cls="demo-stat-cell">
+            <ElStatistic Title="precision=2" Value="12345.6789" Precision="2" />
+        </ElCol>
+        <ElCol Xs="24" Sm="12" Md="8" Cls="demo-stat-cell">
+            <ElStatistic Title="group-separator 关闭" Value="12345.6789" Precision="2" GroupSeparator="false" />
+        </ElCol>
+        <ElCol Xs="24" Sm="12" Md="8" Cls="demo-stat-cell">
+            <ElStatistic Title="group-separator 用空格" Value="12345.6789" Precision="2" ThousandsSeparator=" " />
+        </ElCol>
+        <ElCol Xs="24" Sm="12" Md="8" Cls="demo-stat-cell">
+            <ElStatistic Title="小数点用逗号（欧式写法）" Value="1234567.891" Precision="2"
+                         ThousandsSeparator="." DecimalSeparator="," />
+        </ElCol>
+        <ElCol Xs="24" Sm="12" Md="8" Cls="demo-stat-cell">
+            <ElStatistic Title="formatter 自定义" Value="12345" Formatter="WanFormatter" />
+        </ElCol>
+        <ElCol Xs="24" Sm="12" Md="8" Cls="demo-stat-cell">
+            <ElStatistic Title="value-style" Value="72000" ValueStyle="color: var(--el-color-primary, #409eff); font-weight: 700;" />
+        </ElCol>
+        <ElCol Xs="24" Sm="12" Md="8" Cls="demo-stat-cell">
+            <ElStatistic Title="prefix / suffix" Value="86.35" Precision="1" PrefixText="￥" SuffixText="元" />
+        </ElCol>
+        <ElCol Xs="24" Sm="12" Md="8" Cls="demo-stat-cell">
+            <ElStatistic Title="title 用插槽 + 负数" Value="-4580.5" Precision="1">
+                <TitleContent>
+                    <span class="demo-stat-inline-title">
+                        环比增减额<i class="el-icon-bottom" style="margin-left:4px;font-size:12px;color:var(--el-color-danger, #f56c6c);"></i>
+                    </span>
+                </TitleContent>
+            </ElStatistic>
+        </ElCol>
+    </ElRow>
+    <p class="demo-note">
+        <code>Precision</code> 按官方口径是<b>截断</b>不是四舍五入（EP 的 <code>displayValue</code> 用
+        <code>slice(0, precision)</code>），所以 12345.6789 取 2 位是 12,345.67；
+        千分位只作用在整数段、小数点只补在两段接缝，因此「小数点用逗号」那一格不会被千分位一起换掉。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>倒计时（官方 statistic/countdown）</h3>
+    <ElRow Gutter="16">
+        <ElCol Xs="24" Sm="12" Md="8" Cls="demo-stat-cell">
+            <ElCountdown Title="距开始" Value="@grabAt" />
+        </ElCol>
+        <ElCol Xs="24" Sm="12" Md="8" Cls="demo-stat-cell">
+            <ElCountdown Title="剩余会员时间" Format="HH:mm:ss" Value="@vipAt"
+                         ValueStyle="color: var(--el-color-warning, #e6a23c);" />
+            <ElButton Cls="demo-stat-countdown-footer" Size="ButtonSize.Small" Type="ButtonType.Primary" OnClick="ResetVip">重置</ElButton>
+        </ElCol>
+        <ElCol Xs="24" Sm="12" Md="8" Cls="demo-stat-cell">
+            <ElCountdown Format="DD [天] HH:mm:ss" Value="@nextMonthAt">
+                <TitleContent>
+                    <span class="demo-stat-inline-title">
+                        <i class="el-icon-date" style="margin-right:4px;font-size:12px;"></i>距下月 1 号
+                    </span>
+                </TitleContent>
+            </ElCountdown>
+            <div class="demo-stat-countdown-footer">目标日期 @nextMonthAt.ToString("yyyy-MM-dd")</div>
+        </ElCol>
+    </ElRow>
+    <p class="demo-note">
+        格式串按官方 <code>formatTime</code> 的三条口径处理：① 单位由大到小逐级「吃掉余数」，所以同时写
+        <code>DD</code> 与 <code>HH</code> 时 <code>HH</code> 是去掉整天后的小时；只写 <code>HH</code> 时它是总小时数（可以大于 24）。
+        ② 值按 token 连续长度补零（<code>DD</code> → 03）。③ <code>[ ]</code> 包住的是字面量，不参与替换，最后剥掉方括号。
+        官方提示：格式串建议只在「天」这一档以内使用。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>卡片用法（官方 statistic/card）</h3>
+    <ElRow Gutter="16">
+        <ElCol Xs="24" Sm="12" Md="8" Cls="demo-stat-cell is-top">
+            <div class="demo-stat-card">
+                <ElStatistic Value="98500" Cls="demo-stat-large">
+                    <TitleContent>
+                        <span class="demo-stat-inline-title">
+                            日活跃用户
+                            <ElTooltip Content="一天内登录过产品的用户数" Placement="top">
+                                <ChildContent><i class="el-icon-warning" style="margin-left:4px;font-size:12px;"></i></ChildContent>
+                            </ElTooltip>
+                        </span>
+                    </TitleContent>
+                </ElStatistic>
+                <div class="demo-stat-footer">
+                    <div class="demo-stat-footer-item">
+                        <span>较昨日</span>
+                        <span class="demo-stat-is-up">24%<i class="el-icon-caret-top"></i></span>
+                    </div>
+                </div>
+            </div>
+        </ElCol>
+        <ElCol Xs="24" Sm="12" Md="8" Cls="demo-stat-cell is-top">
+            <div class="demo-stat-card">
+                <ElStatistic Value="693700" Cls="demo-stat-large">
+                    <TitleContent>
+                        <span class="demo-stat-inline-title">
+                            月活跃用户
+                            <ElTooltip Content="一个月内登录过产品的用户数" Placement="top">
+                                <ChildContent><i class="el-icon-warning" style="margin-left:4px;font-size:12px;"></i></ChildContent>
+                            </ElTooltip>
+                        </span>
+                    </TitleContent>
+                </ElStatistic>
+                <div class="demo-stat-footer">
+                    <div class="demo-stat-footer-item">
+                        <span>环比</span>
+                        <span class="demo-stat-is-down">12%<i class="el-icon-caret-bottom"></i></span>
+                    </div>
+                </div>
+            </div>
+        </ElCol>
+        <ElCol Xs="24" Sm="12" Md="8" Cls="demo-stat-cell is-top">
+            <div class="demo-stat-card">
+                <ElStatistic Value="72000" Title="今日新增成交额" Cls="demo-stat-large" />
+                <div class="demo-stat-footer">
+                    <div class="demo-stat-footer-item">
+                        <span>较昨日</span>
+                        <span class="demo-stat-is-up">16%<i class="el-icon-caret-top"></i></span>
+                    </div>
+                    <div class="demo-stat-footer-item">
+                        <i class="el-icon-arrow-right" style="font-size:14px;"></i>
+                    </div>
+                </div>
+            </div>
+        </ElCol>
+    </ElRow>
+    <p class="demo-note">
+        官方这一段就是自己写卡片与页脚的 DOM，涨跌色用 <code>--el-color-success</code> / <code>--el-color-error</code>；
+        并把 <code>--el-statistic-content-font-size</code> 覆盖成 28px。这层 CSS 变量在 EP 里声明于
+        <code>.el-statistic</code> 根节点，本库原先把它们写死成固定字号，覆盖是不生效的（批次㉕ 一并改正）。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>趋势指示与附加内容（本库扩展，官方无对应 API）</h3>
+    <ElRow Gutter="16">
+        <ElCol Xs="24" Sm="12" Md="8" Cls="demo-stat-cell">
+            <ElStatistic Title="今日挂号量" Value="1268" Trend="12.5" TrendType="success" />
+        </ElCol>
+        <ElCol Xs="24" Sm="12" Md="8" Cls="demo-stat-cell">
+            <ElStatistic Title="平均候诊时长" Value="18.4" Precision="1" SuffixText="分钟"
+                         Trend="-6.2" TrendType="danger" TrendPlacement="TrendPlacement.Prefix" />
+        </ElCol>
+        <ElCol Xs="24" Sm="12" Md="8" Cls="demo-stat-cell">
+            <ElStatistic Title="床位使用率" Value="86.35" Precision="1" SuffixText="%" Trend="2.4">
+                <Extra>
+                    <span class="demo-note">较昨日 +2.4%，空床位 @emptyBeds 张</span>
+                </Extra>
+            </ElStatistic>
+        </ElCol>
+    </ElRow>
+    <p class="demo-note">
+        <code>Trend</code> / <code>TrendPlacement</code> / <code>TrendType</code> / <code>TrendFormat</code> / <code>Extra</code> 都是本库扩展：
+        官方 Statistic 只有前面那张属性表里的 9 个属性，卡片示例的涨跌是自己写 DOM（见上一段）。
+    </p>
+</div>
+
+@code {
+    private double liveValue;
+    private DateTime grabAt = DateTime.Now.AddHours(7);
+    private DateTime vipAt = DateTime.Now.AddDays(2);
+    private DateTime nextMonthAt = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(1);
+    private int emptyBeds = 17;
+
+    private System.Timers.Timer ramp;
+    private DateTime rampStart;
+
+    private const double LiveTarget = 172000;
+    private const int RampDurationMs = 1500;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        ramp = new System.Timers.Timer(50) { AutoReset = true };
+        ramp.Elapsed += OnRampElapsed;
+        StartLiveRamp();
+    }
+
+    private static string WanFormatter(double value) => (value / 10000).ToString("0.0") + " 万";
+
+    private void ResetVip() => vipAt = DateTime.Now.AddDays(2);
+
+    private void StartLiveRamp()
+    {
+        liveValue = 0;
+        rampStart = DateTime.Now;
+        ramp?.Start();
+    }
+
+    private void OnRampElapsed(object sender, System.Timers.ElapsedEventArgs e)
+    {
+        var progress = (DateTime.Now - rampStart).TotalMilliseconds / RampDurationMs;
+        var next = progress >= 1 ? LiveTarget : LiveTarget * progress;
+
+        // 定时器回调不在 Blazor 的同步上下文里，改状态与重渲染都要回派到渲染线程。
+        InvokeAsync(() =>
+        {
+            liveValue = next;
+            if (progress >= 1)
+            {
+                ramp?.Stop();
+            }
+            StateHasChanged();
+        });
+    }
+
+    void IDisposable.Dispose()
+    {
+        if (ramp != null)
+        {
+            ramp.Elapsed -= OnRampElapsed;
+            ramp.Stop();
+            ramp.Dispose();
+        }
+    }
+}

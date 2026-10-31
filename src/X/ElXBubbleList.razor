@@ -1,0 +1,70 @@
+@inherits ElementComponentBase
+
+<section class="@ListClass"
+         style="@ListStyle"
+         role="@Role"
+         aria-live="@AriaLive"
+         aria-relevant="@AriaRelevant"
+         aria-busy="@AriaBusyValue"
+         @ref="listElement"
+         @onscroll="HandleScrollAsync"
+         @attributes="Attributes">
+    @if (ResolvedItems.Count == 0)
+    {
+        @if (EmptyContent != null)
+        {
+            @EmptyContent
+        }
+        else
+        {
+            <ElEmpty Description="@EmptyText" />
+        }
+    }
+    else
+    {
+        @foreach (var item in ResolvedItems)
+        {
+            @if (ItemTemplate != null)
+            {
+                @ItemTemplate(item)
+            }
+            else
+            {
+                @if (item.ContentTemplate != null)
+                {
+                    <ElXBubble Role="@item.Role"
+                               Placement="@item.Placement"
+                               Header="@item.Header"
+                               Time="@item.Time"
+                               Content="@item.Content"
+                               Footer="@item.Footer"
+                               Avatar="@item.Avatar"
+                               AvatarText="@item.AvatarText"
+                               AvatarIcon="@item.AvatarIcon"
+                               Loading="@item.Loading"
+                               Typing="@item.Typing"
+                               Attachments="@item.Attachments"
+                               Actions="@item.Actions">
+                        @item.ContentTemplate
+                    </ElXBubble>
+                }
+                else
+                {
+                    <ElXBubble Role="@item.Role"
+                               Placement="@item.Placement"
+                               Header="@item.Header"
+                               Time="@item.Time"
+                               Content="@item.Content"
+                               Footer="@item.Footer"
+                               Avatar="@item.Avatar"
+                               AvatarText="@item.AvatarText"
+                               AvatarIcon="@item.AvatarIcon"
+                               Loading="@item.Loading"
+                               Typing="@item.Typing"
+                               Attachments="@item.Attachments"
+                               Actions="@item.Actions" />
+                }
+            }
+        }
+    }
+</section>

@@ -1,0 +1,226 @@
+@inherits ElementComponentBase
+@{
+    var pageClsList = new List<string>();
+    pageClsList.Add("el-pagination");
+    if (Background)
+    {
+        pageClsList.Add("is-background");
+    }
+    if (EffectiveSize == ElementSize.Small)
+    {
+        pageClsList.Add("el-pagination--small");
+    }
+
+    // 单个布局元素的渲染模板；"->" 之后的元素由 RightParts 包进 .el-pagination__rightwrapper 右对齐。
+    RenderFragment<PaginationLayoutPart> PartTemplate = part => @<text>
+        @if (part == PaginationLayoutPart.Total)
+        {
+            if (TotalContent != null)
+            {
+                <span class="el-pagination__total">@TotalContent</span>
+            }
+            else
+            {
+                <span class="el-pagination__total">@TotalContentText</span>
+            }
+        }
+        else if (part == PaginationLayoutPart.Sizes)
+        {
+            <span class="el-pagination__sizes">
+                <ElSelect TValue="int" Cls="el-pagination__sizes-select" Placeholder=""
+                          Clearable="false" Disabled="@Disabled" AriaLabel="每页条数"
+                          PopperClass="@PopperClass"
+                          Value="@PageSize" Label="@($"{PageSize} {PageSizeSuffix}")" ValueChanged="OnPageSizeValueChangedAsync">
+                    @foreach (var size in PageSizes)
+                    {
+                        <ElOption TValue="int" Value="@size" Text="@($"{size} {PageSizeSuffix}")" />
+                    }
+                </ElSelect>
+            </span>
+        }
+        else if (part == PaginationLayoutPart.Prev)
+        {
+            if (PrevContent != null)
+            {
+                <ElButton Size="@NavigationButtonSize" IsDisabled="@(previousDisabled || Disabled)" OnClick="(e => OnPrevClickAsync())">
+                    @PrevContent
+                </ElButton>
+            }
+            else
+            {
+                <ElButton Icon="@GetPrevIcon()" Content="@GetPrevText()" Size="@NavigationButtonSize" IsDisabled="@(previousDisabled || Disabled)" aria-label="@PrevAriaLabel" OnClick="(e => OnPrevClickAsync())" />
+            }
+        }
+        else if (part == PaginationLayoutPart.Pager)
+        {
+            bool renderedPrefix = false;
+            <ul class="el-pager">
+                @for (int i = CurrentPage; i <= pageCount; i++)
+                {
+                    var clsList = new List<string>();
+
+                    var page = i;
+                    if (i + 1 >= ShowPageCount && CurrentPage >= ShowPageCount - 1)
+                    {
+                        clsList.Clear();
+                        clsList.Add("number");
+                        <li class="@string.Join(" ", clsList)" @onclick="(e => Jump(1))">1</li>
+                        clsList.Add("el-icon");
+                        clsList.Add("more");
+                        clsList.Add("btn-quickprev");
+                        if (prevArrow)
+                        {
+                            clsList.Add("el-icon-d-arrow-left");
+                        }
+                        else
+                        {
+                            clsList.Add("el-icon-more");
+                        }
+                        <li class="@string.Join(" ", clsList)" @onclick="e => Jump(CurrentPage-ShowPageCount+2)" @onmouseover="ShowPrev" @onmouseout="HidePrev"></li>
+                        if (CurrentPage + ShowPageCount - 2 > pageCount)
+                        {
+                            for (var j = Math.Max(1, pageCount - ShowPageCount + 2); j <= pageCount; j++)
+                            {
+                                clsList.Clear();
+                                clsList.Add("number");
+                                var pageJ = j;
+                                if (pageJ == CurrentPage)
+                                {
+                                    clsList.Add("active");
+                                }
+                                <li class="@string.Join(" ", clsList)" @onclick="(e => Jump(pageJ))">@pageJ</li>
+                            }
+                            break;
+                        }
+                        var pageNext = CurrentPage - (ShowPageCount - 2) / 2;
+                        for (int j = 0; j < ShowPageCount - 2; j++)
+                        {
+                            clsList.Clear();
+                            clsList.Add("number");
+                            var pageJ = pageNext + j;
+                            if (pageJ == CurrentPage)
+                            {
+                                clsList.Add("active");
+                            }
+                            <li class="@string.Join(" ", clsList)" @onclick="(e => Jump(pageJ))">@pageJ</li>
+                        }
+                        clsList.Add("el-icon");
+                        clsList.Add("more");
+                        clsList.Add("btn-quicknext");
+                        if (nextArrow)
+                        {
+                            clsList.Add("el-icon-d-arrow-right");
+                        }
+                        else
+                        {
+                            clsList.Add("el-icon-more");
+                        }
+                        <li class="@string.Join(" ", clsList)" @onclick="e => Jump(CurrentPage+ShowPageCount-2)" @onmouseover="ShowNext" @onmouseout="HideNext"></li>
+                        clsList.Clear();
+                        clsList.Add("number");
+                        <li class="@string.Join(" ", clsList)" @onclick="(e => Jump(pageCount))">@pageCount</li>
+                        break;
+                    }
+                    else if (i < ShowPageCount)
+                    {
+                        if (!renderedPrefix)
+                        {
+                            renderedPrefix = true;
+                            for (int j = 1; j < i; j++)
+                            {
+                                clsList.Clear();
+                                clsList.Add("number");
+                                var pageJ = j;
+                                if (pageJ == CurrentPage)
+                                {
+                                    clsList.Add("active");
+                                }
+                                <li class="@string.Join(" ", clsList)" @onclick="(e => Jump(pageJ))">@pageJ</li>
+                            }
+                            page = i;
+                        }
+                        clsList.Add("number");
+                        if (page == CurrentPage)
+                        {
+                            clsList.Add("active");
+                        }
+                        <li class="@string.Join(" ", clsList)" @onclick="(e => Jump(page))">@(@page)</li>
+                    }
+                    else
+                    {
+                        clsList.Add("el-icon");
+                        clsList.Add("more");
+                        clsList.Add("btn-quicknext");
+                        if (nextArrow)
+                        {
+                            clsList.Add("el-icon-d-arrow-right");
+                        }
+                        else
+                        {
+                            clsList.Add("el-icon-more");
+                        }
+                        <li class="@string.Join(" ", clsList)" @onclick="e=>Jump(CurrentPage+5)" @onmouseover="ShowNext" @onmouseout="HideNext"></li>
+                        clsList.Clear();
+                        clsList.Add("number");
+                        page = pageCount;
+                        if (page == CurrentPage)
+                        {
+                            clsList.Add("active");
+                        }
+                        <li class="@string.Join(" ", clsList)" @onclick="(e => Jump(page))">@(@page)</li>
+                        break;
+                    }
+                }
+            </ul>
+        }
+        else if (part == PaginationLayoutPart.Next)
+        {
+            if (NextContent != null)
+            {
+                <ElButton Size="@NavigationButtonSize" IsDisabled="@(nextDisabled || Disabled)" OnClick="(e => OnNextClickAsync())">
+                    @NextContent
+                </ElButton>
+            }
+            else
+            {
+                <ElButton Icon="@GetNextIcon()" Content="@GetNextText()" Size="@NavigationButtonSize" IsDisabled="@(nextDisabled || Disabled)" aria-label="@NextAriaLabel" OnClick="(e => OnNextClickAsync())" />
+            }
+        }
+        else if (part == PaginationLayoutPart.Jumper && ShowJumper)
+        {
+            <span class="el-pagination__jump">
+                @JumperPrefixText
+                <ElInputNumber Cls="el-pagination__editor" Controls="@ShowJumperControls"
+                               ControlsPosition="@(ShowJumperControls ? "right" : null)" Disabled="@Disabled"
+                               Min="1" Max="@(pageCount > 0 ? pageCount : (int?)null)"
+                               Value="@CurrentPage" ValueChanged="OnJumperNumberChangedAsync" AriaLabel="@CurrentPageAriaLabel" />
+                @JumperSuffixText
+            </span>
+        }
+        else if (part == PaginationLayoutPart.Slot)
+        {
+            if (SlotContent != null)
+            {
+                <span class="el-pagination__slot">@SlotContent</span>
+            }
+        }
+    </text>;
+}
+@if (!ShouldHide())
+{
+<div class="@string.Join(" ", pageClsList)" style="@Style" @attributes="Attributes" id="@Id" aria-label="@AriaLabel">
+    @foreach (var part in MainParts)
+    {
+        @PartTemplate(part)
+    }
+    @if (RightParts.Any())
+    {
+        <div class="el-pagination__rightwrapper">
+            @foreach (var part in RightParts)
+            {
+                @PartTemplate(part)
+            }
+        </div>
+    }
+</div>
+}

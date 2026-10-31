@@ -1,0 +1,88 @@
+@inherits ElementComponentBase
+@implements IDisposable
+
+<div id="@Id" @ref="rootRef" class="@CarouselClass" style="@CarouselStyle" aria-label="@AriaLabel" @onmouseenter="PauseTimer" @onmouseleave="ResumeTimer" @attributes="Attributes">
+    <div class="el-carousel__container" style="@ContainerStyle" @ontransitionstart="OnContainerTransitionStart" @ontransitionend="OnContainerTransitionEnd">
+        <CascadingValue Value="@this" IsFixed="true">
+            @ChildContent
+        </CascadingValue>
+        @if (ShowArrows)
+        {
+            @if (LeftArrowVisible)
+            {
+                <button type="button" class="@($"el-carousel__arrow el-carousel__arrow--left {ArrowClass}")" aria-label="@LeftArrowAriaLabel" @onclick="ShowPreviousAsync">
+                    <i class="el-icon-arrow-left"></i>
+                </button>
+            }
+            @if (RightArrowVisible)
+            {
+                <button type="button" class="@($"el-carousel__arrow el-carousel__arrow--right {ArrowClass}")" aria-label="@RightArrowAriaLabel" @onclick="ShowNextAsync">
+                    <i class="el-icon-arrow-right"></i>
+                </button>
+            }
+        }
+    </div>
+    @if (IndicatorPosition != CarouselIndicatorPosition.None && Items.Count > 1)
+    {
+        <ul class="@IndicatorsClass">
+            @for (var i = 0; i < Items.Count; i++)
+            {
+                var index = i;
+                var item = Items[index];
+                <li class="@(GetIndicatorClass(index) + (string.IsNullOrWhiteSpace(IndicatorClass) ? "" : " " + IndicatorClass))"
+                    @onclick="() => SetActiveIndexAsync(index)"
+                    @if (Trigger == CarouselTrigger.Hover)
+                    {
+                        @onmouseover="() => SetActiveIndexAsync(index)"
+                    }>
+                    <button type="button" class="el-carousel__button" aria-label="@GetIndicatorAriaLabel(index)">
+                        @if (!string.IsNullOrWhiteSpace(item.Label))
+                        {
+                            <span>@item.Label</span>
+                        }
+                    </button>
+                </li>
+            }
+        </ul>
+    }
+    @if (MotionBlur)
+    {
+        <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style="display:none" aria-hidden="true">
+            <defs>
+                <filter id="elCarouselHorizontal"><feGaussianBlur in="SourceGraphic" stdDeviation="12,0" /></filter>
+                <filter id="elCarouselVertical"><feGaussianBlur in="SourceGraphic" stdDeviation="0,10" /></filter>
+            </defs>
+        </svg>
+    }
+    @if (PreviewVisible && PreviewList.Count > 0)
+    {
+        <div class="el-carousel__preview" @onclick="ClosePreviewAsync"
+             @onwheel:preventDefault="true" @onwheel="OnPreviewWheelAsync">
+            <img class="el-carousel__preview-img @(previewDragging ? "is-dragging" : null)" src="@PreviewList[PreviewIndex]" style="@PreviewImageStyle"
+                 @onclick:stopPropagation
+                 @ondblclick="OnPreviewDoubleClickAsync"
+                 @onpointerdown="OnPreviewPointerDownAsync"
+                 @onpointermove="OnPreviewPointerMoveAsync"
+                 @onpointerup="OnPreviewPointerUpAsync"
+                 @onpointerleave="OnPreviewPointerUpAsync"
+                 title="滚轮缩放，按住拖动平移，双击复位" alt="preview" />
+            @if (PreviewList.Count > 1)
+            {
+                <button type="button" class="el-carousel__preview-arrow el-carousel__preview-arrow--left" @onclick="PrevPreviewAsync" @onclick:stopPropagation aria-label="@LeftArrowAriaLabel">
+                    <svg class="el-carousel__preview-arrow-icon" viewBox="0 0 1024 1024" aria-hidden="true">
+                        <path d="M672 144 L304 512 L672 880" fill="none" stroke="currentColor"
+                              stroke-width="104" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                </button>
+                <button type="button" class="el-carousel__preview-arrow el-carousel__preview-arrow--right" @onclick="NextPreviewAsync" @onclick:stopPropagation aria-label="@RightArrowAriaLabel">
+                    <svg class="el-carousel__preview-arrow-icon" viewBox="0 0 1024 1024" aria-hidden="true">
+                        <path d="M352 144 L720 512 L352 880" fill="none" stroke="currentColor"
+                              stroke-width="104" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                </button>
+            }
+            <button type="button" class="el-carousel__preview-close" @onclick="ClosePreviewAsync" @onclick:stopPropagation aria-label="关闭">×</button>
+            <div class="el-carousel__preview-index">@(PreviewIndex + 1) / @PreviewList.Count</div>
+        </div>
+    }
+</div>

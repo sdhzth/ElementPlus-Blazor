@@ -1,0 +1,36 @@
+@inherits ElementComponentBase
+<div id="@Id" class="@wrapperClassBuilder" style="@CardStyle" aria-label="@AriaLabel" @ref="Container">
+    @* EP：header 渲染条件为「slot#header 存在 或 header 字符串属性非空」，内部优先渲染插槽、空时回落 header 文本 *@
+    @if (Header != null || (HeaderText != null && HeaderText.Length > 0))
+    {
+        <div class="@($"el-card__header {HeaderCls}")" style="@HeaderStyle">
+            @if (Header != null)
+            {
+                @Header
+            }
+            else
+            {
+                @HeaderText
+            }
+        </div>
+    }
+
+    <div class="@bodyClassBuilder" style="@BodyStyle">
+        @Body
+    </div>
+
+    @* EP：footer 同理（2.4.3 的 footer 字符串属性 + slot#footer 插槽） *@
+    @if (Footer != null || (FooterText != null && FooterText.Length > 0))
+    {
+        <div class="@($"el-card__footer {FooterCls}")" style="@FooterCss">
+            @if (Footer != null)
+            {
+                @Footer
+            }
+            else
+            {
+                @FooterText
+            }
+        </div>
+    }
+</div>

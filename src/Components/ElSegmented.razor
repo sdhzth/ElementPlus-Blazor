@@ -1,0 +1,37 @@
+@typeparam TValue
+@inherits ElementFieldComponentBase<TValue>
+
+<div id="@Id" name="@Name" class="@SegmentedClass" style="@Style" role="radiogroup" aria-label="@AriaLabel" @attributes="Attributes">
+    @{
+        var opts = ResolvedOptions;
+        for (var i = 0; i < opts.Count; i++)
+        {
+            var option = opts[i];
+            var selected = IsSelected(option);
+            <label class="@GetItemClass(option, selected)">
+                <input class="el-segmented__input" type="radio" value="@option.Value" checked="@selected" disabled="@option.Disabled" @onchange="() => SelectAsync(option)" />
+                <span class="el-segmented__item-label">
+                    @if (ItemTemplate != null)
+                    {
+                        @ItemTemplate(option)
+                    }
+                    else if (option.Content != null)
+                    {
+                        @option.Content
+                    }
+                    else
+                    {
+                        @if (!string.IsNullOrWhiteSpace(option.Icon))
+                        {
+                            <i class="@option.Icon"></i>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(option.Label))
+                        {
+                            <span>@option.Label</span>
+                        }
+                    }
+                </span>
+            </label>
+        }
+    }
+</div>

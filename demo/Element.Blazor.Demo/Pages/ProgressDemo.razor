@@ -1,0 +1,124 @@
+@page "/progress"
+
+<div class="demo-section">
+    <h3>ElProgress 进度条（对齐 Element Plus Progress）</h3>
+    <p class="demo-page-sub">
+        在官方属性/插槽基础上，保留本库既有扩展能力（轨道色 <code>TrackColor</code>、默认插槽 <code>Content</code>(RenderFragment&lt;double&gt;)、文字格式串 <code>Format</code>、<code>Id</code>/<code>AriaLabel</code> 等）。
+        本次补齐 EP 较新属性：<code>striped</code> / <code>striped-flow</code> / <code>indeterminate</code>、<code>color</code> 函数与数组渐变形态、<code>format</code> 函数形态。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>直线进度条（基础）</h3>
+    <ElProgress Percentage="0" />
+    <ElProgress Percentage="50" />
+    <ElProgress Percentage="100" />
+</div>
+
+<div class="demo-section">
+    <h3>百分比内显（TextInside + StrokeWidth）</h3>
+    <ElProgress Percentage="70" StrokeWidth="18" TextInside="true" />
+    <ElProgress Percentage="100" StrokeWidth="18" TextInside="true" />
+    <ElProgress Percentage="80" StrokeWidth="18" TextInside="true" Status="ProgressStatus.Success" />
+</div>
+
+<div class="demo-section">
+    <h3>自定义颜色（color 字符串）</h3>
+    <ElProgress Percentage="20" Color="#f56c6c" />
+    <ElProgress Percentage="40" Color="#e6a23c" />
+    <ElProgress Percentage="60" Color="#6f7ad3" />
+    <ElProgress Percentage="80" Color="#20a0ff" />
+</div>
+
+<div class="demo-section">
+    <h3>颜色函数（color 函数：按百分比返回颜色）</h3>
+    <ElProgress Percentage="@funcPct" ColorFunction="CustomColor" />
+    <p class="demo-note">当前 @funcPct%：@CustomColor(funcPct)</p>
+</div>
+
+<div class="demo-section">
+    <h3>颜色渐变（color 数组：线性渐变）</h3>
+    <ElProgress Percentage="20" ColorStops="@GradientStops" />
+    <ElProgress Percentage="60" ColorStops="@GradientStops" />
+    <ElProgress Percentage="100" ColorStops="@GradientStops" />
+</div>
+
+<div class="demo-section">
+    <h3>环形进度条（type="Circle"）</h3>
+    <ElProgress Type="ProgressType.Circle" Percentage="0" Width="120" />
+    <ElProgress Type="ProgressType.Circle" Percentage="25" Width="120" />
+    <ElProgress Type="ProgressType.Circle" Percentage="75" Width="120" Status="ProgressStatus.Success" />
+</div>
+
+<div class="demo-section">
+    <h3>仪表盘形（type="Dashboard"）</h3>
+    <ElProgress Type="ProgressType.Dashboard" Percentage="10" Width="120" />
+    <ElProgress Type="ProgressType.Dashboard" Percentage="50" Width="120" />
+</div>
+
+<div class="demo-section">
+    <h3>自定义内容（默认插槽 Content，入参为当前百分比）</h3>
+    <ElProgress Type="ProgressType.Circle" Percentage="80" Width="120">
+        <Content Context="p">
+            <span style="font-size:13px; color:#409eff;">Content @p%</span>
+        </Content>
+    </ElProgress>
+    <ElProgress Type="ProgressType.Circle" Percentage="100" Width="120" Status="ProgressStatus.Success">
+        <Content Context="p">
+            <i class="el-icon-circle-check" style="color:#67c23a; font-size:22px;"></i>
+        </Content>
+    </ElProgress>
+</div>
+
+<div class="demo-section">
+    <h3>文字格式化函数（format 函数）</h3>
+    <ElProgress Percentage="60" FormatFunc="CustomFormat" />
+    <ElProgress Type="ProgressType.Circle" Percentage="60" Width="120" FormatFunc="CustomFormat" />
+</div>
+
+<div class="demo-section">
+    <h3>动画进度条（indeterminate）</h3>
+    <ElProgress Percentage="50" Indeterminate="true" />
+    <p class="demo-note">Duration=@duration 秒</p>
+    <ElProgress Percentage="50" Indeterminate="true" Duration="@duration" />
+</div>
+
+<div class="demo-section">
+    <h3>条纹进度条（striped / striped-flow）</h3>
+    <ElProgress Percentage="60" Striped="true" />
+    <ElProgress Percentage="60" Striped="true" StripedFlow="true" />
+    <ElProgress Percentage="60" Striped="true" StripedFlow="true" Duration="2" Status="ProgressStatus.Success" />
+</div>
+
+<div class="demo-section">
+    <h3>状态色（status：success / exception / warning）</h3>
+    <ElProgress Percentage="100" Status="ProgressStatus.Success" />
+    <ElProgress Percentage="50" Status="ProgressStatus.Exception" />
+    <ElProgress Percentage="80" Status="ProgressStatus.Warning" />
+</div>
+
+<div class="demo-section">
+    <h3>交互：拖动改变百分比</h3>
+    <ElProgress Percentage="@pct" />
+    <div class="demo-row" style="align-items:center; gap:8px; margin-top:8px;">
+        <span style="font-size:13px;">Percentage</span>
+        <input type="range" min="0" max="100" value="@pct" @oninput="@(e => pct = double.Parse(e.Value.ToString()))" style="width:240px;" />
+        <span style="font-size:13px;">@pct%</span>
+    </div>
+</div>
+
+@code {
+    private double pct = 60;
+    private double funcPct = 60;
+    private int duration = 3;
+
+    private ProgressColorStop[] GradientStops = new[]
+    {
+        new ProgressColorStop { Color = "#e6a23c", Percentage = 0 },
+        new ProgressColorStop { Color = "#f56c6c", Percentage = 100 }
+    };
+
+    private string CustomColor(double p) => p < 50 ? "#909399" : (p < 80 ? "#e6a23c" : "#67c23a");
+
+    private string CustomFormat(double p) => $"{p}/100";
+}

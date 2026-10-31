@@ -1,0 +1,266 @@
+@inherits ElementComponentBase
+
+<style>
+    .el-account-table-grow {
+        --eat-abstract-width: auto;
+        --eat-account-width: 220px;
+        --eat-amount-width: 22px;
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        font-size: 13px;
+        color: var(--el-text-color-primary, #303133);
+        background: var(--el-bg-color, #ffffff);
+    }
+
+    .el-account-table-grow th,
+    .el-account-table-grow td {
+        border: 1px solid var(--el-border-color, #dcdfe6);
+        padding: 0;
+        text-align: center;
+        vertical-align: middle;
+        height: 32px;
+        overflow: hidden;
+    }
+
+    .el-account-table-grow thead th {
+        background: var(--el-fill-color-lighter, #fafafa);
+        font-weight: 600;
+        color: var(--el-text-color-regular, #606266);
+        height: 34px;
+    }
+
+    /* 列宽由 CSS 变量控制，可通过组件属性直接设置 */
+    .el-account-table-grow col.col-abstract { width: var(--eat-abstract-width); }
+    .el-account-table-grow col.col-account { width: var(--eat-account-width); }
+    .el-account-table-grow col.col-amount { width: var(--eat-amount-width); }
+
+    .el-account-table-grow .amount-sub-header {
+        font-size: 12px;
+        font-weight: 400;
+        color: var(--el-text-color-secondary, #909399);
+        height: 28px;
+    }
+
+    /* 数据行 */
+    .el-account-table-grow tbody tr.el-account-row:hover td {
+        background: var(--el-fill-color-light, #f5f7fa);
+    }
+
+    /* 摘要列（悬浮时显示 + / × 增删按钮） */
+    .el-account-table-grow td.abstract-cell {
+        position: relative;
+        text-align: left;
+    }
+
+    .el-account-table-grow .abstract-input {
+        width: 100%;
+        height: 32px;
+        box-sizing: border-box;
+        border: none;
+        outline: none;
+        background: transparent;
+        text-align: left;
+        font-size: 13px;
+        color: var(--el-text-color-primary, #303133);
+        padding: 0 6px;
+    }
+
+    .el-account-table-grow:not(.is-readonly) .abstract-input { padding: 0 26px; }
+
+    .el-account-table-grow .abstract-actions {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 3px;
+        pointer-events: none;
+    }
+
+    .el-account-table-grow tbody tr.el-account-row:hover .abstract-actions { display: flex; }
+
+    .el-account-table-grow .abstract-btn {
+        pointer-events: auto;
+        width: 18px;
+        height: 18px;
+        line-height: 16px;
+        padding: 0;
+        border-radius: 50%;
+        border: 1px solid var(--el-border-color, #dcdfe6);
+        background: var(--el-bg-color, #ffffff);
+        font-size: 12px;
+        cursor: pointer;
+        box-sizing: border-box;
+    }
+
+    .el-account-table-grow .abstract-btn.is-add { color: var(--el-color-primary, #409eff); }
+    .el-account-table-grow .abstract-btn.is-add:hover { border-color: var(--el-color-primary, #409eff); background: var(--el-color-primary-light-9, #ecf5ff); }
+    .el-account-table-grow .abstract-btn.is-del { color: var(--el-color-danger, #f56c6c); }
+    .el-account-table-grow .abstract-btn.is-del:hover { border-color: var(--el-color-danger, #f56c6c); background: var(--el-color-danger-light-9, #fef0f0); }
+
+    /* 会计科目（无边框下拉） */
+    .el-account-table-grow td.account-cell { padding: 0; overflow: visible; }
+
+    /* 金额格 */
+    .el-account-table-grow .amount-input {
+        width: 100%;
+        height: 32px;
+        box-sizing: border-box;
+        border: none;
+        outline: none;
+        background: transparent;
+        text-align: center;
+        font-size: 13px;
+        color: var(--el-text-color-primary, #303133);
+        padding: 0;
+    }
+
+    .el-account-table-grow .amount-input:focus {
+        background: var(--el-color-primary-light-9, #ecf5ff);
+        box-shadow: inset 0 0 0 1px var(--el-color-primary-light-5, #a0cfff);
+    }
+
+    /* 只读模式 */
+    .el-account-table-grow.is-readonly .amount-input,
+    .el-account-table-grow.is-readonly .abstract-input { cursor: default; }
+
+    /* 末行：合计（不可编辑） */
+    .el-account-table-grow tr.summary-row td {
+        background: var(--el-fill-color-lighter, #fafafa);
+        color: var(--el-text-color-regular, #606266);
+        font-weight: 600;
+    }
+
+    .el-account-table-grow tr.summary-row td.summary-label {
+        text-align: left;
+        padding-left: 8px;
+        white-space: nowrap;
+    }
+
+    .el-account-table-grow tr.summary-row td.is-total { color: var(--el-color-primary, #409eff); }
+</style>
+
+<table class="el-account-table-grow @(ReadOnly ? "is-readonly" : string.Empty) @Cls" style="@ColumnStyle">
+    <colgroup>
+        <col class="col-abstract" />
+        <col class="col-account" />
+        @for (int i = 0; i < AmountColumnsPerSide * 2; i++)
+        {
+            <col class="col-amount" />
+        }
+    </colgroup>
+    <thead>
+        <tr>
+            <th rowspan="2" class="abstract-cell">摘要</th>
+            <th rowspan="2" class="account-cell">会计科目</th>
+            <th colspan="@AmountColumnsPerSide">借方金额</th>
+            <th colspan="@AmountColumnsPerSide">贷方金额</th>
+        </tr>
+        <tr>
+            @for (int i = 0; i < AmountColumnsPerSide * 2; i++)
+            {
+                <th class="amount-sub-header">@GetAmountLabels()[i % AmountColumnsPerSide]</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @for (int idx = 0; idx < Rows.Count; idx++)
+        {
+            var row = Rows[idx];
+            var rowIndex = idx;
+            var inDigits = SplitAmount(row.AmountIn);
+            var outDigits = SplitAmount(row.AmountOut);
+            var cellRefs = GetRowCellRefs(row.Key);
+            var abstractRef = GetAbstractCellRef(row.Key);
+            <tr class="el-account-row" @key="row.Key">
+                <td class="abstract-cell">
+                    <input class="abstract-input" type="text" readonly="@ReadOnly"
+                           value="@row.Abstracts"
+                           @ref="abstractRef.Element"
+                           @onchange="e => OnAbstractChanged(row, e)" />
+                    @if (!ReadOnly)
+                    {
+                        <span class="abstract-actions">
+                            <button type="button" class="abstract-btn is-add" title="在本行下面增加一行"
+                                    @onclick="() => AddRow(rowIndex)">+</button>
+                            <button type="button" class="abstract-btn is-del" title="删除本行"
+                                    @onclick="() => DelRow(rowIndex)">×</button>
+                        </span>
+                    }
+                </td>
+                <td class="account-cell">
+                    <ElDropDownTableGrow Items="@AccountItems"
+                                         Value="@row.AccountSubject"
+                                         ValueChanged="@(v => OnAccountChanged(row, v))"
+                                         ValueField="@AccountValueField"
+                                         TextField="@AccountTextField"
+                                         Borderless="true"
+                                         Clearable="true"
+                                         Disabled="@ReadOnly"
+                                         AllowSearch="true"
+                                         ShowPagination="false"
+                                         Height="240"
+                                         Compact="true"
+                                         KeyboardSelect="true">
+                        <ElTableColumn Property="科目编码" Text="科目编码" Width="90" />
+                        <ElTableColumn Property="科目名称" Text="科目名称" Width="170" ShowOverflowTooltip="true" />
+                        <ElTableColumn Property="科目类别" Text="科目类别" Width="90" />
+                        <ElTableColumn Property="所属机构" Text="所属机构" Width="110" />
+                    </ElDropDownTableGrow>
+                </td>
+
+                @* 借方金额：亿…分 *@
+                @for (int c = 0; c < AmountColumnsPerSide; c++)
+                {
+                    var column = c;
+                    var cellRef = cellRefs[column];
+                    <td class="amount-cell">
+                        <input class="amount-input" type="text" maxlength="1" inputmode="numeric" readonly="@ReadOnly"
+                               value="@DigitText(inDigits, column)"
+                               @ref="cellRef.Element"
+                               @oninput="e => OnDigitInput(row, inDigits, column, true, e)"
+                               @onkeydown="e => OnAmountKeyDown(e, row, column)" />
+                    </td>
+                }
+
+                @* 贷方金额：亿…分 *@
+                @for (int c = 0; c < AmountColumnsPerSide; c++)
+                {
+                    var digitIndex = c;
+                    var column = AmountColumnsPerSide + c;
+                    var cellRef = cellRefs[column];
+                    <td class="amount-cell">
+                        <input class="amount-input" type="text" maxlength="1" inputmode="numeric" readonly="@ReadOnly"
+                               value="@DigitText(outDigits, digitIndex)"
+                               @ref="cellRef.Element"
+                               @oninput="e => OnDigitInput(row, outDigits, digitIndex, false, e)"
+                               @onkeydown="e => OnAmountKeyDown(e, row, column)" />
+                    </td>
+                }
+            </tr>
+        }
+
+        @{
+            var totalIn = TotalIn;
+            var totalOut = TotalOut;
+            var totalInDigits = SplitAmount(totalIn);
+            var totalOutDigits = SplitAmount(totalOut);
+        }
+        @* 末行：合计（不可编辑；借贷平衡时显示「合计：大写金额」） *@
+        <tr class="summary-row">
+            <td colspan="2" class="summary-label">@BuildSummaryLabel(totalIn, totalOut)</td>
+            @for (int c = 0; c < AmountColumnsPerSide; c++)
+            {
+                <td class="amount-cell is-total">@DigitText(totalInDigits, c)</td>
+            }
+            @for (int c = 0; c < AmountColumnsPerSide; c++)
+            {
+                <td class="amount-cell is-total">@DigitText(totalOutDigits, c)</td>
+            }
+        </tr>
+    </tbody>
+</table>

@@ -1,0 +1,79 @@
+@inherits ElementFieldComponentBase<string>
+
+<div class="@wrapperClsBuilder.ToString()" style="@Style">
+    @{
+        RenderFragment dropdown = @<div class="el-mention-dropdown el-select-dropdown el-popper @(Position == "top" ? "el-mention-dropdown--top" : "el-mention-dropdown--bottom") @PopperClass" id="@dropdownId">
+            <ul class="el-scrollbar__view el-select-dropdown__list" role="listbox">
+                @{
+                    var options = FilteredOptions.ToList();
+                }
+                @for (var i = 0; i < options.Count; i++)
+                {
+                    var option = options[i];
+                    var clsBuilder = HtmlPropertyBuilder.CreateCssClassBuilder()
+                        .Add("el-select-dropdown__item")
+                        .AddIf(option.Disabled, "is-disabled")
+                        .AddIf(i == activeIndex, "hover");
+                    <li class="@clsBuilder.ToString()"
+                        id="@GetOptionId(i)"
+                        role="option"
+                        aria-selected="@((i == activeIndex) ? "true" : "false")"
+                        aria-disabled="@(option.Disabled ? "true" : "false")"
+                        @onmousedown:preventDefault
+                        @onclick="e => SelectOptionAsync(option)">
+                        @if (ItemTemplate != null)
+                        {
+                            @ItemTemplate(option)
+                        }
+                        else
+                        {
+                            <span>@(option.Label ?? option.Value)</span>
+                        }
+                    </li>
+                }
+            </ul>
+        </div>;
+    }
+    @if (Position == "top" && dropdownVisible)
+    {
+        @dropdown
+    }
+    <textarea class="el-textarea__inner"
+              id="@Id"
+              @attributes="Attributes"
+              @ref="textareaElement"
+              style="@InputStyle"
+              value="@Value"
+              name="@Name"
+              placeholder="@Placeholder"
+              rows="@Rows"
+              autocomplete="@Autocomplete"
+              tabindex="@Tabindex"
+              disabled="@IsMentionDisabled"
+              readonly="@(Readonly || !Editable)"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-haspopup="listbox"
+              aria-expanded="@(dropdownVisible ? "true" : "false")"
+              aria-controls="@dropdownId"
+              aria-activedescendant="@ActiveDescendantId"
+              aria-label="@AriaLabel"
+              aria-disabled="@(IsMentionDisabled ? "true" : "false")"
+              aria-invalid="@AriaInvalid"
+              aria-describedby="@InputAriaDescribedBy"
+              @onfocus="OnFocusAsync"
+              @oninput="OnInputAsync"
+              @onchange="OnChangeAsync"
+              @onblur="OnBlurAsync"
+              @onkeydown="OnKeyDownAsync"></textarea>
+    @if (ShowClear)
+    {
+        <i class="el-input__icon el-input__clear el-icon-circle-close el-mention__clear"
+           @onclick="ClearAsync"
+           @onclick:stopPropagation></i>
+    }
+    @if (Position != "top" && dropdownVisible)
+    {
+        @dropdown
+    }
+</div>

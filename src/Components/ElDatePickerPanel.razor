@@ -1,0 +1,170 @@
+@inherits ElementFieldComponentBase<DateTime?>
+
+<div class="@PanelClass"
+     style="@Style"
+     role="group"
+     aria-disabled="@(IsDatePickerPanelDisabled ? "true" : "false")"
+     @attributes="Attributes">
+    @if (ShortcutList.Any())
+    {
+        <div class="el-picker-panel__sidebar">
+            @foreach (var shortcut in ShortcutList)
+            {
+                <button type="button" class="el-picker-panel__shortcut" @onclick="e => SelectShortcutAsync(shortcut)">@shortcut.Text</button>
+            }
+        </div>
+    }
+    <div class="el-picker-panel__body-wrapper">
+        <div class="el-picker-panel__body">
+            @if (IsRangePanel)
+            {
+                @* 范围面板：只在标签的「自己那一侧」放箭头（EP 的 el-date-range-picker__header 布局）：
+                   左面板 « ‹ | 标签 | ，右面板 | 标签 | › »。
+                   标签用绝对定位铺满整宽并居中，所以箭头数量变化（年/月视图只有 1 个）不会把标签挤偏。 *@
+                <div class="@RangeHeaderClass">
+                    @if (IsRangeStart)
+                    {
+                        <span class="el-date-range-header__btns is-left">
+                            <ElButton Cls="el-picker-panel__icon-btn el-date-range-header__btn el-icon-d-arrow-left"
+                                      AppendCustomCls="false"
+                                      aria-label="@PrevYearAriaLabel"
+                                      Disabled="@IsDatePickerPanelDisabled"
+                                      OnClick="e => GoPrevYearAsync()">
+                                @if (PrevYearIcon != null) { @PrevYearIcon }
+                            </ElButton>
+                            @if (CurrentView == DatePickerPanelType.Date)
+                            {
+                                <ElButton Cls="el-picker-panel__icon-btn el-date-range-header__btn el-icon-arrow-left"
+                                          AppendCustomCls="false"
+                                          aria-label="@PrevMonthAriaLabel"
+                                          Disabled="@IsDatePickerPanelDisabled"
+                                          OnClick="e => GoPrevMonthAsync()">
+                                    @if (PrevMonthIcon != null) { @PrevMonthIcon }
+                                </ElButton>
+                            }
+                        </span>
+                    }
+                    <span class="el-date-range-header__label">@RangeHeaderLabel</span>
+                    @if (IsRangeEnd)
+                    {
+                        <span class="el-date-range-header__btns is-right">
+                            @if (CurrentView == DatePickerPanelType.Date)
+                            {
+                                <ElButton Cls="el-picker-panel__icon-btn el-date-range-header__btn el-icon-arrow-right"
+                                          AppendCustomCls="false"
+                                          aria-label="@NextMonthAriaLabel"
+                                          Disabled="@IsDatePickerPanelDisabled"
+                                          OnClick="e => GoNextMonthAsync()">
+                                    @if (NextMonthIcon != null) { @NextMonthIcon }
+                                </ElButton>
+                            }
+                            <ElButton Cls="el-picker-panel__icon-btn el-date-range-header__btn el-icon-d-arrow-right"
+                                      AppendCustomCls="false"
+                                      aria-label="@NextYearAriaLabel"
+                                      Disabled="@IsDatePickerPanelDisabled"
+                                      OnClick="e => GoNextYearAsync()">
+                                @if (NextYearIcon != null) { @NextYearIcon }
+                            </ElButton>
+                        </span>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="@HeaderClass">
+                    @* prev-year icon — slot 优先 *@
+                    <ElButton Cls="el-picker-panel__icon-btn el-date-picker__prev-btn el-icon-d-arrow-left"
+                              AppendCustomCls="false"
+                              aria-label="@PrevYearAriaLabel"
+                              Disabled="@IsDatePickerPanelDisabled"
+                              OnClick="e => GoPrevYearAsync()">
+                        @if (PrevYearIcon != null) { @PrevYearIcon }
+                    </ElButton>
+                    @if (CurrentView == DatePickerPanelType.Date)
+                    {
+                        <ElButton Cls="el-picker-panel__icon-btn el-date-picker__prev-btn el-icon-arrow-left"
+                                  AppendCustomCls="false"
+                                  aria-label="@PrevMonthAriaLabel"
+                                  Disabled="@IsDatePickerPanelDisabled"
+                                  OnClick="e => GoPrevMonthAsync()">
+                            @if (PrevMonthIcon != null) { @PrevMonthIcon }
+                        </ElButton>
+                    }
+
+                    @* 中间 label 区域 *@
+                    @if (CurrentView == DatePickerPanelType.Date)
+                    {
+                        <span role="button" class="el-date-picker__header-label" @onclick="ShowYearView">@YearLabel</span>
+                        <span role="button" class="el-date-picker__header-label" @onclick="ShowMonthView">@MonthLabel</span>
+                    }
+                    else if (CurrentView == DatePickerPanelType.Month)
+                    {
+                        <span role="button" class="el-date-picker__header-label" @onclick="ShowYearView">@YearLabel</span>
+                    }
+                    else
+                    {
+                        <span class="el-date-picker__header-label">@YearRangeText</span>
+                    }
+
+                    @* next-month icon *@
+                    @if (CurrentView == DatePickerPanelType.Date)
+                    {
+                        <ElButton Cls="el-picker-panel__icon-btn el-date-picker__next-btn el-icon-arrow-right"
+                                  AppendCustomCls="false"
+                                  aria-label="@NextMonthAriaLabel"
+                                  Disabled="@IsDatePickerPanelDisabled"
+                                  OnClick="e => GoNextMonthAsync()">
+                            @if (NextMonthIcon != null) { @NextMonthIcon }
+                        </ElButton>
+                    }
+                    <ElButton Cls="el-picker-panel__icon-btn el-date-picker__next-btn el-icon-d-arrow-right"
+                              AppendCustomCls="false"
+                              aria-label="@NextYearAriaLabel"
+                              Disabled="@IsDatePickerPanelDisabled"
+                              OnClick="e => GoNextYearAsync()">
+                        @if (NextYearIcon != null) { @NextYearIcon }
+                    </ElButton>
+
+                    @* clear button (仅当有值且 clearable 时) *@
+                    @if (Clearable && Value.HasValue && !IsDatePickerPanelDisabled)
+                    {
+                        <ElButton Cls="el-picker-panel__icon-btn el-date-picker__clear-btn el-icon-close"
+                                  AppendCustomCls="false"
+                                  aria-label="@ClearAriaLabel"
+                                  OnClick="ClearAsync" />
+                    }
+                </div>
+            }
+
+            <div class="el-picker-panel__content">
+                @if (CurrentView == DatePickerPanelType.Year)
+                {
+                    @BuildYearTable()
+                }
+                else if (CurrentView == DatePickerPanelType.Month)
+                {
+                    @BuildMonthTable()
+                }
+                else
+                {
+                    @BuildDateTable()
+                }
+            </div>
+        </div>
+    </div>
+
+    @* Footer 区域：自定义 FooterContent 优先，其次是 ShowConfirm 确认按钮 *@
+    @if (FooterContent != null || ShowFooter || ShowConfirm)
+    {
+        <div class="el-picker-panel__footer">
+            @if (FooterContent != null)
+            {
+                @FooterContent
+            }
+            else if (ShowConfirm)
+            {
+                <ElButton Type="ButtonType.Primary" OnClick="OnConfirmAsync" Size="ButtonSize.Small">@ConfirmLabel</ElButton>
+            }
+        </div>
+    }
+</div>

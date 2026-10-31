@@ -1,0 +1,75 @@
+@page "/result"
+
+<div class="demo-section">
+    <h3>ElResult 结果（对齐 Element Plus Result）</h3>
+    <p class="demo-page-sub">
+        用于对用户操作结果或异常状态做反馈。对齐 EP 官方属性 <code>icon</code>（success / warning / info / error / <b>primary</b>）、<code>title</code>、<code>sub-title</code>，以及插槽 <code>icon</code> / <code>title</code> / <code>sub-title</code> / <code>extra</code>。
+        其中 <b>primary</b> 为 Element Plus 2.9.11 新增图标类型（字形复用 InfoFilled、配色取主题主色 <code>--el-color-primary</code>），本库已补齐。
+    </p>
+</div>
+
+<div class="demo-section">
+    <h3>基础用法（primary / success / warning / error / info）</h3>
+    <div class="demo-result-grid">
+        <ElResult Icon="ResultIcon.Primary" Title="Primary Tip" SubTitle="Please follow the instructions">
+            <Extra><ElButton Type="ButtonType.Primary" @onclick="OnBack">Back</ElButton></Extra>
+        </ElResult>
+        <ElResult Icon="ResultIcon.Success" Title="Success Tip" SubTitle="Please follow the instructions">
+            <Extra><ElButton Type="ButtonType.Primary" @onclick="OnBack">Back</ElButton></Extra>
+        </ElResult>
+        <ElResult Icon="ResultIcon.Warning" Title="Warning Tip" SubTitle="Please follow the instructions">
+            <Extra><ElButton Type="ButtonType.Primary" @onclick="OnBack">Back</ElButton></Extra>
+        </ElResult>
+        <ElResult Icon="ResultIcon.Error" Title="Error Tip" SubTitle="Please follow the instructions">
+            <Extra><ElButton Type="ButtonType.Primary" @onclick="OnBack">Back</ElButton></Extra>
+        </ElResult>
+        <ElResult Icon="ResultIcon.Info" Title="Info Tip" SubTitle="Using slot as subtitle">
+            <Extra><ElButton Type="ButtonType.Primary" @onclick="OnBack">Back</ElButton></Extra>
+        </ElResult>
+    </div>
+    <p class="demo-note">@lastAction</p>
+</div>
+
+<div class="demo-section">
+    <h3>自定义图标插槽（icon slot）</h3>
+    <ElResult Icon="ResultIcon.Error" Title="404" SubTitle="Sorry, request error">
+        <IconContent>
+            <svg viewBox="0 0 64 41" width="120" height="77" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 37 V12 a4 4 0 0 1 4-4 h22 l6 6 h22 a4 4 0 0 1 4 4 v23 a4 4 0 0 1-4 4 H8 a4 4 0 0 1-4-4 Z" opacity="0.85" />
+                    <circle cx="24" cy="22" r="4" />
+                    <path d="M40 14 l8 16" />
+                    <circle cx="44" cy="26" r="4" />
+                </g>
+            </svg>
+        </IconContent>
+        <Extra><ElButton Type="ButtonType.Primary" @onclick="OnBack">Back</ElButton></Extra>
+    </ElResult>
+</div>
+
+<div class="demo-section">
+    <h3>自定义标题 / 副标题插槽（title / sub-title slots）</h3>
+    <ElResult Icon="ResultIcon.Info">
+        <TitleContent><p style="font-size:22px;font-weight:700;">操作结果通知</p></TitleContent>
+        <SubTitleContent><p>这是通过 <code>SubTitleContent</code> 插槽渲染的副标题，可放任意 HTML 片段。</p></SubTitleContent>
+        <Extra><ElButton Type="ButtonType.Primary" @onclick="OnBack">Back</ElButton></Extra>
+    </ElResult>
+</div>
+
+<div class="demo-section">
+    <h3>额外操作区（extra slot）</h3>
+    <ElResult Icon="ResultIcon.Success" Title="提交成功" SubTitle="您的申请已受理，请留意后续通知">
+        <Extra>
+            <div style="display:inline-flex;gap:12px;">
+                <ElButton Type="ButtonType.Primary" @onclick="OnBack">查看详情</ElButton>
+                <ElButton Type="ButtonType.Default" @onclick="OnBack">返回列表</ElButton>
+            </div>
+        </Extra>
+    </ElResult>
+</div>
+
+@code {
+    private string lastAction = "尚未点击任何按钮";
+
+    private void OnBack() => lastAction = $"已点击返回 / 查看按钮（{DateTime.Now:HH:mm:ss}）";
+}

@@ -1,0 +1,11 @@
+@inherits ElementComponentBase
+@* Visible=false ⇒ 整条间距容器连子项一起不进渲染树（不是 display:none，gap 与占位都不留）。
+   口径与 ElButton.Visible 一致。默认 true ⇒ 加参数前的用法一字不变。 *@
+@if (Visible)
+{
+    <CascadingValue Value="@this" IsFixed="true">
+        <div class="@SpaceClass" style="@SpaceStyle" @attributes="Attributes">
+            @ChildContent
+        </div>
+    </CascadingValue>
+}

@@ -1,0 +1,85 @@
+@inherits ElementFieldComponentBase<decimal?>
+
+<div class="@wrapperClsBuilder.ToString()" style="@Style" aria-disabled="@AriaDisabled" @onmouseover="OnWrapperMouseOverAsync" @onmouseout="OnWrapperMouseOutAsync">
+    @if (Controls && ControlsPosition != "right")
+    {
+        <span class="@DecreaseButtonClass" role="button" tabindex="@GetControlTabIndex(IsDecreaseDisabled)" aria-label="@EffectiveDecreaseAriaLabel" aria-controls="@Id" aria-disabled="@GetAriaBoolean(IsDecreaseDisabled)" @onmousedown="e => OnControlMouseDownAsync(e, DecreaseAsync)" @onmouseup="EndHold" @onmouseleave="EndHold" @onclick="e => StepOnClickAsync(DecreaseAsync)" @onkeydown="e => OnControlKeyDownAsync(e, DecreaseAsync)">
+            @if (DecreaseIcon != null)
+            {
+                @DecreaseIcon
+            }
+            else
+            {
+                <i class="el-icon-minus" aria-hidden="true"></i>
+            }
+        </span>
+        <span class="@IncreaseButtonClass" role="button" tabindex="@GetControlTabIndex(IsIncreaseDisabled)" aria-label="@EffectiveIncreaseAriaLabel" aria-controls="@Id" aria-disabled="@GetAriaBoolean(IsIncreaseDisabled)" @onmousedown="e => OnControlMouseDownAsync(e, IncreaseAsync)" @onmouseup="EndHold" @onmouseleave="EndHold" @onclick="e => StepOnClickAsync(IncreaseAsync)" @onkeydown="e => OnControlKeyDownAsync(e, IncreaseAsync)">
+            @if (IncreaseIcon != null)
+            {
+                @IncreaseIcon
+            }
+            else
+            {
+                <i class="el-icon-plus" aria-hidden="true"></i>
+            }
+        </span>
+    }
+    <div class="el-input">
+        <input class="el-input__inner"
+               id="@Id"
+               @ref="inputElement"
+               @attributes="Attributes"
+               type="text"
+               role="spinbutton"
+               value="@FormattedValue"
+               name="@Name"
+               placeholder="@Placeholder"
+               autocomplete="@Autocomplete"
+               inputmode="@Inputmode"
+               tabindex="@Tabindex"
+               disabled="@IsInputNumberDisabled"
+               readonly="@Readonly"
+               aria-valuemin="@AriaValueMin"
+               aria-valuemax="@AriaValueMax"
+               aria-valuenow="@AriaValueNow"
+               aria-valuetext="@AriaValueText"
+               aria-label="@AriaLabel"
+               aria-labelledby="@AriaLabelledby"
+               aria-disabled="@AriaDisabled"
+               aria-readonly="@AriaReadonly"
+               aria-invalid="@AriaInvalid"
+               aria-describedby="@InputAriaDescribedBy"
+               @oninput="OnInputAsync"
+               @onchange="OnChangeAsync"
+               @onfocus="OnFocusAsync"
+               @onblur="OnBlurAsync"
+               @onkeydown="OnKeyDownAsync" />
+        @if (ShouldShowClearIcon)
+        {
+            <i class="el-input__clear @ClearIcon" role="button" aria-label="clear" @onclick="ClearAsync" @onmousedown:preventDefault></i>
+        }
+    </div>
+    @if (Controls && ControlsPosition == "right")
+    {
+        <span class="@IncreaseButtonClass" role="button" tabindex="@GetControlTabIndex(IsIncreaseDisabled)" aria-label="@EffectiveIncreaseAriaLabel" aria-controls="@Id" aria-disabled="@GetAriaBoolean(IsIncreaseDisabled)" @onmousedown="e => OnControlMouseDownAsync(e, IncreaseAsync)" @onmouseup="EndHold" @onmouseleave="EndHold" @onclick="e => StepOnClickAsync(IncreaseAsync)" @onkeydown="e => OnControlKeyDownAsync(e, IncreaseAsync)">
+            @if (IncreaseIcon != null)
+            {
+                @IncreaseIcon
+            }
+            else
+            {
+                <i class="el-icon-arrow-up" aria-hidden="true"></i>
+            }
+        </span>
+        <span class="@DecreaseButtonClass" role="button" tabindex="@GetControlTabIndex(IsDecreaseDisabled)" aria-label="@EffectiveDecreaseAriaLabel" aria-controls="@Id" aria-disabled="@GetAriaBoolean(IsDecreaseDisabled)" @onmousedown="e => OnControlMouseDownAsync(e, DecreaseAsync)" @onmouseup="EndHold" @onmouseleave="EndHold" @onclick="e => StepOnClickAsync(DecreaseAsync)" @onkeydown="e => OnControlKeyDownAsync(e, DecreaseAsync)">
+            @if (DecreaseIcon != null)
+            {
+                @DecreaseIcon
+            }
+            else
+            {
+                <i class="el-icon-arrow-down" aria-hidden="true"></i>
+            }
+        </span>
+    }
+</div>

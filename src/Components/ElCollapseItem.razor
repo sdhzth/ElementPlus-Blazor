@@ -1,0 +1,22 @@
+@inherits ElementComponentBase
+
+<div id="@Id" aria-label="@AriaLabel" class="@ItemClass" style="@Style" @attributes="Attributes">
+    <div class="@HeaderClass" role="tab" aria-expanded="@IsActiveText" aria-disabled="@Disabled.ToString().ToLower()" tabindex="@(Disabled ? -1 : 0)" @onclick="ToggleAsync" @onkeydown="OnKeyDownAsync">
+        @if (TitleContent != null)
+        {
+            @TitleContent
+        }
+        else
+        {
+            @Title
+        }
+        @* 展开时箭头要转 90°（EP：.el-collapse-item__arrow.is-active{transform:rotate(90deg)}）。
+           改前这里写死静态 class，永远拿不到 is-active，所以「打开后图标没变」。 *@
+        <i class="el-collapse-item__arrow el-icon-arrow-right @((IsActive) ? "is-active" : null)"></i>
+    </div>
+    <div class="el-collapse-item__wrap" style="@WrapStyle" role="tabpanel">
+        <div class="el-collapse-item__content">
+            @ChildContent
+        </div>
+    </div>
+</div>

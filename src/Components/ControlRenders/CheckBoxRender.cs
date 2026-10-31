@@ -1,0 +1,27 @@
+using ElementPlus.ControlConfigs;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ElementPlus.ControlRenders
+{
+    public class CheckBoxRender : ICheckBoxRender
+    {
+        public void Render(RenderTreeBuilder renderTreeBuilder, RenderConfig config)
+        {
+            var inputConfig = (CheckBoxAttribute)config.ControlAttribute;
+            renderTreeBuilder.OpenComponent(0, config.InputControlType);
+            renderTreeBuilder.AddAttribute(1, nameof(ElFormItemObject.EnableAlwaysRender), true);
+            if (inputConfig != null)
+            {
+                renderTreeBuilder.AddAttribute(2, nameof(inputConfig.Image), inputConfig.Image);
+                renderTreeBuilder.AddAttribute(3, nameof(inputConfig.Style), inputConfig.Style);
+                renderTreeBuilder.AddAttribute(4, nameof(ElFormItemObject.ChildContent), inputConfig.Text);
+            }
+            renderTreeBuilder.CloseComponent();
+        }
+    }
+}

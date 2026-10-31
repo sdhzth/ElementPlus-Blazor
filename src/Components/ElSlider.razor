@@ -1,0 +1,133 @@
+@inherits ElementFieldComponentBase<double>
+
+<div class="@wrapperClsBuilder.ToString()" style="@Style"
+     role="@RootRole"
+     aria-label="@RootAriaLabel"
+     aria-labelledby="@RootAriaLabelledBy"
+     aria-disabled="@AriaDisabled">
+    <div class="@runwayClsBuilder.ToString()" style="@RunwayStyle" @ref="runwayRef"
+         @onpointerdown="OnRunwayPointerDownAsync"
+         @onpointerdown:preventDefault="@Range"
+         @onpointermove="OnRunwayPointerMoveAsync"
+         @onpointerup="OnRunwayPointerUpAsync"
+         @onpointercancel="OnRunwayPointerCancelAsync">
+        <div class="el-slider__bar" style="@BarStyle"></div>
+        @if (Range)
+        {
+            @for (var i = 0; i < 2; i++)
+            {
+                var index = i;
+                <input class="el-slider__input el-slider__input--range"
+                       id="@GetInputId(index)"
+                       @attributes="(index == 0 ? Attributes : null)"
+                       type="range"
+                       role="slider"
+                       aria-label="@GetRangeThumbAriaLabel(index)"
+                       aria-labelledby="@AriaLabelledBy"
+                       name="@Name"
+                       min="@Min"
+                       max="@Max"
+                       step="@Step"
+                       value="@ThumbValues[index]"
+                       disabled="@IsSliderDisabled"
+                       aria-valuemin="@GetRangeButtonAriaValueMin(index)"
+                       aria-valuemax="@GetRangeButtonAriaValueMax(index)"
+                       aria-valuenow="@FormatInvariant(ThumbValues[index])"
+                       aria-valuetext="@GetValueText(ThumbValues[index])"
+                       aria-orientation="@AriaOrientation"
+                       aria-disabled="@AriaDisabled"
+                       aria-invalid="@AriaInvalid"
+                       aria-describedby="@AriaDescribedBy"
+                       @onpointerdown:stopPropagation="true"
+                       @onfocus="e => activeThumbIndex = index"
+                       @onblur="e => activeThumbIndex = -1"
+                       @oninput="e => OnRangeInputAsync(index, e)"
+                       @onchange="e => OnRangeChangeAsync(index, e)" />
+                <div class="el-slider__button-wrapper @(activeThumbIndex == index ? "is-hover" : string.Empty)"
+                     style="@GetRangeButtonStyle(index)"
+                     @onmouseover="e => activeThumbIndex = index"
+                     @onmouseout="e => activeThumbIndex = -1">
+                    <div class="el-slider__button"></div>
+                    @if (IsThumbTooltipVisible(index))
+                    {
+                        <div class="@tooltipClsBuilder.ToString()">@GetTooltipText(ThumbValues[index])</div>
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <input class="el-slider__input"
+                   id="@InputId"
+                   @attributes="Attributes"
+                   type="range"
+                   role="slider"
+                   aria-label="@SingleThumbAriaLabel"
+                   aria-labelledby="@AriaLabelledBy"
+                   name="@Name"
+                   min="@Min"
+                   max="@Max"
+                   step="@Step"
+                   value="@Value"
+                   disabled="@IsSliderDisabled"
+                   aria-valuemin="@FormatInvariant(Min)"
+                   aria-valuemax="@FormatInvariant(Max)"
+                   aria-valuenow="@FormatInvariant(Value)"
+                   aria-valuetext="@GetValueText(Value)"
+                   aria-orientation="@AriaOrientation"
+                   aria-disabled="@AriaDisabled"
+                   aria-invalid="@AriaInvalid"
+                   aria-describedby="@AriaDescribedBy"
+                   @onfocus="e => activeThumbIndex = 0"
+                   @onblur="e => activeThumbIndex = -1"
+                   @oninput="OnInputAsync"
+                   @onchange="OnChangeAsync" />
+            <div class="el-slider__button-wrapper @(activeThumbIndex == 0 ? "is-hover" : string.Empty)"
+                 style="@ButtonStyle"
+                 @onmouseover="e => activeThumbIndex = 0"
+                 @onmouseout="e => activeThumbIndex = -1">
+                <div class="el-slider__button"></div>
+                @if (IsThumbTooltipVisible(0))
+                {
+                    <div class="@tooltipClsBuilder.ToString()">@GetTooltipText(Value)</div>
+                }
+            </div>
+        }
+        @if (ShowStops)
+        {
+            <div>
+                @foreach (var stop in Stops)
+                {
+                    <div class="el-slider__stop" style="@GetStopStyle(stop)"></div>
+                }
+            </div>
+        }
+        @if (MarkList.Count > 0)
+        {
+            <div>
+                @foreach (var mark in MarkList)
+                {
+                    <div class="el-slider__stop el-slider__marks-stop" style="@GetStopStyle(GetPercent(Normalize(mark.Value)))"></div>
+                }
+            </div>
+            <div class="el-slider__marks">
+                @foreach (var mark in MarkList)
+                {
+                    <div class="el-slider__marks-text" style="@GetMarkPositionStyle(mark)">@(mark.Label ?? mark.Value.ToString())</div>
+                }
+            </div>
+        }
+    </div>
+    @if (RenderInput)
+    {
+        <ElInputNumber Value="@DecimalValue"
+                       ValueChanged="OnInputNumberChangedAsync"
+                       Min="@((decimal)Min)"
+                       Max="@((decimal)Max)"
+                       Controls="@ShowInputControls"
+                       Size="@EffectiveInputSize"
+                       Step="@((decimal)Step)"
+                       Disabled="@IsSliderDisabled"
+                       ValidateEvent="false" />
+    }
+</div>

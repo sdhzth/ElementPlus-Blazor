@@ -1,0 +1,17 @@
+@inherits ElMenuContainer
+<CascadingValue Value=this>
+    <CascadingValue Value="Options">
+        <ul role="menubar"
+            id="@Id"
+            aria-label="@AriaLabel"
+            class="@menuClass"
+            style="@menuStyle"
+            @onmouseout:stopPropagation
+            @onkeydown="OnKeyDownAsync"
+            @ref="Container"
+            tabindex="0"
+            aria-orientation="@(Mode == MenuMode.Horizontal ? "horizontal" : "vertical")"
+            aria-disabled="@Disabled"
+            @attributes="Attributes">@ChildContent</ul>
+    </CascadingValue>
+</CascadingValue>

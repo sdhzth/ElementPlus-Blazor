@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+  <defs>
+    <radialGradient id="ctBody" cx="50%" cy="48%" r="55%">
+      <stop offset="0%" stop-color="#2b4258" />
+      <stop offset="70%" stop-color="#16232f" />
+      <stop offset="100%" stop-color="#0b1319" />
+    </radialGradient>
+    <radialGradient id="ctLungL" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0a0f14" />
+      <stop offset="100%" stop-color="#1d2b38" />
+    </radialGradient>
+  </defs>
+  <rect width="640" height="360" fill="#0b1319" />
+  <ellipse cx="320" cy="180" rx="150" ry="132" fill="url(#ctBody)" stroke="#31465a" stroke-width="2" />
+  <ellipse cx="255" cy="176" rx="52" ry="78" fill="url(#ctLungL)" stroke="#33485c" stroke-width="2" />
+  <ellipse cx="385" cy="176" rx="52" ry="78" fill="url(#ctLungL)" stroke="#33485c" stroke-width="2" />
+  <circle cx="320" cy="150" r="16" fill="#4a6377" />
+  <path d="M320 168 L320 268" stroke="#3b5064" stroke-width="3" />
+  <path d="M170 150 Q320 118 470 150" stroke="#2c3e4f" stroke-width="2" fill="none" />
+  <g fill="#7fb3d5" opacity="0.85">
+    <rect x="24" y="28" width="150" height="14" rx="3" />
+    <rect x="24" y="50" width="96" height="10" rx="3" />
+    <rect x="24" y="66" width="120" height="10" rx="3" />
+  </g>
+  <g fill="#7fb3d5" opacity="0.6">
+    <rect x="24" y="300" width="180" height="10" rx="3" />
+    <rect x="24" y="318" width="120" height="10" rx="3" />
+  </g>
+  <text x="24" y="24" fill="#cfe6f7" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="18" font-weight="600">CT · 胸部平扫</text>
+  <text x="466" y="332" fill="#cfe6f7" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="16">2026-09-12</text>
+  <rect x="0" y="0" width="640" height="360" fill="none" stroke="#3d5568" stroke-width="4" />
+</svg>

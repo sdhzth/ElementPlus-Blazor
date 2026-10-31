@@ -1,0 +1,34 @@
+@page "/container"
+@using ElementPlus
+
+<h1 class="demo-page-title">布局容器 / ElContainer</h1>
+<p class="demo-page-sub">对齐官方：ElContainer 根据子元素自动判定垂直/水平方向，也可显式 Direction；配合 ElHeader / ElAside / ElMain / ElFooter 组合经典后台布局。</p>
+
+<div class="demo-section">
+    <h3>经典后台布局（Header + Aside + Main）</h3>
+    <ElContainer Style="height:280px;border:1px solid #dcdfe6;border-radius:4px;">
+        <ElHeader Style="background:#409eff;color:#fff;display:flex;align-items:center;font-weight:600;">Header 顶部导航</ElHeader>
+        <ElContainer>
+            <ElAside Style="background:#d3dce6;color:#333;display:flex;align-items:center;justify-content:center;">Aside 侧边栏</ElAside>
+            <ElMain Style="background:#e9eef3;color:#333;display:flex;align-items:center;justify-content:center;">Main 主内容区</ElMain>
+        </ElContainer>
+    </ElContainer>
+</div>
+
+<div class="demo-section">
+    <h3>带页脚（Header + Main + Footer）</h3>
+    <ElContainer Direction="ContainerDirection.Vertical" Style="height:240px;border:1px solid #dcdfe6;border-radius:4px;">
+        <ElHeader Style="background:#409eff;color:#fff;display:flex;align-items:center;">Header</ElHeader>
+        <ElMain Style="background:#e9eef3;display:flex;align-items:center;justify-content:center;">Main</ElMain>
+        <ElFooter Style="background:#d3dce6;display:flex;align-items:center;justify-content:center;">Footer 页脚</ElFooter>
+    </ElContainer>
+</div>
+
+<div class="demo-section">
+    <h3>自定义宽度</h3>
+    <div class="demo-note">ElAside 默认宽度 300px，可通过 Width 覆盖。</div>
+    <ElContainer Style="height:160px;border:1px solid #dcdfe6;border-radius:4px;">
+        <ElAside Width="160px" Style="background:#d3dce6;display:flex;align-items:center;justify-content:center;">Aside 160px</ElAside>
+        <ElMain Style="background:#e9eef3;display:flex;align-items:center;justify-content:center;">Main</ElMain>
+    </ElContainer>
+</div>

@@ -1,0 +1,6 @@
+@inherits ElementComponentBase
+
+@* 最后一个 item 不渲染 separator（简单方式：始终渲染，CSS 隐藏最后一个）*@
+<div class="@ItemClass" @attributes="Attributes">
+    @ChildContent
+</div>

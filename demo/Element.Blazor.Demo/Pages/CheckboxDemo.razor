@@ -1,0 +1,101 @@
+@page "/checkbox"
+@using ElementPlus
+
+<h1 class="demo-page-title">复选框 / ElCheckbox</h1>
+<p class="demo-page-sub">对齐官方：支持 @("@bind-Value")（bool / 任意 TValue）、Border、Disabled、Size、Indeterminate，以及扩展的 TrueValue / FalseValue（非 bool 绑定）。</p>
+
+<div class="demo-section">
+    <h3>基础用法</h3>
+    <div class="demo-row">
+        <ElCheckbox @bind-Value="checked1">可选项 A</ElCheckbox>
+        <ElCheckbox @bind-Value="checked2">可选项 B</ElCheckbox>
+        <ElCheckbox @bind-Value="checked3" Disabled="true">禁用项</ElCheckbox>
+    </div>
+    <p class="demo-note">A=@checked1　B=@checked2　禁用=@checked3</p>
+</div>
+
+<div class="demo-section">
+    <h3>ValidateEvent（勾选时是否触发表单重校验）</h3>
+    <ElForm Model="@agreeModel">
+        <ElFormItem TValue="bool" Name="Agree" Label="已阅读协议" Required="true">
+            <ElCheckbox TValue="bool" @bind-Value="agreeModel.Agree" ValidateEvent="true">ValidateEvent=true</ElCheckbox>
+        </ElFormItem>
+        <ElFormItem TValue="bool" Name="Subscribe" Label="订阅通知" Required="true">
+            <ElCheckbox TValue="bool" @bind-Value="agreeModel.Subscribe" ValidateEvent="false">ValidateEvent=false</ElCheckbox>
+        </ElFormItem>
+    </ElForm>
+    <p class="demo-note">未勾选时先让表单校验出错误，再勾选观察：true 的那项会立即重校验并消掉错误态，false 的那项错误保留。</p>
+</div>
+
+<div class="demo-section">
+    <h3>带边框</h3>
+    <div class="demo-row">
+        <ElCheckbox @bind-Value="checked1" Border="true">备选项 1</ElCheckbox>
+        <ElCheckbox @bind-Value="checked2" Border="true">备选项 2</ElCheckbox>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>半选状态（Indeterminate）</h3>
+    <div class="demo-row">
+        <ElCheckbox TValue="bool"
+                    Value="@checkAll"
+                    ValueChanged="OnCheckAllChanged"
+                    Indeterminate="@isIndeterminate">全选</ElCheckbox>
+    </div>
+    <ElCheckboxGroup TValue="string" Value="@checkedItems" ValueChanged="OnCheckedItemsChanged">
+        @foreach (var item in AllItems)
+        {
+            <ElCheckbox TValue="string" Value="@item">@item</ElCheckbox>
+        }
+    </ElCheckboxGroup>
+    <p class="demo-note">
+        对齐官方 intermediate.vue：<code>indeterminate</code> 是单向属性（EP 写 <code>:indeterminate="isIndeterminate"</code>），
+        半选/全选由宿主按「已选数 vs 总数」重算 —— 所以初始 4 项选 2 项，一进页面「全选」就是横线。
+        注意别写 @("@bind-Indeterminate")：库里没有这个参数，它会被基类的 CaptureUnmatchedValues 静默吞掉，半选态永远进不来。
+    </p>
+</div>
+
+@code {
+    private bool checked1;
+    private bool checked2 = true;
+    private bool checked3;
+
+    private readonly string[] AllItems = { "备选项 A", "备选项 B", "备选项 C", "备选项 D" };
+    private List<string> checkedItems = new List<string> { "备选项 B", "备选项 D" };
+    private bool checkAll;
+    private bool isIndeterminate = true;
+
+    private AgreeFormModel agreeModel = new AgreeFormModel();
+
+    protected override void OnInitialized()
+    {
+        SyncAllState();
+    }
+
+    private void OnCheckAllChanged(bool value)
+    {
+        checkedItems = value ? AllItems.ToList() : new List<string>();
+        checkAll = value;
+        isIndeterminate = false;
+    }
+
+    private void OnCheckedItemsChanged(IEnumerable<string> values)
+    {
+        checkedItems = values?.ToList() ?? new List<string>();
+        SyncAllState();
+    }
+
+    private void SyncAllState()
+    {
+        var count = checkedItems?.Count ?? 0;
+        checkAll = count == AllItems.Length;
+        isIndeterminate = count > 0 && count < AllItems.Length;
+    }
+
+    private class AgreeFormModel
+    {
+        public bool Agree { get; set; }
+        public bool Subscribe { get; set; }
+    }
+}

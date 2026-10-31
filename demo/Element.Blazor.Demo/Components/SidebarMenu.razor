@@ -1,0 +1,104 @@
+@inherits ComponentBase
+@using ElementPlus
+@using ElementPlus.Blazor.Demo.Shared
+
+@* 演示站侧栏菜单（demo 外壳本地组件，非发布库组件）。
+   关键优化：正常「切页签/路由切换」时 Collapse 与 SearchResults 引用都不变，
+   因此 ShouldRender 返回 false，100+ 菜单项不会被重新 diff —— 消除 keep-alive
+   引入后的切标签停滞感。激活高亮仍由外壳经 SetActive 走 ElMenu 的 JS 同步逻辑。 *@
+<ElMenu @ref="menuRef"
+        Mode="MenuMode.Vertical"
+        Theme="MenuTheme.Light"
+        Collapse="@Collapse"
+        UniqueOpened="false"
+        HoverColor="#eef2fb"
+        ActiveTextColor="#395ae3"
+        Style="@MenuStyle"
+        OnSelect="@OnSelect">
+    @foreach (var entry in DemoNavigation.Fixed)
+    {
+        <ElMenuItem Index="@entry.Path" Route="@entry.Path" Title="@entry.Title" Icon="@entry.Icon">
+            @entry.Title
+        </ElMenuItem>
+    }
+
+    @if (SearchResults != null)
+    {
+        <ElSubMenu Index="@SearchSectionKey" Label="@($"搜索结果（{SearchResults.Count}）")" Icon="el-icon-search">
+            @foreach (var entry in SearchResults)
+            {
+                <ElMenuItem Index="@entry.Path" Route="@entry.Path" Title="@entry.Title" Icon="@entry.Icon">
+                    @entry.Title
+                </ElMenuItem>
+            }
+        </ElSubMenu>
+    }
+    else
+    {
+        <ElSubMenu Index="@DemoNavigation.MockSection.Key"
+                   Label="@DemoNavigation.MockSection.Title"
+                   Icon="@DemoNavigation.MockSection.Icon">
+            @foreach (var entry in DemoNavigation.MockSection.Entries)
+            {
+                <ElMenuItem Index="@entry.Path" Route="@entry.Path" Title="@entry.Title" Icon="@entry.Icon">
+                    @entry.Title
+                </ElMenuItem>
+            }
+        </ElSubMenu>
+    }
+</ElMenu>
+
+@code {
+    private const string SearchSectionKey = "search-result";
+
+    /// <summary>侧栏菜单内联变量：透明底、无右边框、行高与缩进对齐参考站。</summary>
+    private const string MenuStyle =
+        "border-right:none;background:transparent;width:100%;" +
+        "--el-menu-item-height:42px;--el-menu-sub-item-height:38px;" +
+        "--el-menu-base-level-padding:14px;--el-menu-level-padding:16px;" +
+        "--el-menu-item-font-size:13.5px;--el-menu-icon-width:20px;";
+
+    [Parameter]
+    public bool Collapse { get; set; }
+
+    [Parameter]
+    public IReadOnlyList<DemoNavEntry> SearchResults { get; set; }
+
+    [Parameter]
+    public EventCallback<MenuSelectEventArgs> OnSelect { get; set; }
+
+    private ElMenu menuRef;
+
+    /// <summary>
+    /// 由外壳 MainLayout 在路由切换时调用：仅更新侧栏激活高亮（走 ElMenu 的 JS 同步逻辑），
+    /// 不触发本组件重渲染 —— 所以正常切页签不会让 100+ 菜单项重新 diff。
+    /// </summary>
+    public void SetActive(string path) => menuRef?.UpdateActiveIndex(path);
+
+    private bool _firstRender = true;
+    private bool _prevCollapse;
+    private IReadOnlyList<DemoNavEntry> _prevSearch;
+
+    /// <summary>
+    /// 仅在「折叠状态变化」或「搜索结果引用变化（输入/清空）」时才重渲染，
+    /// 纯路由切换（Collapse/SearchResults 都不变）直接跳过，省掉 100+ 菜单项的 diff。
+    /// </summary>
+    protected override bool ShouldRender()
+    {
+        if (_firstRender)
+        {
+            _firstRender = false;
+            _prevCollapse = Collapse;
+            _prevSearch = SearchResults;
+            return true;
+        }
+
+        var changed = Collapse != _prevCollapse || !ReferenceEquals(SearchResults, _prevSearch);
+        if (changed)
+        {
+            _prevCollapse = Collapse;
+            _prevSearch = SearchResults;
+        }
+        return changed;
+    }
+}

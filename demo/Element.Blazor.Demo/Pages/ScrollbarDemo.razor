@@ -1,0 +1,53 @@
+@page "/scrollbar"
+@using ElementPlus
+
+<h1 class="demo-page-title">自定义滚动条 / ElScrollbar</h1>
+<p class="demo-page-sub">对齐官方：支持固定 <code>Height</code> / <code>MaxHeight</code>、<code>Always</code>（始终显示）、<code>Native</code>（原生滚动条）、<code>MinSize</code>（最小尺寸）、<code>Tag</code> 等。拖动内容查看自定义滚动条。</p>
+
+<div class="demo-section">
+    <h3>基础用法（固定高度）</h3>
+    <ElScrollbar Height="200px" WrapStyle="border:1px solid #dcdfe6;border-radius:4px;">
+        <div style="padding:12px;">
+            @for (var i = 1; i <= 20; i++)
+            {
+                <p style="margin:6px 0;line-height:1.6;">第 @i 行：自定义滚动条的视口内容，滚动时右侧出现细滚动条。</p>
+            }
+        </div>
+    </ElScrollbar>
+</div>
+
+<div class="demo-section">
+    <h3>始终显示（Always）</h3>
+    <ElScrollbar Height="200px" Always="true" WrapStyle="border:1px solid #dcdfe6;border-radius:4px;">
+        <div style="padding:12px;">
+            @for (var i = 1; i <= 20; i++)
+            {
+                <p style="margin:6px 0;line-height:1.6;">第 @i 行：滚动条常驻显示，不随交互隐藏。</p>
+            }
+        </div>
+    </ElScrollbar>
+</div>
+
+<div class="demo-section">
+    <h3>原生滚动条（Native）</h3>
+    <ElScrollbar Height="200px" Native="true" WrapStyle="border:1px solid #dcdfe6;border-radius:4px;">
+        <div style="padding:12px;">
+            @for (var i = 1; i <= 20; i++)
+            {
+                <p style="margin:6px 0;line-height:1.6;">第 @i 行：使用浏览器原生滚动条样式。</p>
+            }
+        </div>
+    </ElScrollbar>
+</div>
+
+<div class="demo-section">
+    <h3>最大高度（MaxHeight）</h3>
+    <ElScrollbar MaxHeight="180px" WrapStyle="border:1px solid #dcdfe6;border-radius:4px;">
+        <div style="padding:12px;">
+            @for (var i = 1; i <= 20; i++)
+            {
+                <p style="margin:6px 0;line-height:1.6;">第 @i 行：内容不超过 180px 时无滚动条，超过后才出现。</p>
+            }
+        </div>
+    </ElScrollbar>
+</div>

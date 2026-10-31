@@ -1,0 +1,59 @@
+@page "/tooltip"
+@using ElementPlus
+
+<h1 class="demo-page-title">ElTooltip 文字提示（对齐 Element Plus Tooltip）</h1>
+<p class="demo-page-sub">
+    鼠标悬停、聚焦或点击时显示的提示气泡。支持 12 个方位、多种触发方式、dark/light 主题、禁用、显示延迟与 enterable。
+</p>
+
+<div class="demo-section">
+    <h3>触发方式（hover / click / focus）</h3>
+    <div class="demo-row demo-row-wrap">
+        <ElTooltip Content="悬停触发（默认）" Placement="top">
+            <ChildContent><ElButton>hover</ElButton></ChildContent>
+        </ElTooltip>
+        <ElTooltip Content="点击触发" Trigger="PopperTrigger.Click" Placement="top">
+            <ChildContent><ElButton>click</ElButton></ChildContent>
+        </ElTooltip>
+        <ElTooltip Content="聚焦触发" Trigger="PopperTrigger.Focus" Placement="top">
+            <ChildContent><ElButton>focus</ElButton></ChildContent>
+        </ElTooltip>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>主题 effect（dark / light）与方位</h3>
+    <div class="demo-row demo-row-wrap">
+        <ElTooltip Content="深色主题" Effect="dark" Placement="top">
+            <ChildContent><ElButton>dark</ElButton></ChildContent>
+        </ElTooltip>
+        <ElTooltip Content="浅色主题" Effect="light" Placement="bottom">
+            <ChildContent><ElButton>light</ElButton></ChildContent>
+        </ElTooltip>
+        <ElTooltip Content="右侧显示" Placement="right">
+            <ChildContent><ElButton>right</ElButton></ChildContent>
+        </ElTooltip>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>自定义内容（插槽）与禁用</h3>
+    <div class="demo-row demo-row-wrap">
+        <ElTooltip Placement="top">
+            <ContentTemplate>
+                <div style="max-width:200px">
+                    <strong>多行富文本提示</strong>
+                    <p style="margin:4px 0 0">可以放任意 HTML / 组件内容。</p>
+                </div>
+            </ContentTemplate>
+            <ChildContent><ElButton>富文本提示</ElButton></ChildContent>
+        </ElTooltip>
+        <ElTooltip Content="禁用态不显示" Disabled="true" Placement="top">
+            <ChildContent><ElButton>disabled</ElButton></ChildContent>
+        </ElTooltip>
+    </div>
+    <p class="demo-note">自动关闭（AutoClose=2000）：显示 2 秒后自动隐藏。</p>
+    <ElTooltip Content="2 秒后自动关闭" AutoClose="2000" Placement="top">
+        <ChildContent><ElButton>auto-close</ElButton></ChildContent>
+    </ElTooltip>
+</div>

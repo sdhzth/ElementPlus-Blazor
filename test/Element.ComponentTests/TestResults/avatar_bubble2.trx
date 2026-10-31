@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="40ca12bb-1a45-4bc5-978e-7cd10820f3be" name="Administrator@WIN-HDQBDFRQPCO 2026-09-26 16:36:10" runUser="WIN-HDQBDFRQPCO\Administrator" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-09-26T16:36:10.5440648+08:00" queuing="2026-09-26T16:36:10.5440653+08:00" start="2026-09-26T16:36:08.6220315+08:00" finish="2026-09-26T16:36:10.5496998+08:00" />
+  <TestSettings name="default" id="a5231ae9-8cb5-474d-9e39-4ec2da1a5e4a">
+    <Deployment runDeploymentRoot="Administrator_WIN-HDQBDFRQPCO_2026-09-26_16_36_10" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="16259278-f474-435a-a8db-83e491d221e4" testId="ef920fa1-f5cd-05c3-921f-bc7d3d286ddd" testName="Element.ComponentTests.ElXComponentTests.BubbleRendersTimeNextToHeader" computerName="WIN-HDQBDFRQPCO" duration="00:00:00.0123638" startTime="2026-09-26T16:36:10.3782933+08:00" endTime="2026-09-26T16:36:10.3903787+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="16259278-f474-435a-a8db-83e491d221e4" />
+    <UnitTestResult executionId="a54604f7-57f6-4a0c-b195-643e1fb14b2b" testId="bc7779da-a587-521c-dad7-d2be818459c1" testName="Element.ComponentTests.ElDataDisplayTests.AvatarSupportsCustomColorAndTextColor" computerName="WIN-HDQBDFRQPCO" duration="00:00:00.0101394" startTime="2026-09-26T16:36:10.3743135+08:00" endTime="2026-09-26T16:36:10.3833724+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a54604f7-57f6-4a0c-b195-643e1fb14b2b" />
+    <UnitTestResult executionId="61b1f56e-dd45-479b-b346-265bd6426db8" testId="a7e0363f-0eb8-f316-4cc3-f90ca666c034" testName="Element.ComponentTests.ElXComponentTests.BubbleListRendersEmptyAndMessages" computerName="WIN-HDQBDFRQPCO" duration="00:00:00.0142345" startTime="2026-09-26T16:36:10.4024730+08:00" endTime="2026-09-26T16:36:10.4163126+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="61b1f56e-dd45-479b-b346-265bd6426db8" />
+    <UnitTestResult executionId="12669e99-535e-4842-bc9d-827fed673fcd" testId="a58a07c6-3dcf-ac9d-a25c-121664e8cd66" testName="Element.ComponentTests.ElXComponentTests.BubbleListReportsPinnedScrollStateAndBusyState" computerName="WIN-HDQBDFRQPCO" duration="00:00:00.5795825" startTime="2026-09-26T16:36:09.7936793+08:00" endTime="2026-09-26T16:36:10.3780226+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="12669e99-535e-4842-bc9d-827fed673fcd" />
+    <UnitTestResult executionId="7c2db643-09f6-4816-8a5f-229d52385516" testId="424eb12f-096e-0c99-3f97-9da2e6d21e88" testName="Element.ComponentTests.ElChartGrowTests.BubbleChart_PlotsSizedCircles" computerName="WIN-HDQBDFRQPCO" duration="00:00:00.4869008" startTime="2026-09-26T16:36:09.7936026+08:00" endTime="2026-09-26T16:36:10.2905445+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7c2db643-09f6-4816-8a5f-229d52385516" />
+    <UnitTestResult executionId="b7686a63-f634-4f1e-9f51-34965f54045a" testId="f1775862-a001-aaa2-c36d-6c3f5a62ea41" testName="Element.ComponentTests.ElXComponentTests.BubbleRendersRoleContentAndAttachments" computerName="WIN-HDQBDFRQPCO" duration="00:00:00.0113871" startTime="2026-09-26T16:36:10.3906874+08:00" endTime="2026-09-26T16:36:10.4021752+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b7686a63-f634-4f1e-9f51-34965f54045a" />
+    <UnitTestResult executionId="0b49b4d1-9dc3-41d4-b898-136e42538f86" testId="e13392d8-6aa4-1d60-7050-da76fd6ca7a8" testName="Element.ComponentTests.ElDataDisplayTests.AvatarRendersImageIconAndCustomSize" computerName="WIN-HDQBDFRQPCO" duration="00:00:00.5720168" startTime="2026-09-26T16:36:09.7912499+08:00" endTime="2026-09-26T16:36:10.3731622+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0b49b4d1-9dc3-41d4-b898-136e42538f86" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="Element.ComponentTests.ElDataDisplayTests.AvatarRendersImageIconAndCustomSize" storage="e:\电子病历\element-blazor-master\test\element.componenttests\bin\debug\net10.0\element.componenttests.dll" id="e13392d8-6aa4-1d60-7050-da76fd6ca7a8">
+      <Execution id="0b49b4d1-9dc3-41d4-b898-136e42538f86" />
+      <TestMethod codeBase="E:\电子病历\Element-Blazor-master\test\Element.ComponentTests\bin\Debug\net10.0\Element.ComponentTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Element.ComponentTests.ElDataDisplayTests" name="AvatarRendersImageIconAndCustomSize" />
+    </UnitTest>
+    <UnitTest name="Element.ComponentTests.ElChartGrowTests.BubbleChart_PlotsSizedCircles" storage="e:\电子病历\element-blazor-master\test\element.componenttests\bin\debug\net10.0\element.componenttests.dll" id="424eb12f-096e-0c99-3f97-9da2e6d21e88">
+      <Execution id="7c2db643-09f6-4816-8a5f-229d52385516" />
+      <TestMethod codeBase="E:\电子病历\Element-Blazor-master\test\Element.ComponentTests\bin\Debug\net10.0\Element.ComponentTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Element.ComponentTests.ElChartGrowTests" name="BubbleChart_PlotsSizedCircles" />
+    </UnitTest>
+    <UnitTest name="Element.ComponentTests.ElDataDisplayTests.AvatarSupportsCustomColorAndTextColor" storage="e:\电子病历\element-blazor-master\test\element.componenttests\bin\debug\net10.0\element.componenttests.dll" id="bc7779da-a587-521c-dad7-d2be818459c1">
+      <Execution id="a54604f7-57f6-4a0c-b195-643e1fb14b2b" />
+      <TestMethod codeBase="E:\电子病历\Element-Blazor-master\test\Element.ComponentTests\bin\Debug\net10.0\Element.ComponentTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Element.ComponentTests.ElDataDisplayTests" name="AvatarSupportsCustomColorAndTextColor" />
+    </UnitTest>
+    <UnitTest name="Element.ComponentTests.ElXComponentTests.BubbleListReportsPinnedScrollStateAndBusyState" storage="e:\电子病历\element-blazor-master\test\element.componenttests\bin\debug\net10.0\element.componenttests.dll" id="a58a07c6-3dcf-ac9d-a25c-121664e8cd66">
+      <Execution id="12669e99-535e-4842-bc9d-827fed673fcd" />
+      <TestMethod codeBase="E:\电子病历\Element-Blazor-master\test\Element.ComponentTests\bin\Debug\net10.0\Element.ComponentTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Element.ComponentTests.ElXComponentTests" name="BubbleListReportsPinnedScrollStateAndBusyState" />
+    </UnitTest>
+    <UnitTest name="Element.ComponentTests.ElXComponentTests.BubbleListRendersEmptyAndMessages" storage="e:\电子病历\element-blazor-master\test\element.componenttests\bin\debug\net10.0\element.componenttests.dll" id="a7e0363f-0eb8-f316-4cc3-f90ca666c034">
+      <Execution id="61b1f56e-dd45-479b-b346-265bd6426db8" />
+      <TestMethod codeBase="E:\电子病历\Element-Blazor-master\test\Element.ComponentTests\bin\Debug\net10.0\Element.ComponentTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Element.ComponentTests.ElXComponentTests" name="BubbleListRendersEmptyAndMessages" />
+    </UnitTest>
+    <UnitTest name="Element.ComponentTests.ElXComponentTests.BubbleRendersTimeNextToHeader" storage="e:\电子病历\element-blazor-master\test\element.componenttests\bin\debug\net10.0\element.componenttests.dll" id="ef920fa1-f5cd-05c3-921f-bc7d3d286ddd">
+      <Execution id="16259278-f474-435a-a8db-83e491d221e4" />
+      <TestMethod codeBase="E:\电子病历\Element-Blazor-master\test\Element.ComponentTests\bin\Debug\net10.0\Element.ComponentTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Element.ComponentTests.ElXComponentTests" name="BubbleRendersTimeNextToHeader" />
+    </UnitTest>
+    <UnitTest name="Element.ComponentTests.ElXComponentTests.BubbleRendersRoleContentAndAttachments" storage="e:\电子病历\element-blazor-master\test\element.componenttests\bin\debug\net10.0\element.componenttests.dll" id="f1775862-a001-aaa2-c36d-6c3f5a62ea41">
+      <Execution id="b7686a63-f634-4f1e-9f51-34965f54045a" />
+      <TestMethod codeBase="E:\电子病历\Element-Blazor-master\test\Element.ComponentTests\bin\Debug\net10.0\Element.ComponentTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Element.ComponentTests.ElXComponentTests" name="BubbleRendersRoleContentAndAttachments" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="ef920fa1-f5cd-05c3-921f-bc7d3d286ddd" executionId="16259278-f474-435a-a8db-83e491d221e4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="bc7779da-a587-521c-dad7-d2be818459c1" executionId="a54604f7-57f6-4a0c-b195-643e1fb14b2b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a7e0363f-0eb8-f316-4cc3-f90ca666c034" executionId="61b1f56e-dd45-479b-b346-265bd6426db8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a58a07c6-3dcf-ac9d-a25c-121664e8cd66" executionId="12669e99-535e-4842-bc9d-827fed673fcd" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="424eb12f-096e-0c99-3f97-9da2e6d21e88" executionId="7c2db643-09f6-4816-8a5f-229d52385516" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f1775862-a001-aaa2-c36d-6c3f5a62ea41" executionId="b7686a63-f634-4f1e-9f51-34965f54045a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e13392d8-6aa4-1d60-7050-da76fd6ca7a8" executionId="0b49b4d1-9dc3-41d4-b898-136e42538f86" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="7" executed="7" passed="7" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 10.0.12)&#xD;
+[xUnit.net 00:00:00.13]   Discovering: Element.ComponentTests&#xD;
+[xUnit.net 00:00:00.29]   Discovered:  Element.ComponentTests&#xD;
+[xUnit.net 00:00:00.32]   Starting:    Element.ComponentTests&#xD;
+[xUnit.net 00:00:00.98]   Finished:    Element.ComponentTests&#xD;
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

@@ -1,0 +1,59 @@
+@inherits ElementComponentBase
+
+<span class="el-popconfirm__reference-wrapper" style="@ReferenceStyle" @attributes="Attributes"
+      @onclick="ToggleAsync"
+      @onmouseover="OnMouseOverAsync"
+      @onmouseout="OnMouseOutAsync">
+    <span class="el-popconfirm__reference">
+        @Reference
+        @ChildContent
+    </span>
+    @if (IsVisible)
+    {
+        <div class="@PopoverClassValue" style="@PopoverStyleValue" role="tooltip" x-placement="@Placement">
+            @if (ShowClose)
+            {
+                <button class="el-popconfirm__close el-icon-close" @onclick="CloseBtnAsync" aria-label="Close"></button>
+            }
+            <div class="el-popconfirm__main">
+                @if (!string.IsNullOrWhiteSpace(EffectiveIcon))
+                {
+                    <i class="@IconClass" style="@IconStyle"></i>
+                }
+                <div class="el-popconfirm__content-wrap">
+                    @if (TitleContent != null)
+                    {
+                        <div class="el-popconfirm__title">@TitleContent</div>
+                    }
+                    else if (!string.IsNullOrWhiteSpace(Title))
+                    {
+                        <div class="el-popconfirm__title">@Title</div>
+                    }
+                    @if (ContentTemplate != null)
+                    {
+                        <div class="el-popconfirm__content">@ContentTemplate</div>
+                    }
+                    else if (!string.IsNullOrWhiteSpace(Content))
+                    {
+                        <div class="el-popconfirm__content">@Content</div>
+                    }
+                </div>
+            </div>
+            <div class="el-popconfirm__action" @onclick:stopPropagation="true">
+                @if (ActionsContent != null)
+                {
+                    @ActionsContent
+                }
+                else
+                {
+                    <ElButton Size="@ButtonSize.Small" Type="@CancelButtonType" Content="@EffectiveCancelButtonText" Text="@(CancelButtonType == ButtonType.Text)" OnClick="CancelAsync"></ElButton>
+                    <ElButton Size="@ButtonSize.Small" Type="@ConfirmButtonType" Content="@EffectiveConfirmButtonText" Text="@(ConfirmButtonType == ButtonType.Text)" OnClick="ConfirmAsync"></ElButton>
+                }
+            </div>
+            @if (ShowArrow)
+            {
+                <div x-arrow="" class="popper__arrow"></div>
+            }
+        </div>
+    }
+</span>

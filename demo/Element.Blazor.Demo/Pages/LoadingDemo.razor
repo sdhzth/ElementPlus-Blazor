@@ -1,0 +1,59 @@
+@page "/loading"
+@using ElementPlus
+@inject ElementPlus.LoadingService LoadingService
+
+<h1 class="demo-page-title">ElLoading 加载（对齐 Element Plus Loading）</h1>
+<p class="demo-page-sub">
+    两种用法：① 组件式 <code>ElLoading</code> 包裹内容并切换 <code>Loading</code>；② 服务式 <code>LoadingService</code> 做整屏或部分区域加载。
+</p>
+
+<div class="demo-section">
+    <h3>组件式：包裹内容，切换 Loading</h3>
+    <ElLoading Loading="@regionLoading" Text="加载中..." Background="rgba(255,255,255,.8)">
+        <div class="demo-loading-box">
+            <p>这是被加载层覆盖的区域。</p>
+            <p>区域加载时显示遮罩与 loading 图标。</p>
+        </div>
+    </ElLoading>
+    <ElButton OnClick="ToggleRegion">@(regionLoading ? "停止区域加载" : "开始区域加载")</ElButton>
+</div>
+
+<div class="demo-section">
+    <h3>服务式：整屏加载</h3>
+    <div class="demo-row demo-row-wrap">
+        <ElButton OnClick="FullscreenLoading">整屏加载 2 秒</ElButton>
+        <ElButton OnClick="TargetLoading">指定区域加载</ElButton>
+        <ElButton OnClick="CustomLoading">自定义文案/背景</ElButton>
+    </div>
+    <div @ref="targetRef" class="demo-loading-box">
+        <p>点击「指定区域加载」时，只有这一块会被 LoadingService 覆盖。</p>
+    </div>
+</div>
+
+@code {
+    private bool regionLoading;
+    private ElementReference targetRef;
+
+    private void ToggleRegion() => regionLoading = !regionLoading;
+
+    private async Task FullscreenLoading()
+    {
+        var opt = LoadingService.ShowFullscreen("拼命加载中...");
+        await Task.Delay(2000);
+        LoadingService.Close(opt);
+    }
+
+    private async Task TargetLoading()
+    {
+        var opt = LoadingService.Show(new LoadingOption { Target = targetRef, Text = "区域加载..." });
+        await Task.Delay(2000);
+        LoadingService.Close(opt);
+    }
+
+    private async Task CustomLoading()
+    {
+        var opt = LoadingService.ShowFullscreen("自定义背景", background: "rgba(0,0,0,.6)");
+        await Task.Delay(2000);
+        LoadingService.Close(opt);
+    }
+}

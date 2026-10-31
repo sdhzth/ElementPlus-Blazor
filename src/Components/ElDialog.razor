@@ -1,0 +1,70 @@
+@inherits ElementComponentBase
+@{
+    var dialogClsBuilder = HtmlPropertyBuilder.CreateCssClassBuilder()
+        .Add("el-dialog")
+        .Add(Cls)
+        .AddIf(Fullscreen, "is-fullscreen")
+        .AddIf(Center, "is-center")
+        .AddIf(AlignCenter, "is-align-center")
+        .AddIf(Draggable, "is-draggable");
+    // 对齐 Element Plus：fullscreen 时 width / top 一律不生效（EP 的 style 计算里
+    // `if (!fullscreen)` 才会写 width 与 margin-top，并把 margin 归零），
+    // 否则内联的 width:50% 会盖掉 .is-fullscreen 的 width:100%，全屏对话框只占半屏。
+    var dialogStyleBuilder = HtmlPropertyBuilder.CreateCssStyleBuilder()
+        .AddIf(!Fullscreen && !string.IsNullOrWhiteSpace(Width), $"width:{Width}")
+        .AddIf(AlignCenter, "margin:auto")
+        .AddIf(!Fullscreen && !AlignCenter && !string.IsNullOrWhiteSpace(Top), $"margin-top:{Top}")
+        .AddIf(Fullscreen, "margin:0")
+        // 拖拽位置：由 JS 实时写 DOM，这里只负责在重渲染时把同一份偏移还原回去（位置不丢）。
+        .AddIf(Draggable && (dragOffsetX != 0 || dragOffsetY != 0), $"transform:translate({dragOffsetX}px,{dragOffsetY}px)")
+        .Add(Style);
+    // align-center 的弹性布局与「关闭时 display:none」落在**同一个元素**上，二者必须互斥：
+    // 此前无条件输出 display:flex，会把关闭态的 display:none 覆盖掉，
+    // 导致 AlignCenter 的对话框一进页面就常显、且点关闭按钮也永远关不掉。
+    var wrapperStyleBuilder = HtmlPropertyBuilder.CreateCssStyleBuilder()
+        .Add($"z-index:{ResolvedZIndex}")
+        .AddIf(!ModelValue, "display:none")
+        .AddIf(ModelValue && AlignCenter, "display:flex", "align-items:center", "justify-content:center");
+    var modalStyleBuilder = HtmlPropertyBuilder.CreateCssStyleBuilder()
+        .Add($"z-index:{ResolvedModalZIndex}")
+        .AddIf(!ModelValue, "display:none");
+    // 正文容器：ContentClass / ContentStyle 直接透传到 .el-dialog__body，
+    // 用于自定义正文相对标题的位置与间距（EP 未提供该入口，属增强）。
+    var bodyClsBuilder = HtmlPropertyBuilder.CreateCssClassBuilder()
+        .Add("el-dialog__body")
+        .Add(ContentClass);
+}
+@if (ShouldRenderDialog)
+{
+    @if (Modal)
+    {
+        <div class="v-modal el-overlay @ModalClass" style="@modalStyleBuilder.ToString()" @onclick="CloseOnModalClickAsync"></div>
+    }
+    <div class="el-overlay-dialog el-dialog__wrapper" style="@wrapperStyleBuilder.ToString()" tabindex="-1" role="presentation" @onclick="CloseOnModalClickAsync" @onkeydown="OnKeyDownAsync" @ref="wrapperElement">
+        <div class="@dialogClsBuilder.ToString()" style="@dialogStyleBuilder.ToString()" role="dialog" aria-modal="@Modal" aria-label="@Title" @ref="dialogElement" @onclick:stopPropagation>
+            <div class="el-dialog__header" aria-level="@HeaderAriaLevel">
+                @if (Header != null)
+                {
+                    @Header
+                }
+                else
+                {
+                    <span class="el-dialog__title" role="heading" aria-level="@HeaderAriaLevel">@Title</span>
+                }
+                @if (ShowClose)
+                {
+                    <ElButton Icon="el-dialog__close el-icon el-icon-close" Cls="el-dialog__headerbtn" AppendCustomCls="false" aria-label="@CloseButtonAriaLabel" OnClick="CloseAsync"></ElButton>
+                }
+            </div>
+            <div class="@bodyClsBuilder.ToString()" style="@(string.IsNullOrWhiteSpace(ContentStyle) ? null : ContentStyle)">
+                @ChildContent
+            </div>
+            @if (Footer != null)
+            {
+                <div class="el-dialog__footer">
+                    @Footer
+                </div>
+            }
+        </div>
+    </div>
+}
