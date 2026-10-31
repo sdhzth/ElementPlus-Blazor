@@ -1,3 +1,8 @@
+<p align="center">
+  <a href="README.md"><strong>English</strong></a> ·
+  <a href="README.zh-CN.md"><strong>中文</strong></a>
+</p>
+
 # ElementPlus-Blazor
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -77,7 +82,6 @@ dotnet build ElementPlus-Blazor.slnx -c Release
 - Component & design notes: [`docs/`](docs)
 - Release history: [`CHANGELOG.md`](CHANGELOG.md)
 - Contribution guide: [`CONTRIBUTING.md`](CONTRIBUTING.md)
-- 中文文档: [`README.zh-CN.md`](README.zh-CN.md)
 
 ### License
 
