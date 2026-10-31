@@ -18,7 +18,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElTableSelectionColumnWidthTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 

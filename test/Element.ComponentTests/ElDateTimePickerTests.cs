@@ -17,7 +17,7 @@ namespace ElementPlus.ComponentTests
         {
             // 时间滚轮要调 JS（居中 + 关外点），bUnit 默认 Strict 会对未注册的调用抛异常。
             JSInterop.Mode = JSRuntimeMode.Loose;
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         [Fact]

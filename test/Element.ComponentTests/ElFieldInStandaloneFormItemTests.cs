@@ -31,7 +31,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElFieldInStandaloneFormItemTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 

@@ -31,7 +31,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElPivotDataGridGrowTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 

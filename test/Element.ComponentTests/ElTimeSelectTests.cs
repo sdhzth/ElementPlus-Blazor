@@ -13,7 +13,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElTimeSelectTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         [Fact]

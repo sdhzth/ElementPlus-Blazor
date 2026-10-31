@@ -17,7 +17,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElDialogGrowEnhancedTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 

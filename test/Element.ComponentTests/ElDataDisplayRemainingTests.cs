@@ -14,7 +14,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElDataDisplayRemainingTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         [Fact]

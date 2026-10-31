@@ -13,8 +13,8 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddElementServices();
-builder.Services.AddElementX();
+builder.Services.AddElementPlusServices();
+builder.Services.AddElementPlusX();
 // Element.Markdown 可选包：注册 ElMarkdownEditor 工具栏各个按钮的处理程序
 builder.Services.AddMarkdown();
 

@@ -13,7 +13,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElColorPickerTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         [Fact]

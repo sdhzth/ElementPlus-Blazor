@@ -17,7 +17,7 @@ namespace ElementPlus.ComponentTests
         public ElTextTests()
         {
             JSInterop.Mode = JSRuntimeMode.Loose;
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         // ==================== 基本渲染 ====================

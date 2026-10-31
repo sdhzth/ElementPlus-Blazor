@@ -27,7 +27,7 @@ namespace ElementPlus.ComponentTests
         public DateTimePickerEmptyValueTests()
         {
             JSInterop.Mode = JSRuntimeMode.Loose;
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         private DropDownOption GetDropdown()

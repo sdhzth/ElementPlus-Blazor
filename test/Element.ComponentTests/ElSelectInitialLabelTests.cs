@@ -42,7 +42,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElSelectInitialLabelTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         private static RenderFragment PlainOptions() => builder =>

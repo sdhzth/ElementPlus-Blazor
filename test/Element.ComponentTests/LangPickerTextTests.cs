@@ -26,7 +26,7 @@ namespace ElementPlus.ComponentTests
     {
         public LangPickerTextTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         private const string ZhJson = @"{

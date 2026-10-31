@@ -11,7 +11,7 @@ namespace ElementPlus.ComponentTests
     /// </summary>
     public class ElSpaceTests : BunitContext
     {
-        public ElSpaceTests() => Services.AddElementServices();
+        public ElSpaceTests() => Services.AddElementPlusServices();
 
         // ==================== 基础渲染 ====================
 

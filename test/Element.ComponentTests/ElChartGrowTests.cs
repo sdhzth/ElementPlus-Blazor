@@ -16,7 +16,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElChartGrowTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 

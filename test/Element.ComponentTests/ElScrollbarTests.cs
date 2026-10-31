@@ -10,7 +10,7 @@ namespace ElementPlus.ComponentTests
     /// </summary>
     public class ElScrollbarTests : BunitContext
     {
-        public ElScrollbarTests() => Services.AddElementServices();
+        public ElScrollbarTests() => Services.AddElementPlusServices();
 
         // ==================== 基础渲染 ====================
 

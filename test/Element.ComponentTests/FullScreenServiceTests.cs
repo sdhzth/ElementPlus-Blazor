@@ -17,7 +17,7 @@ namespace ElementPlus.ComponentTests
     /// 故补齐同名服务 + <c>dom.js</c> 里的 <c>elementFullscreen*</c> 通道。
     /// <para>
     /// bUnit 没有真实 Fullscreen API（也没有布局引擎，见 <c>docs/testing-guards.md</c>），
-    /// 所以这里守三件事：服务可从 <c>AddElementServices()</c> 解析、C# 调用的标识符与 dom.js
+    /// 所以这里守三件事：服务可从 <c>AddElementPlusServices()</c> 解析、C# 调用的标识符与 dom.js
     /// 里定义的全局函数一一对应（改名字就会红）、JS 返回值原样透传给调用方。
     /// 真实进入/退出全屏由浏览器探针验证。
     /// </para>
@@ -26,7 +26,7 @@ namespace ElementPlus.ComponentTests
     {
         public FullScreenServiceTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 
@@ -41,9 +41,9 @@ namespace ElementPlus.ComponentTests
         }
 
         [Fact]
-        public void AddElementServicesRegistersFullScreenService()
+        public void AddElementPlusServicesRegistersFullScreenService()
         {
-            // 与其余浮层/对话框服务同一口径：AddElementServices 里注册成 Scoped，宿主 @inject 即可用
+            // 与其余浮层/对话框服务同一口径：AddElementPlusServices 里注册成 Scoped，宿主 @inject 即可用
             Assert.NotNull(Services.GetRequiredService<FullScreenService>());
         }
 

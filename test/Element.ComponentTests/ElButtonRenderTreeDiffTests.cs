@@ -24,7 +24,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElButtonRenderTreeDiffTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.SetupVoid("execFocus", _ => true).SetVoidResult();
             JSInterop.Setup<int[]>("elementMentionGetSelection", _ => true).SetResult(new[] { 2, 2 });
             JSInterop.SetupVoid("elementMentionSetSelection", _ => true).SetVoidResult();

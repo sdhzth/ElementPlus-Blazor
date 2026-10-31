@@ -11,7 +11,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElTreeV2Tests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         private static List<TreeItemBase> FlatTree() => new List<TreeItemBase>

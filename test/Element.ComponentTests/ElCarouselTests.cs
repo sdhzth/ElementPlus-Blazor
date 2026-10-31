@@ -11,7 +11,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElCarouselTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         /// <summary>构造 n 个 <see cref="ElCarouselItem"/> 作为走马灯内容。</summary>

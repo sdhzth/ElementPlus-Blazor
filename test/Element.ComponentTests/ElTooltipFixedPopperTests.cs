@@ -19,7 +19,7 @@ namespace ElementPlus.ComponentTests
         public ElTooltipFixedPopperTests()
         {
             JSInterop.Mode = JSRuntimeMode.Loose;
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         /// <summary>喂给 JS 的触发元素矩形。48×32 是行内小圆钮的量级，中心点 (224, 516)。</summary>

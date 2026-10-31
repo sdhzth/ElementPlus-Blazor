@@ -27,7 +27,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElCheckboxIndeterminateTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         [Fact]

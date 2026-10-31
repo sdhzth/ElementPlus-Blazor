@@ -30,7 +30,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElHtmlEditorGrowTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 

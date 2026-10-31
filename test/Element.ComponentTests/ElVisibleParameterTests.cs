@@ -30,7 +30,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElVisibleParameterTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 

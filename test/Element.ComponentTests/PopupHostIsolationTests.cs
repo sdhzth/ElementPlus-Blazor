@@ -26,7 +26,7 @@ namespace ElementPlus.ComponentTests
             // ElPopup / ElDialog 会 execFocus 之类的 JS 调用；没配 Loose 会抛未处理 interop 异常
             var context = new BunitContext();
             context.JSInterop.Mode = JSRuntimeMode.Loose;
-            context.Services.AddElementServices();
+            context.Services.AddElementPlusServices();
             return context;
         }
 

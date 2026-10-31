@@ -11,7 +11,7 @@ namespace ElementPlus.ComponentTests
     /// </summary>
     public class ElRowColTests : BunitContext
     {
-        public ElRowColTests() => Services.AddElementServices();
+        public ElRowColTests() => Services.AddElementPlusServices();
 
         // ==================== ElRow 基本渲染 ====================
 

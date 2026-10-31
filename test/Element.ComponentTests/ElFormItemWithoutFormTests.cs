@@ -13,7 +13,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElFormItemWithoutFormTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         private IRenderedComponent<ElFormItem<string>> RenderStandaloneItem()

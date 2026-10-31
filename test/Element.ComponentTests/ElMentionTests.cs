@@ -13,7 +13,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElMentionTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Setup<int[]>("elementMentionGetSelection", _ => true).SetResult(new[] { 2, 2 });
             JSInterop.SetupVoid("elementMentionSetSelection", _ => true).SetVoidResult();
             JSInterop.SetupVoid("execFocus", _ => true).SetVoidResult();

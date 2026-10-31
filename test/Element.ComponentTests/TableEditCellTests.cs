@@ -25,7 +25,7 @@ namespace ElementPlus.ComponentTests
         public TableEditCellTests()
         {
             JSInterop.Mode = JSRuntimeMode.Loose;
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         public class Cat

@@ -13,7 +13,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElFormGeneratedControlTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         [Fact]

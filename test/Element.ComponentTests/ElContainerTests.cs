@@ -14,7 +14,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElContainerTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         // ==================== ElContainer ====================

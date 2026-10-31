@@ -13,7 +13,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElInputOtpTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.SetupVoid("execFocus", _ => true).SetVoidResult();
         }
 

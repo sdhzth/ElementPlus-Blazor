@@ -13,7 +13,7 @@ dotnet add package Element-Plus --prerelease
 Register services:
 
 ```csharp
-builder.Services.AddElementServices();
+builder.Services.AddElementPlusServices();
 ```
 
 Load static assets in your host page or Blazor Web App root:

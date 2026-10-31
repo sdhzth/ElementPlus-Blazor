@@ -31,7 +31,7 @@ namespace ElementPlus.ComponentTests
         public ElTableV2Tests()
         {
             JSInterop.Mode = JSRuntimeMode.Loose;
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         private static IList<TableV2Column> ThreeColumns() => new List<TableV2Column>

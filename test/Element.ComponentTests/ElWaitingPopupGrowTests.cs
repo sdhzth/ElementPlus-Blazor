@@ -20,7 +20,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElWaitingPopupGrowTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 

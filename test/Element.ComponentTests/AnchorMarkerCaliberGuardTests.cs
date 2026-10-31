@@ -44,7 +44,7 @@ namespace ElementPlus.ComponentTests
 
         public AnchorMarkerCaliberGuardTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 

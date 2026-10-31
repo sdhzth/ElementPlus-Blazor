@@ -14,7 +14,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElSliderTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         [Fact]

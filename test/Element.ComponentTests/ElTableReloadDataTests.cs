@@ -26,7 +26,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElTableReloadDataTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 

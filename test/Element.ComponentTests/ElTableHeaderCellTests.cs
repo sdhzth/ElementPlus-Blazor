@@ -30,7 +30,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElTableHeaderCellTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 

@@ -33,7 +33,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElTablePropertylessColumnTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 

@@ -19,7 +19,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElTableGroupedHeaderTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 

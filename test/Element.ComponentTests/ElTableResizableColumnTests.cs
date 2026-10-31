@@ -20,7 +20,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElTableResizableColumnTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             Services.AddSingleton(new HttpClient());
         }
 

@@ -10,7 +10,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElStatisticTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         [Fact]

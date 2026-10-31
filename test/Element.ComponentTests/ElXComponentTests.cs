@@ -16,7 +16,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElXComponentTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             // 批次㊼ 起粘贴登记不再要求 Url 非空、且注册改成 await（旧写法是 _ = 把异常吞了），
             // 所以 ElXAttachments 里的 ElUpload 会真的走到这两条 JS 调用，测试得配好。
             JSInterop.SetupVoid("registerPasteUpload", _ => true).SetVoidResult();

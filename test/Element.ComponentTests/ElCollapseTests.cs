@@ -14,7 +14,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElCollapseTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         private static RenderFragment TwoItems => builder =>

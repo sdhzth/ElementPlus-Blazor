@@ -31,7 +31,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElButtonVisibleTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.SetupVoid("execFocus", _ => true).SetVoidResult();
         }
 

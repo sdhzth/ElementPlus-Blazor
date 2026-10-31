@@ -15,7 +15,7 @@ namespace ElementPlus.ComponentTests
         {
             // 滚轮与 ElDateTimePicker 共用同一套 JS 助手（居中 / 吸附），需要 Loose 模式。
             JSInterop.Mode = JSRuntimeMode.Loose;
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         [Fact]

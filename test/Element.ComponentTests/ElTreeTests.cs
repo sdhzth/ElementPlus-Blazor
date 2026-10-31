@@ -12,7 +12,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElTreeTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         private static List<TreeItemBase> FlatTree() => new List<TreeItemBase>

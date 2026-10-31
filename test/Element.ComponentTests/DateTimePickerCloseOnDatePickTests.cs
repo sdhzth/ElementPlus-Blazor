@@ -33,7 +33,7 @@ namespace ElementPlus.ComponentTests
         public DateTimePickerCloseOnDatePickTests()
         {
             JSInterop.Mode = JSRuntimeMode.Loose;
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         private IReadOnlyList<DropDownOption> Dropdowns => Services.GetRequiredService<PopupService>().SelectDropDownOptions;

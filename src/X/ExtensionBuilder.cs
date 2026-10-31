@@ -4,7 +4,7 @@ namespace ElementPlus.X
 {
     public static class ExtensionBuilder
     {
-        public static IServiceCollection AddElementX(this IServiceCollection services)
+        public static IServiceCollection AddElementPlusX(this IServiceCollection services)
         {
             services.AddScoped<ElementXStreamService>();
             services.AddScoped<ElementXRequestService>();

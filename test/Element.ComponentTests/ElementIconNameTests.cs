@@ -20,7 +20,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElementIconNameTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 

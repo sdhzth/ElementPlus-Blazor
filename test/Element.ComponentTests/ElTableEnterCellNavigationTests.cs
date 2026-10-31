@@ -18,7 +18,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElTableEnterCellNavigationTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             Services.AddSingleton(new HttpClient());
             // 双击定位起始单元格、以及渲染结束后聚焦单元格都会调用 JS
             JSInterop.SetupVoid("elementTableFocusCell").SetVoidResult();

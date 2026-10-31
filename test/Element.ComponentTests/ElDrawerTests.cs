@@ -15,7 +15,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElDrawerTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 

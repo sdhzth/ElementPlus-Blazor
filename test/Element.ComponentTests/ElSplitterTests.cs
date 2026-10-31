@@ -11,7 +11,7 @@ namespace ElementPlus.ComponentTests
     /// </summary>
     public class ElSplitterTests : BunitContext
     {
-        public ElSplitterTests() => Services.AddElementServices();
+        public ElSplitterTests() => Services.AddElementPlusServices();
 
         // ==================== ElSplitter 基础 ====================
 

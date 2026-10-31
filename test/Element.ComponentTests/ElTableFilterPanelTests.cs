@@ -22,7 +22,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElTableFilterPanelTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             Services.AddSingleton(new HttpClient());
         }
 

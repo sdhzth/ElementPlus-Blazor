@@ -25,7 +25,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElMenuTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 

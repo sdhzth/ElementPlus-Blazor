@@ -13,7 +13,7 @@
 demo/
 ├─ Element.Blazor.Demo/
 │  ├─ Element.Blazor.Demo.csproj      # net10.0 Blazor WASM 项目，引用 Element / Element.X
-│  ├─ Program.cs                      # 注册 AddElementServices() / AddElementX() / HttpClient
+│  ├─ Program.cs                      # 注册 AddElementPlusServices() / AddElementPlusX() / HttpClient
 │  ├─ App.razor / _Imports.razor      # 路由与应用入口
 │  ├─ Layout/MainLayout.razor         # 侧边栏导航（分类 + 搜索 + 当前路由高亮）
 │  ├─ Shared/ComponentCatalog.cs      # 反射扫描两个程序集，产出组件目录 / 安全参数

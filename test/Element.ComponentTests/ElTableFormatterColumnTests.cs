@@ -22,7 +22,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElTableFormatterColumnTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             Services.AddSingleton(new HttpClient());
         }
 

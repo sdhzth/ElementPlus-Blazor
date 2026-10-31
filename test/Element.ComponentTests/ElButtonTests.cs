@@ -10,7 +10,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElButtonTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         [Fact]

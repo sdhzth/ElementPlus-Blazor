@@ -10,7 +10,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElWatermarkTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         [Fact]

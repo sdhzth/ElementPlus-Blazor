@@ -15,7 +15,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElAutocompleteTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         [Fact]

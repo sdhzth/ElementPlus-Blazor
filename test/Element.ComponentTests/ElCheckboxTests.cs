@@ -13,7 +13,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElCheckboxTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         [Fact]

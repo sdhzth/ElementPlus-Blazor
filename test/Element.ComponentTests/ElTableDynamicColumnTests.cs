@@ -15,7 +15,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElTableDynamicColumnTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             Services.AddSingleton(new HttpClient());
         }
 

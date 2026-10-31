@@ -13,7 +13,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElSelectV2Tests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             // 面板打开时组件会调 dom.js 的 elementPickerOutsideAttach 绑 document 上的
             // 捕获阶段 mousedown（EP useSelect.mjs#handleClickOutside 的等价物）。bUnit 没有
             // DOM，这一层只能让它空转；点外关闭的行为由常驻浏览器探针 S4/S4b 覆盖。

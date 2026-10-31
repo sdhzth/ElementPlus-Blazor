@@ -22,7 +22,7 @@ namespace ElementPlus.ComponentTests
     {
         public EmptyStateGeometryTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 

@@ -24,9 +24,9 @@ namespace ElementPlus.ComponentTests
     {
         public ElementLangTests()
         {
-            // 组件渲染本来就要求宿主调过 AddElementServices（基类里 MessageBox / DialogService 等是 [Inject]）；
+            // 组件渲染本来就要求宿主调过 AddElementPlusServices（基类里 MessageBox / DialogService 等是 [Inject]）；
             // 这一行同时把 ILang 的正式注册也带上，下面各例再用 AddSingleton 覆盖成替身
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         /// <summary>构造 n 个 <see cref="ElCarouselItem"/>：走马灯只在多于 1 项时渲染左右箭头。</summary>
@@ -261,9 +261,9 @@ namespace ElementPlus.ComponentTests
         }
 
         [Fact]
-        public void AddElementServicesRegistersLangAndSurvivesWithoutHttpClient()
+        public void AddElementPlusServicesRegistersLangAndSurvivesWithoutHttpClient()
         {
-            var services = new ServiceCollection().AddElementServices();
+            var services = new ServiceCollection().AddElementPlusServices();
 
             using (var provider = services.BuildServiceProvider())
             using (var scope = provider.CreateScope())

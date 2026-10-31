@@ -12,7 +12,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElTransferTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         [Fact]

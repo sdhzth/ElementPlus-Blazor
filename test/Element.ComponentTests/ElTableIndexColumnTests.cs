@@ -14,7 +14,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElTableIndexColumnTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             Services.AddSingleton(new HttpClient());
         }
 

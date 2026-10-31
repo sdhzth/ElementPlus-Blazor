@@ -18,7 +18,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElDropDownTableGrowTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 

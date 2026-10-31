@@ -98,7 +98,7 @@ node 直接 `fetch` GitHub raw 会 `UNABLE_TO_VERIFY_LEAF_SIGNATURE`，改用 `c
 
 ## 4. 注册与宿主接入
 
-`AddElementServices()` 里新增：`services.AddScoped<ILang>(sp => new ElementLang(sp.GetService<HttpClient>()));`
+`AddElementPlusServices()` 里新增：`services.AddScoped<ILang>(sp => new ElementLang(sp.GetService<HttpClient>()));`
 
 - **Scoped 而不是 Singleton**：宿主普遍把 `HttpClient` 注册为 Scoped（本仓 demo 就是），
   Singleton 消费它会直接抛 `InvalidOperationException`。
@@ -108,7 +108,7 @@ node 直接 `fetch` GitHub raw 会 `UNABLE_TO_VERIFY_LEAF_SIGNATURE`，改用 `c
 
 ```csharp
 // 1) 原有那一行即可拿到 ILang
-builder.Services.AddElementServices();
+builder.Services.AddElementPlusServices();
 
 // 2) 首帧之前取词，避免标签先渲染成 fallback 再跳一次（可选，但推荐）
 var app = builder.Build();
@@ -149,7 +149,7 @@ protected virtual void Dispose(bool disposing)
 为什么放基类：第一批只有 2 个消费方时各自订阅成本更低；第二批一上来就是 7 个组件 14 处文案，
 "每个组件复制 6 行、漏一半就是内存泄漏"的写法不再划算。放基类也不给宿主增加新要求
 （`ElementComponentBase` 本来就 `@Inject` 了 MessageBox / DialogService / MessageService 等，
-少 `AddElementServices()` 一个组件都渲染不出来）。
+少 `AddElementPlusServices()` 一个组件都渲染不出来）。
 
 两个写法细节：① 组件里取词用 `Lang`（基类的 public 注入属性），不要再 `@inject ILang Lang` ——
 派生类里再生成一个同名属性会遮蔽基类的；② 回调用 `InvokeAsync(StateHasChanged)` 而不是裸调，
@@ -443,7 +443,7 @@ EP 的实现只有一行（`packages/hooks/use-locale/index.ts`）：
   `Extension.cs` 的中文注释里有历史遗留的 `U+FFFD`（早于本轮，不是本轮写坏的）。本轮重写/新增的 `Lang/` 三个文件
   都是 UTF-8：`ILang.cs`、`ElementLang.cs` 带 BOM，`LangSubscriptionExtensions.cs` 不带 —— 实测无 BOM 也正常编译
   （Roslyn 默认按 UTF-8 读，本仓大量无 BOM 中文文件），所以**不用为了这个专门补 BOM**，但 GBK 老文件必须认得出来。
-- 数字口径更新：`AddElementServices` 注册项 **23 → 24**；探针主目录 **148 → 154**（`docs/testing-guards.md` §3.1 那次盘点后又加了 6 份：ElInputNumber 对齐的 5 份 + 本轮的 `verify-lang-i18n.cjs`）。第五批再加 1 份 `verify-lang-picker-family.cjs`，`.cjs` 实测 **166** 份。
+- 数字口径更新：`AddElementPlusServices` 注册项 **23 → 24**；探针主目录 **148 → 154**（`docs/testing-guards.md` §3.1 那次盘点后又加了 6 份：ElInputNumber 对齐的 5 份 + 本轮的 `verify-lang-i18n.cjs`）。第五批再加 1 份 `verify-lang-picker-family.cjs`，`.cjs` 实测 **166** 份。
 
 第五批（日历 / 颜色 / 滑块 / 穿梭框）新踩的：
 

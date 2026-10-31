@@ -28,7 +28,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElSplitButtonTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
             // SplitHost 里渲染了 ElPopup：打开菜单会走 RenderDropDownAsync 量触发器矩形，
             // 不 stub 的话 Loose 模式返回 null，在 rect.Height 上 NRE

@@ -13,7 +13,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElDatePickerPanelTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         [Fact]

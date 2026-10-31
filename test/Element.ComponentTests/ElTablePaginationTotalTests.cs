@@ -25,7 +25,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElTablePaginationTotalTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             Services.AddSingleton(new HttpClient());
         }
 

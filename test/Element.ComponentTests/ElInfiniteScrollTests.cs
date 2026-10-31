@@ -10,7 +10,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElInfiniteScrollTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         [Fact]

@@ -10,7 +10,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElAffixTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 

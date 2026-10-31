@@ -32,7 +32,7 @@ namespace ElementPlus.ComponentTests
         public PopupHostScopeTests()
         {
             JSInterop.Mode = JSRuntimeMode.Loose;
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         private static readonly Type[] OverlayServiceTypes =
@@ -55,13 +55,13 @@ namespace ElementPlus.ComponentTests
         public void AllPopupQueueServicesAreScoped()
         {
             var services = new ServiceCollection();
-            services.AddElementServices();
+            services.AddElementPlusServices();
 
             var offenders = new List<string>();
             foreach (var type in OverlayServiceTypes)
             {
                 var descriptor = services.FirstOrDefault(x => x.ServiceType == type);
-                Assert.True(descriptor != null, type.Name + " 没有被 AddElementServices 注册");
+                Assert.True(descriptor != null, type.Name + " 没有被 AddElementPlusServices 注册");
                 if (descriptor.Lifetime != ServiceLifetime.Scoped)
                 {
                     offenders.Add(type.Name + " = " + descriptor.Lifetime);
@@ -79,7 +79,7 @@ namespace ElementPlus.ComponentTests
         [Fact]
         public void TwoScopesDoNotShareTheLoadingQueue()
         {
-            var provider = new ServiceCollection().AddElementServices().BuildServiceProvider();
+            var provider = new ServiceCollection().AddElementPlusServices().BuildServiceProvider();
             using var scopeA = provider.CreateScope();
             using var scopeB = provider.CreateScope();
 

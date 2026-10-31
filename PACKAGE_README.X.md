@@ -26,7 +26,7 @@ Load the Element core assets, then load the Element.X stylesheet:
 Register the optional X services:
 
 ```csharp
-builder.Services.AddElementX();
+builder.Services.AddElementPlusX();
 ```
 
 Use `Element.X` components and models:

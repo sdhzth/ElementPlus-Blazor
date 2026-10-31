@@ -15,7 +15,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElNotificationTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 

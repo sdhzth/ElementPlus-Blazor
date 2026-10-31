@@ -21,7 +21,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElTableCurrentRowTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             Services.AddSingleton(new HttpClient());
         }
 

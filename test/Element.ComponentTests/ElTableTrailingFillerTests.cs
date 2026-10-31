@@ -27,7 +27,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElTableTrailingFillerTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 

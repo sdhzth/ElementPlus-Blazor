@@ -24,7 +24,7 @@ namespace ElementPlus.ComponentTests
     {
         public DialogFixedHeightHeaderActionsTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
         private static string RepoRoot()

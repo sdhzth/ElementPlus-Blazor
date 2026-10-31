@@ -14,7 +14,7 @@ namespace ElementPlus.ComponentTests
     /// </summary>
     public class ElLinkTests : BunitContext
     {
-        public ElLinkTests() => Services.AddElementServices();
+        public ElLinkTests() => Services.AddElementPlusServices();
 
         // ==================== 基本渲染 ====================
 

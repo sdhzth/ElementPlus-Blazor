@@ -13,7 +13,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElNavigationTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         [Fact]

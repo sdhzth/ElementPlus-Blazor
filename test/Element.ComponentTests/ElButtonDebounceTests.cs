@@ -13,7 +13,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElButtonDebounceTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         private IRenderedComponent<ElButton> RenderButton(int debounce, bool leading, EventCallback<MouseEventArgs> onClick)

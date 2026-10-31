@@ -20,7 +20,7 @@ namespace ElementPlus.ComponentTests
         public ElPopoverFixedPopperTests()
         {
             JSInterop.Mode = JSRuntimeMode.Loose;
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         /// <summary>喂给 JS 的参考元素矩形。40×32 是「?」小方钮的量级。</summary>

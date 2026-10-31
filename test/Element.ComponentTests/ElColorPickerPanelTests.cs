@@ -17,7 +17,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElColorPickerPanelTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         [Theory]

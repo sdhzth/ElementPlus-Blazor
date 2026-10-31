@@ -30,7 +30,7 @@ namespace ElementPlus.ComponentTests
         {
             // ElDialog 打开时会 execFocus；没配 Loose 会抛 JSRuntimeUnhandledInvocationException（与 ElDialogTests 同一写法）
             JSInterop.Mode = JSRuntimeMode.Loose;
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         private const string ZhJson = @"{

@@ -16,7 +16,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElSwitchTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         [Fact]

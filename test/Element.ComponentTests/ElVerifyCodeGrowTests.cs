@@ -21,7 +21,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElVerifyCodeGrowTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 

@@ -13,7 +13,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElTreeSelectTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.SetupVoid("setDisabled", _ => true).SetVoidResult();
         }
 

@@ -135,7 +135,7 @@ dotnet add package Element-Plus --version 0.10.6
 
 ## 3. 服务注册：`Program.cs` 改什么
 
-只需一行 `AddElementServices()`，它注册了消息、通知、对话框、弹出层、加载、表单映射等服务：
+只需一行 `AddElementPlusServices()`，它注册了消息、通知、对话框、弹出层、加载、表单映射等服务：
 
 | 注册项 | 生命周期 | 用途 |
 | --- | --- | --- |
@@ -155,12 +155,12 @@ dotnet add package Element-Plus --version 0.10.6
 ### 3.1 Blazor WebAssembly（`Program.cs`）
 
 ```csharp
-using ElementPlus;                 // AddElementServices 在这里
+using ElementPlus;                 // AddElementPlusServices 在这里
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
-builder.Services.AddElementServices();     // ← 唯一必需的一行
+builder.Services.AddElementPlusServices();     // ← 唯一必需的一行
 
 await builder.Build().RunAsync();
 ```
@@ -175,7 +175,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();   // 若用 Server 交互
 
-builder.Services.AddElementServices();                // ← 必需
+builder.Services.AddElementPlusServices();                // ← 必需
 
 var app = builder.Build();
 // ... 中间件 ...
@@ -183,7 +183,7 @@ app.Run();
 ```
 
 > 若同时用 WebAssembly 客户端项目（`.Client`），**两端都要各注册一次**：
-> 服务端 `Program.cs` 与客户端 `Program.cs` 各写一行 `builder.Services.AddElementServices();`。
+> 服务端 `Program.cs` 与客户端 `Program.cs` 各写一行 `builder.Services.AddElementPlusServices();`。
 
 ### 3.3 `_Imports.razor`
 
@@ -275,7 +275,7 @@ dotnet test FullVerify.csproj -c Release
 | --- | --- | --- |
 | 组件有结构没样式 | 两份 CSS 没引全 | 按 `index.css（含 theme 段）` 顺序引入 |
 | 图标全是方框 | `index.css` 会去 `css/fonts/element-icons.woff` 取字体；子路径部署时相对路径会 404 | 检查 `_content/Element-Plus/css/fonts/` 是否可达 |
-| 弹层/消息不出现 | 忘了 `AddElementServices()` | 服务端与 WASM 客户端**各注册一次** |
+| 弹层/消息不出现 | 忘了 `AddElementPlusServices()` | 服务端与 WASM 客户端**各注册一次** |
 | 只有部分交互无效 | `dom.js` 没引，或引在框架脚本之前 | 放在 `blazor.*.js` 之后 |
 | 改了 `index.css` 补丁层没生效 | MSBuild 增量编译没触发（编辑工具写回后时间戳未更新） | `touch` 该文件后重新 build；仍不行就 `dotnet build-server shutdown` |
 | 打印只出第一屏 | 旧版外壳把宽高写成内联样式，打印媒体查询盖不住 | 2.14 起 `ElViewerGrow` 的尺寸与 transform 走 CSS 变量（`--el-viewer-grow-w/-h/-transform`），`@media print` 已放开 |

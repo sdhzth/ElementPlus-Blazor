@@ -11,7 +11,7 @@ namespace ElementPlus.ComponentTests
         public ElImageTests()
         {
             JSInterop.Mode = JSRuntimeMode.Loose;
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         [Fact]

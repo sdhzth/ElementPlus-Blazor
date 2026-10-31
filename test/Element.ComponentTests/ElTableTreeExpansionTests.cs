@@ -33,7 +33,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElTableTreeExpansionTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             Services.AddSingleton(new HttpClient());
         }
 

@@ -22,7 +22,7 @@ namespace ElementPlus
         /// </summary>
         /// <param name="services"></param>
         /// <returns></returns>
-        public static IServiceCollection AddElementServices(this IServiceCollection services)
+        public static IServiceCollection AddElementPlusServices(this IServiceCollection services)
         {
             services.AddSingleton<FormFieldControlMap>();
             services.AddSingleton<TableEditorMap>();

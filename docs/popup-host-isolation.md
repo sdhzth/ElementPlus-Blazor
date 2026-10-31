@@ -85,7 +85,7 @@ KeepAlive 又会让上一页残留，拿它等会读到旧页。
 
 ## 4. 判据：新增的 5 条用例（`test/Element.ComponentTests/PopupHostScopeTests.cs`）
 
-- `AllPopupQueueServicesAreScoped`：扫 `AddElementServices()` 的 `ServiceDescriptor`，
+- `AllPopupQueueServicesAreScoped`：扫 `AddElementPlusServices()` 的 `ServiceDescriptor`，
   把 7 类持队列服务（`LoadingService` / `MessageService` / `NotificationService` / `DialogService` /
   `PopupService` / `MessageBox` / `ElDialogGrowService`）逐条要求 `Scoped`，违规项**列名字**报出来。
 - `TwoScopesDoNotShareTheLoadingQueue`：**一个 `ServiceProvider` + 两个 `CreateScope()`**，
@@ -121,9 +121,9 @@ KeepAlive 又会让上一页残留，拿它等会读到旧页。
   `Cannot consume scoped service 'Element.LoadingService' from singleton ...`。
   这种写法本身就在跨连接共享可变队列，正是本缺陷的形状。本仓无此类消费点
   （消费方只有 `ElementComponentBase`、`IContainerComponent`、`ElTable`、`ElPopup` 与演示页 `@inject`，全是组件/作用域侧）。
-- ⚠️ **库里拦不住宿主覆盖注册**：DI 以**最后一条**注册为准。宿主若在 `AddElementServices()` 之后
+- ⚠️ **库里拦不住宿主覆盖注册**：DI 以**最后一条**注册为准。宿主若在 `AddElementPlusServices()` 之后
   自己再写 `services.AddSingleton<LoadingService>()`，就又回到跨连接共享。
-  §4 的守卫只看 `AddElementServices()` 里的注册项，管不到宿主 `Program.cs`。
+  §4 的守卫只看 `AddElementPlusServices()` 里的注册项，管不到宿主 `Program.cs`。
 
 ## 6. 明确没做的事（下次别以为已经修完）
 

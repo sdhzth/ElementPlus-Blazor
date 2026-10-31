@@ -19,7 +19,7 @@ namespace ElementPlus.ComponentTests
     {
         public LangInterpolationTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         private const string ZhJson = @"{

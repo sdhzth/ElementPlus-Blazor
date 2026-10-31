@@ -15,7 +15,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElIconTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         // ==================== Icon 枚举 → CSS 类名 ====================

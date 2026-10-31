@@ -13,7 +13,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElInputNumberTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.SetupVoid("execFocus", _ => true).SetVoidResult();
             JSInterop.SetupVoid("execBlur", _ => true).SetVoidResult();
         }

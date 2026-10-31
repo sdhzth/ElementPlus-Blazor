@@ -49,7 +49,7 @@ namespace ElementPlus
 
         /// <summary>
         /// 库级词条（i18n）服务。基类已经注入了 MessageBox / DialogService 等一堆必需服务，
-        /// 所以这一项不给宿主增加任何新要求（都在 <c>AddElementServices()</c> 里）。
+        /// 所以这一项不给宿主增加任何新要求（都在 <c>AddElementPlusServices()</c> 里）。
         /// 组件取词统一写 <c>Lang.Text("el.xxx.yyy", 显式参数, 改动前那个字面量)</c>；
         /// 切换语言后的重渲染由基类统一订阅处理，组件不必各自接事件。
         /// </summary>

@@ -10,7 +10,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElPageHeaderTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 

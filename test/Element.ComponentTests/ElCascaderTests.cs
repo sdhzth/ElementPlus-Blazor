@@ -15,7 +15,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElCascaderTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         [Fact]

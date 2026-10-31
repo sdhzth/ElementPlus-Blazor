@@ -13,7 +13,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElTabsTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 

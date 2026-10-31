@@ -12,7 +12,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElRadioTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.SetupVoid("execFocus", _ => true).SetVoidResult();
         }
 

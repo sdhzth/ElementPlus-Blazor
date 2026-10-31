@@ -18,7 +18,7 @@ namespace ElementPlus.ComponentTests
     {
         public LangDropdownTextTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         private const string EnJson = @"{

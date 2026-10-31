@@ -24,7 +24,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElVideoPlayerGrowDisposeTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 

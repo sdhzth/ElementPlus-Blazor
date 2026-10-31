@@ -13,7 +13,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElTourTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             // 切步会调 elementScrollIntoView（官方 scroll-into-view-options）；bUnit 里没有布局可滚，
             // 用 Loose 放行，但下面有用例专门验这次调用真的发生、且参数是 block:center。
             JSInterop.Mode = JSRuntimeMode.Loose;

@@ -23,7 +23,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElFeedbackTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         /// <summary>开 Prompt 弹层那一刻抓到的 wrapper 元素对象，只给超时现场比对实例用（见 DescribeIdentity）。</summary>

@@ -15,7 +15,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElMarqueeGrowTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 

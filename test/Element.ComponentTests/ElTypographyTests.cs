@@ -12,7 +12,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElTypographyTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         // ==================== ElTypographyTitle：层级 / 标签 ====================

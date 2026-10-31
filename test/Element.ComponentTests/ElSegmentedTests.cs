@@ -12,7 +12,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElSegmentedTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         private static List<SegmentedOption> TwoOptions() => new List<SegmentedOption>

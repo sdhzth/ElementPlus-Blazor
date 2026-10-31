@@ -41,7 +41,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElSelectFormItemWriteBackTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 

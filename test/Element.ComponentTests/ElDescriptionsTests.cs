@@ -10,7 +10,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElDescriptionsTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         private sealed record ItemSpec(

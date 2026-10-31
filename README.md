@@ -38,7 +38,7 @@ dotnet add package Element-Plus.Markdown
 1. Register the services in `Program.cs` / `Startup.cs`:
 
    ```csharp
-   builder.Services.AddElementServices();
+   builder.Services.AddElementPlusServices();
    ```
 
 2. Reference the static assets in your host page (e.g. `App.razor` or `_Host.cshtml`):

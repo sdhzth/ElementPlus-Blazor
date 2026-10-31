@@ -20,7 +20,7 @@ namespace ElementPlus.ComponentTests
         public ElOverflowTooltipTests()
         {
             JSInterop.Mode = JSRuntimeMode.Loose;
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         private IRenderedComponent<ElOverflowTooltip> RenderClipped(string placement,

@@ -19,7 +19,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElDateRangePanelTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         private static void AddRangePanel(ComponentParameterCollectionBuilder<ElDatePickerPanel> parameters,

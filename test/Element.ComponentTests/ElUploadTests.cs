@@ -14,7 +14,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElUploadTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         [Fact]

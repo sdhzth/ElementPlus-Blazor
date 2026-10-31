@@ -30,7 +30,7 @@ namespace ElementPlus.ComponentTests
         {
             // ElTour 渲染后会调 elementScrollIntoView；没配 Loose 会抛 JSRuntimeUnhandledInvocationException
             JSInterop.Mode = JSRuntimeMode.Loose;
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         private const string ZhJson = @"{

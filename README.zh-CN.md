@@ -37,7 +37,7 @@ dotnet add package Element-Plus.Markdown
 1. 在 `Program.cs` / `Startup.cs` 中注册服务：
 
    ```csharp
-   builder.Services.AddElementServices();
+   builder.Services.AddElementPlusServices();
    ```
 
 2. 在宿主页面（如 `App.razor` 或 `_Host.cshtml`）引用静态资源：

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace ElementPlus.Lang
 {
     /// <summary>
-    /// 库级词条（i18n）读取入口：由 <c>AddElementServices()</c> 注册，组件侧用
+    /// 库级词条（i18n）读取入口：由 <c>AddElementPlusServices()</c> 注册，组件侧用
     /// <c>@inject ILang Lang</c> 取用。词条来自库自带的静态资源
     /// <c>_content/Element-Plus/lang/{locale}.json</c>。
     /// <para>

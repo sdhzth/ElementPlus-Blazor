@@ -11,7 +11,7 @@ namespace ElementPlus.ComponentTests
     {
         public ElPaginationTests()
         {
-            Services.AddElementServices();
+            Services.AddElementPlusServices();
         }
 
         [Fact]
