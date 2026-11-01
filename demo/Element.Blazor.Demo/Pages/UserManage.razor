@@ -1,0 +1,149 @@
+@page "/admin/users"
+@using ElementPlus
+@using ElementPlus.Blazor.Demo
+@inject ElDialogGrowService DialogGrow
+
+<h1 class="demo-page-title">用户管理（中台列表页模板）</h1>
+<p class="demo-page-sub">
+    中台最常见的「列表 + 增删改查」页面模板：查询栏、新增、表格（多选）、行内编辑 / 删除、批量删除。
+    数据存于内存 <code>users</code>，<b>实际项目把增删改查换成调用你的后端 API</b> 即可。
+    新增 / 编辑直接复用现成的 <code>EmployeeFormDialog</code> 表单组件（服务化对话框，一行打开）。
+</p>
+
+<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+    <ElInput TValue="string" @bind-Value="keyword" Placeholder="姓名关键字" Style="width:200px;" Clearable="true" />
+    <ElSelect TValue="string" @bind-Value="deptFilter" Placeholder="部门" Clearable="true" Style="width:160px;">
+        @foreach (var d in Departments)
+        {
+            <ElOption TValue="string" Value="@d" Text="@d" />
+        }
+    </ElSelect>
+    <ElButton Type="ButtonType.Primary" OnClick="ApplyQuery">查询</ElButton>
+    <ElButton OnClick="ResetQuery">重置</ElButton>
+    <span style="flex:1;"></span>
+    <ElButton Type="ButtonType.Primary" Icon="el-icon-plus" OnClick="AddAsync">新增</ElButton>
+    <ElButton Type="ButtonType.Danger" OnClick="BatchDeleteAsync" Disabled="@(selectedRows.Count == 0)">批量删除（@selectedRows.Count）</ElButton>
+</div>
+
+<ElTable DataSource="Filtered" AutoGenerateColumns="false" HasSelectionColumn="true" Border="true"
+         @bind-SelectedRows="selectedRows">
+    <ElTableColumn Property="Name" Text="姓名" Width="120" />
+    <ElTableColumn Property="Age" Text="年龄" Width="90" Align="right" />
+    <ElTableColumn Property="Department" Text="部门" Width="140" />
+    <ElTableColumn Property="OnDuty" Text="状态" Width="100">
+        @if (((EmployeeModel)context).OnDuty)
+        {
+            <span style="color:#67c23a;font-weight:600;">在职</span>
+        }
+        else
+        {
+            <span style="color:#909399;">离职</span>
+        }
+    </ElTableColumn>
+    <ElTableTemplateColumn Text="操作" Width="160" SortNo="-1">
+        @{
+            var row = (EmployeeModel)context;
+        }
+        <ElButton Size="ButtonSize.Small" Type="ButtonType.Primary" OnClick="@(() => EditAsync(row))">编辑</ElButton>
+        <ElButton Size="ButtonSize.Small" Type="ButtonType.Danger" OnClick="@(() => DeleteAsync(row))">删除</ElButton>
+    </ElTableTemplateColumn>
+</ElTable>
+
+@code {
+    private static readonly string[] Departments = { "门诊部", "住院部", "检验科", "影像科", "药剂科" };
+
+    /// <summary>演示用内存数据源；实际项目改为 API 返回的集合。</summary>
+    private List<EmployeeModel> users = new()
+    {
+        new EmployeeModel { Name = "张伟", Age = 34, Department = "门诊部", OnDuty = true },
+        new EmployeeModel { Name = "李娜", Age = 29, Department = "住院部", OnDuty = true },
+        new EmployeeModel { Name = "王芳", Age = 41, Department = "检验科", OnDuty = true },
+        new EmployeeModel { Name = "刘强", Age = 37, Department = "影像科", OnDuty = false },
+        new EmployeeModel { Name = "陈静", Age = 26, Department = "药剂科", OnDuty = true },
+        new EmployeeModel { Name = "杨光", Age = 45, Department = "门诊部", OnDuty = true },
+        new EmployeeModel { Name = "赵敏", Age = 31, Department = "住院部", OnDuty = false },
+        new EmployeeModel { Name = "周杰", Age = 38, Department = "检验科", OnDuty = true },
+        new EmployeeModel { Name = "吴敏", Age = 33, Department = "影像科", OnDuty = true },
+        new EmployeeModel { Name = "郑昊", Age = 52, Department = "药剂科", OnDuty = false },
+        new EmployeeModel { Name = "孙丽", Age = 28, Department = "门诊部", OnDuty = true },
+        new EmployeeModel { Name = "钱程", Age = 36, Department = "住院部", OnDuty = true },
+    };
+
+    private string keyword = string.Empty;
+    private string deptFilter;
+    private HashSet<object> selectedRows = new();
+
+    /// <summary>按查询条件过滤后的数据（计算属性，查询/重置后重新计算）。</summary>
+    private List<EmployeeModel> Filtered
+        => users.Where(u =>
+            (string.IsNullOrWhiteSpace(keyword) || u.Name.Contains(keyword)) &&
+            (string.IsNullOrWhiteSpace(deptFilter) || u.Department == deptFilter)).ToList();
+
+    private void ApplyQuery() => StateHasChanged();
+
+    private void ResetQuery()
+    {
+        keyword = string.Empty;
+        deptFilter = null;
+        StateHasChanged();
+    }
+
+    /// <summary>新增：打开空白表单对话框，确定后把返回的模型加入列表。</summary>
+    private async Task AddAsync()
+    {
+        var model = new EmployeeModel { OnDuty = true };
+        var result = await DialogGrow.OpenAsync<EmployeeFormDialog, EmployeeModel>(
+            "新增员工",
+            new Dictionary<string, object> { ["Model"] = model },
+            new ElDialogGrowOptions { Width = "520px", AlignCenter = true });
+        if (result != null)
+        {
+            users.Add(result);
+            StateHasChanged();
+        }
+    }
+
+    /// <summary>编辑：传入当前行副本，确定后回写（取消不影响原数据）。</summary>
+    private async Task EditAsync(EmployeeModel emp)
+    {
+        var copy = new EmployeeModel { Name = emp.Name, Age = emp.Age, Department = emp.Department, OnDuty = emp.OnDuty };
+        var result = await DialogGrow.OpenAsync<EmployeeFormDialog, EmployeeModel>(
+            "编辑员工",
+            new Dictionary<string, object> { ["Model"] = copy },
+            new ElDialogGrowOptions { Width = "520px", AlignCenter = true });
+        if (result != null)
+        {
+            emp.Name = result.Name;
+            emp.Age = result.Age;
+            emp.Department = result.Department;
+            emp.OnDuty = result.OnDuty;
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteAsync(EmployeeModel emp)
+    {
+        var ok = await DialogGrow.ConfirmAsync($"确认删除员工「{emp.Name}」？", "删除确认");
+        if (ok)
+        {
+            users.Remove(emp);
+            selectedRows.Remove(emp);
+            StateHasChanged();
+        }
+    }
+
+    private async Task BatchDeleteAsync()
+    {
+        if (selectedRows.Count == 0) return;
+        var ok = await DialogGrow.ConfirmAsync($"确认删除选中的 {selectedRows.Count} 名员工？", "批量删除");
+        if (ok)
+        {
+            foreach (var r in selectedRows.ToList())
+            {
+                users.Remove((EmployeeModel)r);
+            }
+            selectedRows.Clear();
+            StateHasChanged();
+        }
+    }
+}

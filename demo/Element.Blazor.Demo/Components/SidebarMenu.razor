@@ -35,16 +35,17 @@
     }
     else
     {
-        <ElSubMenu Index="@DemoNavigation.MockSection.Key"
-                   Label="@DemoNavigation.MockSection.Title"
-                   Icon="@DemoNavigation.MockSection.Icon">
-            @foreach (var entry in DemoNavigation.MockSection.Entries)
-            {
-                <ElMenuItem Index="@entry.Path" Route="@entry.Path" Title="@entry.Title" Icon="@entry.Icon">
-                    @entry.Title
-                </ElMenuItem>
-            }
-        </ElSubMenu>
+        @foreach (var section in DemoNavigation.Sections)
+        {
+            <ElSubMenu Index="@section.Key" Label="@section.Title" Icon="@section.Icon">
+                @foreach (var entry in section.Entries)
+                {
+                    <ElMenuItem Index="@entry.Path" Route="@entry.Path" Title="@entry.Title" Icon="@entry.Icon">
+                        @entry.Title
+                    </ElMenuItem>
+                }
+            </ElSubMenu>
+        }
     }
 </ElMenu>
 

@@ -148,6 +148,26 @@ namespace ElementPlus.Blazor.Demo.Shared
             }
         };
 
+        /// <summary>「中台模板」分组：给使用者直接照搬的后台业务页（控制台 / 用户管理）。</summary>
+        public static DemoNavSection TemplateSection { get; } = new DemoNavSection
+        {
+            Key = "template",
+            Title = "中台模板",
+            Icon = "el-icon-menu",
+            Entries = new[]
+            {
+                Mock("/dashboard", "控制台 Dashboard", "el-icon-s-data"),
+                Mock("/admin/users", "用户管理", "el-icon-user")
+            }
+        };
+
+        /// <summary>所有侧栏分组（组件演示 + 中台模板），供 SidebarMenu 遍历渲染。</summary>
+        public static IReadOnlyList<DemoNavSection> Sections { get; } = new[]
+        {
+            MockSection,
+            TemplateSection
+        };
+
         private const string MockSectionTitle = "分类演示（Mock 数据）";
 
         private static DemoNavEntry Mock(string path, string title, string icon) =>
@@ -155,7 +175,7 @@ namespace ElementPlus.Blazor.Demo.Shared
 
         /// <summary>全部条目（顺序即侧栏顺序），用于「更多」与查找。</summary>
         public static IReadOnlyList<DemoNavEntry> All { get; } =
-            Fixed.Concat(MockSection.Entries).ToArray();
+            Fixed.Concat(Sections.SelectMany(s => s.Entries)).ToArray();
 
         private static readonly Dictionary<string, DemoNavEntry> Index =
             All.GroupBy(x => x.Path, StringComparer.OrdinalIgnoreCase)
