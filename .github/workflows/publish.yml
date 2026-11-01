@@ -69,6 +69,13 @@ jobs:
           dotnet pack src/X/Element.X.csproj -c Release --no-build -o ./artifacts
           dotnet pack src/Markdown/Element.Markdown.csproj -c Release --no-build -o ./artifacts
 
+      # 打包 dotnet new 模板（NuGet 模板包）。该工程无编译产物，直接 pack 即可，
+      # 产物 ElementPlus.Blazor.Admin.Template.*.nupkg 会被下方 push 的 ./artifacts/*.nupkg 一并推送。
+      # 模板版本见 templates/ElementPlus.Admin.Template/ElementPlus.Admin.Template.csproj 的 <Version>，
+      # 与 Element-Plus 库版本保持同步（当前 0.12.1）。
+      - name: Pack admin template
+        run: dotnet pack templates/ElementPlus.Admin.Template/ElementPlus.Admin.Template.csproj -c Release -o ./artifacts
+
       # 临时 API Key 有效期约 1 小时 —— 紧贴推送步骤获取
       - name: NuGet login (OIDC → 临时 API Key)
         id: login
