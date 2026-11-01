@@ -43,8 +43,7 @@ namespace ElementPlus.Blazor.Demo.Shared
         public static IReadOnlyList<DemoNavEntry> Fixed { get; } = new[]
         {
             new DemoNavEntry { Path = "/", Title = "首页", Icon = "el-icon-s-home", Closable = false },
-            new DemoNavEntry { Path = "/all", Title = "全部组件", Icon = "el-icon-s-grid", Section = "组件中心" },
-            new DemoNavEntry { Path = "/login", Title = "登录演示", Icon = "el-icon-lock", Section = "组件中心" }
+            new DemoNavEntry { Path = "/all", Title = "全部组件", Icon = "el-icon-s-grid", Section = "组件中心" }
         };
 
         /// <summary>「分类演示（Mock 数据）」分组。</summary>
@@ -148,16 +147,20 @@ namespace ElementPlus.Blazor.Demo.Shared
             }
         };
 
-        /// <summary>「中台模板」分组：给使用者直接照搬的后台业务页（控制台 / 用户管理）。</summary>
+        /// <summary>「中台模板」分组：给使用者直接照搬的后台业务页（登录 / 控制台 / 用户·角色·权限·菜单管理）。</summary>
         public static DemoNavSection TemplateSection { get; } = new DemoNavSection
         {
             Key = "template",
-            Title = "中台模板",
+            Title = TemplateSectionTitle,
             Icon = "el-icon-menu",
             Entries = new[]
             {
-                Mock("/dashboard", "控制台 Dashboard", "el-icon-s-data"),
-                Mock("/admin/users", "用户管理", "el-icon-user")
+                Template("/login", "登录页 Login（独立布局）", "el-icon-lock"),
+                Template("/dashboard", "控制台 Dashboard", "el-icon-s-data"),
+                Template("/admin/users", "用户管理", "el-icon-user"),
+                Template("/admin/roles", "角色管理", "el-icon-s-custom"),
+                Template("/admin/permissions", "权限管理", "el-icon-key"),
+                Template("/admin/menus", "菜单管理", "el-icon-menu")
             }
         };
 
@@ -169,9 +172,14 @@ namespace ElementPlus.Blazor.Demo.Shared
         };
 
         private const string MockSectionTitle = "分类演示（Mock 数据）";
+        private const string TemplateSectionTitle = "中台模板";
 
         private static DemoNavEntry Mock(string path, string title, string icon) =>
             new() { Path = path, Title = title, Icon = icon, Section = MockSectionTitle };
+
+        /// <summary>「中台模板」分组的条目构造器：Section 固定为 TemplateSectionTitle，面包屑第二级即「中台模板」。</summary>
+        private static DemoNavEntry Template(string path, string title, string icon) =>
+            new() { Path = path, Title = title, Icon = icon, Section = TemplateSectionTitle };
 
         /// <summary>全部条目（顺序即侧栏顺序），用于「更多」与查找。</summary>
         public static IReadOnlyList<DemoNavEntry> All { get; } =

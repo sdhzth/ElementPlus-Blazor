@@ -71,6 +71,39 @@ test/               # Component tests
 docs/               # Design & usage documentation
 ```
 
+### Admin Starter Template (中台模板)
+
+The `demo/` project is **not only a component gallery** — it is also a **ready-to-fork admin
+shell**. Fork it and replace the in-memory Mock data with your own API to get a working backend
+in minutes. The admin pages live under the **「中台模板」** sidebar group:
+
+| Route | Page | What it demonstrates |
+| --- | --- | --- |
+| `/login` | 登录页 Login | A **standalone login layout** (`@layout LoginLayout`) decoupled from the main shell. |
+| `/dashboard` | 控制台 Dashboard | Stat cards (`ElStatistic`) + recent-data table + todo timeline. |
+| `/admin/users` | 用户管理 | List + CRUD via a **service dialog** (`ElDialogGrowService.OpenAsync`). |
+| `/admin/roles` | 角色管理 | List + CRUD via an **inline `ElDialog` form** (no service). |
+| `/admin/permissions` | 权限管理 | Same pattern, with an enum **dropdown** (菜单 / 按钮 / 接口). |
+| `/admin/menus` | 菜单管理 | Same pattern, with a dynamic **parent-menu dropdown** + numeric sort. |
+
+**How the navigation stays consistent:** every sidebar item, tab title and breadcrumb is derived
+from the single source of truth `demo/.../Shared/DemoNavigation.cs` (fixed entries + grouped
+sections). Add a page → add one `DemoNavEntry` → the menu / tab / breadcrumb all follow.
+
+**How to turn a template page into your real backend:**
+
+1. Inject your `HttpClient` / service into the page (e.g. `UserManage.razor`).
+2. Replace the in-memory `List<T>` (e.g. `users`, `roles`, `perms`, `menus`) with calls to your
+   API: load in `OnInitializedAsync`, and call `POST/PUT/DELETE` in `AddAsync` / `EditAsync` /
+   `DeleteAsync`.
+3. Swap the model classes in `demo/.../Models/` (`EmployeeModel`, `RoleModel`,
+   `PermissionModel`, `MenuModel`) for your DTOs.
+
+Two CRUD dialog styles are intentionally shown so you can pick one:
+- **Service dialog** (`UserManage`): open any component with one line and `await` its return value.
+- **Inline dialog** (`RoleManage` / `PermissionManage` / `MenuManage`): a local `ElDialog` whose
+  form binds directly to a page field — fully self-contained, easiest to copy into a new page.
+
 ### Build from Source
 
 ```powershell

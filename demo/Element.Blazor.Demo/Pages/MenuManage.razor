@@ -1,0 +1,186 @@
+@page "/admin/menus"
+@using ElementPlus
+@using ElementPlus.Blazor.Demo
+@inject ElDialogGrowService DialogGrow
+
+<h1 class="demo-page-title">菜单管理（中台列表页模板）</h1>
+<p class="demo-page-sub">
+    与「角色管理」同构：查询栏 + 表格（多选）+ 新增 / 编辑 / 删除，内联 <code>ElDialog</code> 表单。
+    这里演示<b>带「上级菜单」下拉（动态取已有菜单标题）+ 排序数字输入框</b>的写法，
+    实际中台菜单多为树形，本模板先用表格呈现「扁平列表 + 上级字段」，<b>接 API 时改成树形渲染即可</b>。
+</p>
+
+<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+    <ElInput TValue="string" @bind-Value="keyword" Placeholder="菜单名称关键字" Style="width:200px;" Clearable="true" />
+    <ElButton Type="ButtonType.Primary" OnClick="ApplyQuery">查询</ElButton>
+    <ElButton OnClick="ResetQuery">重置</ElButton>
+    <span style="flex:1;"></span>
+    <ElButton Type="ButtonType.Primary" Icon="el-icon-plus" OnClick="AddAsync">新增</ElButton>
+    <ElButton Type="ButtonType.Danger" OnClick="BatchDeleteAsync" Disabled="@(selectedRows.Count == 0)">批量删除（@selectedRows.Count）</ElButton>
+</div>
+
+<ElTable DataSource="Filtered" AutoGenerateColumns="false" HasSelectionColumn="true" Border="true"
+         @bind-SelectedRows="selectedRows">
+    <ElTableColumn Property="Title" Text="菜单名称" Width="160" />
+    <ElTableColumn Property="Path" Text="路由" Width="180" />
+    <ElTableColumn Property="Icon" Text="图标" Width="120" />
+    <ElTableColumn Property="Parent" Text="上级菜单" Width="140" />
+    <ElTableColumn Property="Sort" Text="排序" Width="90" Align="right" />
+    <ElTableColumn Property="Enabled" Text="状态" Width="100">
+        @if (((MenuModel)context).Enabled)
+        {
+            <span style="color:#67c23a;font-weight:600;">显示</span>
+        }
+        else
+        {
+            <span style="color:#909399;">隐藏</span>
+        }
+    </ElTableColumn>
+    <ElTableTemplateColumn Text="操作" Width="160" SortNo="-1">
+        @{
+            var row = (MenuModel)context;
+        }
+        <ElButton Size="ButtonSize.Small" Type="ButtonType.Primary" OnClick="@(() => EditAsync(row))">编辑</ElButton>
+        <ElButton Size="ButtonSize.Small" Type="ButtonType.Danger" OnClick="@(() => DeleteAsync(row))">删除</ElButton>
+    </ElTableTemplateColumn>
+</ElTable>
+
+<ElDialog @bind-ModelValue="dialogVisible" Title="@dialogTitle" Width="480px" AlignCenter="true">
+    <ChildContent>
+        <ElForm Model="@editModel" LabelWidth="@("90px")">
+            <ElFormItem TValue="string" Name="Title" Label="菜单名称">
+                <ElInput TValue="string" @bind-Value="editModel.Title" Placeholder="请输入菜单名称" />
+            </ElFormItem>
+            <ElFormItem TValue="string" Name="Path" Label="路由">
+                <ElInput TValue="string" @bind-Value="editModel.Path" Placeholder="如 /admin/users" />
+            </ElFormItem>
+            <ElFormItem TValue="string" Name="Icon" Label="图标">
+                <ElInput TValue="string" @bind-Value="editModel.Icon" Placeholder="如 el-icon-user" />
+            </ElFormItem>
+            <ElFormItem TValue="string" Name="Parent" Label="上级菜单">
+                <ElSelect TValue="string" @bind-Value="editModel.Parent" Placeholder="请选择上级" Clearable="true">
+                    <ElOption TValue="string" Value="@("顶级菜单")" Text="顶级菜单" />
+                    @foreach (var m in menus)
+                    {
+                        <ElOption TValue="string" Value="@m.Title" Text="@m.Title" />
+                    }
+                </ElSelect>
+            </ElFormItem>
+            <ElFormItem TValue="int" Name="Sort" Label="排序">
+                <ElInput TValue="int" @bind-Value="editModel.Sort" Placeholder="数字越小越靠前" />
+            </ElFormItem>
+            <ElFormItem TValue="bool" Name="Enabled" Label="状态">
+                <ElSwitch TValue="bool" @bind-Value="editModel.Enabled" />
+            </ElFormItem>
+        </ElForm>
+    </ChildContent>
+    <Footer>
+        <ElButton OnClick="() => dialogVisible = false">取消</ElButton>
+        <ElButton Type="ButtonType.Primary" OnClick="SaveAsync">确定</ElButton>
+    </Footer>
+</ElDialog>
+
+@code {
+    /// <summary>演示用内存数据源；实际项目改为 API 返回的菜单树。</summary>
+    private List<MenuModel> menus = new()
+    {
+        new MenuModel { Title = "控制台", Path = "/dashboard", Icon = "el-icon-s-data", Parent = "顶级菜单", Sort = 1, Enabled = true },
+        new MenuModel { Title = "系统管理", Path = "", Icon = "el-icon-setting", Parent = "顶级菜单", Sort = 2, Enabled = true },
+        new MenuModel { Title = "用户管理", Path = "/admin/users", Icon = "el-icon-user", Parent = "系统管理", Sort = 1, Enabled = true },
+        new MenuModel { Title = "角色管理", Path = "/admin/roles", Icon = "el-icon-s-custom", Parent = "系统管理", Sort = 2, Enabled = true },
+        new MenuModel { Title = "权限管理", Path = "/admin/permissions", Icon = "el-icon-key", Parent = "系统管理", Sort = 3, Enabled = true },
+        new MenuModel { Title = "菜单管理", Path = "/admin/menus", Icon = "el-icon-menu", Parent = "系统管理", Sort = 4, Enabled = true },
+        new MenuModel { Title = "操作日志", Path = "/admin/logs", Icon = "el-icon-document", Parent = "系统管理", Sort = 5, Enabled = false },
+    };
+
+    private string keyword = string.Empty;
+    private HashSet<object> selectedRows = new();
+
+    /// <summary>按查询条件过滤后的数据（计算属性）。</summary>
+    private List<MenuModel> Filtered
+        => menus.Where(m => string.IsNullOrWhiteSpace(keyword) || m.Title.Contains(keyword)).ToList();
+
+    private void ApplyQuery() => StateHasChanged();
+
+    private void ResetQuery()
+    {
+        keyword = string.Empty;
+        StateHasChanged();
+    }
+
+    private bool dialogVisible;
+    private bool isEdit;
+    private MenuModel editModel = new();
+    private MenuModel editTarget;
+    private string dialogTitle = "新增菜单";
+
+    private void AddAsync()
+    {
+        isEdit = false;
+        editTarget = null;
+        editModel = new MenuModel { Parent = "顶级菜单", Sort = menus.Count + 1, Enabled = true };
+        dialogTitle = "新增菜单";
+        dialogVisible = true;
+    }
+
+    private void EditAsync(MenuModel menu)
+    {
+        isEdit = true;
+        editTarget = menu;
+        editModel = new MenuModel { Title = menu.Title, Path = menu.Path, Icon = menu.Icon, Parent = menu.Parent, Sort = menu.Sort, Enabled = menu.Enabled };
+        dialogTitle = "编辑菜单";
+        dialogVisible = true;
+    }
+
+    private async Task SaveAsync()
+    {
+        if (string.IsNullOrWhiteSpace(editModel.Title))
+        {
+            await DialogGrow.AlertAsync("请填写菜单名称", "提示");
+            return;
+        }
+
+        if (isEdit && editTarget != null)
+        {
+            editTarget.Title = editModel.Title;
+            editTarget.Path = editModel.Path;
+            editTarget.Icon = editModel.Icon;
+            editTarget.Parent = editModel.Parent;
+            editTarget.Sort = editModel.Sort;
+            editTarget.Enabled = editModel.Enabled;
+        }
+        else
+        {
+            menus.Add(editModel);
+        }
+
+        dialogVisible = false;
+        StateHasChanged();
+    }
+
+    private async Task DeleteAsync(MenuModel menu)
+    {
+        var ok = await DialogGrow.ConfirmAsync($"确认删除菜单「{menu.Title}」？", "删除确认");
+        if (ok)
+        {
+            menus.Remove(menu);
+            selectedRows.Remove(menu);
+            StateHasChanged();
+        }
+    }
+
+    private async Task BatchDeleteAsync()
+    {
+        if (selectedRows.Count == 0) return;
+        var ok = await DialogGrow.ConfirmAsync($"确认删除选中的 {selectedRows.Count} 个菜单？", "批量删除");
+        if (ok)
+        {
+            foreach (var r in selectedRows.ToList())
+            {
+                menus.Remove((MenuModel)r);
+            }
+            selectedRows.Clear();
+            StateHasChanged();
+        }
+    }
+}

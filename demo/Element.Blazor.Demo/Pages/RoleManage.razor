@@ -1,0 +1,183 @@
+@page "/admin/roles"
+@using ElementPlus
+@using ElementPlus.Blazor.Demo
+@inject ElDialogGrowService DialogGrow
+
+<h1 class="demo-page-title">角色管理（中台列表页模板）</h1>
+<p class="demo-page-sub">
+    与「用户管理」同构的中台列表页：查询栏 + 表格（多选）+ 新增 / 编辑 / 删除。
+    本例用<b>内联 <code>ElDialog</code> 表单</b>实现增改（与用户管理的「服务化对话框」是两种常见写法，可任选其一），
+    数据存于内存 <code>roles</code>，<b>实际项目把增删改查换成调用你的后端 API 即可</b>。
+</p>
+
+<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+    <ElInput TValue="string" @bind-Value="keyword" Placeholder="角色名称关键字" Style="width:200px;" Clearable="true" />
+    <ElSelect TValue="string" @bind-Value="statusFilter" Placeholder="状态" Clearable="true" Style="width:140px;">
+        <ElOption TValue="string" Value="@("启用")" Text="启用" />
+        <ElOption TValue="string" Value="@("禁用")" Text="禁用" />
+    </ElSelect>
+    <ElButton Type="ButtonType.Primary" OnClick="ApplyQuery">查询</ElButton>
+    <ElButton OnClick="ResetQuery">重置</ElButton>
+    <span style="flex:1;"></span>
+    <ElButton Type="ButtonType.Primary" Icon="el-icon-plus" OnClick="AddAsync">新增</ElButton>
+    <ElButton Type="ButtonType.Danger" OnClick="BatchDeleteAsync" Disabled="@(selectedRows.Count == 0)">批量删除（@selectedRows.Count）</ElButton>
+</div>
+
+<ElTable DataSource="Filtered" AutoGenerateColumns="false" HasSelectionColumn="true" Border="true"
+         @bind-SelectedRows="selectedRows">
+    <ElTableColumn Property="Name" Text="角色名称" Width="160" />
+    <ElTableColumn Property="Code" Text="角色编码" Width="160" />
+    <ElTableColumn Property="Description" Text="描述" MinWidth="200" />
+    <ElTableColumn Property="Enabled" Text="状态" Width="100">
+        @if (((RoleModel)context).Enabled)
+        {
+            <span style="color:#67c23a;font-weight:600;">启用</span>
+        }
+        else
+        {
+            <span style="color:#909399;">禁用</span>
+        }
+    </ElTableColumn>
+    <ElTableTemplateColumn Text="操作" Width="160" SortNo="-1">
+        @{
+            var row = (RoleModel)context;
+        }
+        <ElButton Size="ButtonSize.Small" Type="ButtonType.Primary" OnClick="@(() => EditAsync(row))">编辑</ElButton>
+        <ElButton Size="ButtonSize.Small" Type="ButtonType.Danger" OnClick="@(() => DeleteAsync(row))">删除</ElButton>
+    </ElTableTemplateColumn>
+</ElTable>
+
+<ElDialog @bind-ModelValue="dialogVisible" Title="@dialogTitle" Width="480px" AlignCenter="true">
+    <ChildContent>
+        <ElForm Model="@editModel" LabelWidth="@("90px")">
+            <ElFormItem TValue="string" Name="Name" Label="角色名称">
+                <ElInput TValue="string" @bind-Value="editModel.Name" Placeholder="请输入角色名称" />
+            </ElFormItem>
+            <ElFormItem TValue="string" Name="Code" Label="角色编码">
+                <ElInput TValue="string" @bind-Value="editModel.Code" Placeholder="如 admin / editor" />
+            </ElFormItem>
+            <ElFormItem TValue="string" Name="Description" Label="描述">
+                <ElInput TValue="string" @bind-Value="editModel.Description" Placeholder="角色说明（可选）" />
+            </ElFormItem>
+            <ElFormItem TValue="bool" Name="Enabled" Label="状态">
+                <ElSwitch TValue="bool" @bind-Value="editModel.Enabled" />
+            </ElFormItem>
+        </ElForm>
+    </ChildContent>
+    <Footer>
+        <ElButton OnClick="() => dialogVisible = false">取消</ElButton>
+        <ElButton Type="ButtonType.Primary" OnClick="SaveAsync">确定</ElButton>
+    </Footer>
+</ElDialog>
+
+@code {
+    /// <summary>演示用内存数据源；实际项目改为 API 返回的集合。</summary>
+    private List<RoleModel> roles = new()
+    {
+        new RoleModel { Name = "超级管理员", Code = "admin", Description = "拥有所有权限", Enabled = true },
+        new RoleModel { Name = "门诊医生", Code = "doctor", Description = "门诊与住院诊疗", Enabled = true },
+        new RoleModel { Name = "护士", Code = "nurse", Description = "护理与执行", Enabled = true },
+        new RoleModel { Name = "财务", Code = "finance", Description = "收费与对账", Enabled = false },
+        new RoleModel { Name = "访客", Code = "guest", Description = "只读预览", Enabled = false },
+    };
+
+    private string keyword = string.Empty;
+    private string statusFilter;
+    private HashSet<object> selectedRows = new();
+
+    /// <summary>按查询条件过滤后的数据（计算属性）。</summary>
+    private List<RoleModel> Filtered
+        => roles.Where(r =>
+            (string.IsNullOrWhiteSpace(keyword) || r.Name.Contains(keyword)) &&
+            (string.IsNullOrWhiteSpace(statusFilter) || (r.Enabled ? "启用" : "禁用") == statusFilter)).ToList();
+
+    private void ApplyQuery() => StateHasChanged();
+
+    private void ResetQuery()
+    {
+        keyword = string.Empty;
+        statusFilter = null;
+        StateHasChanged();
+    }
+
+    private bool dialogVisible;
+    private bool isEdit;
+    private RoleModel editModel = new();
+    private RoleModel editTarget;
+    private string dialogTitle = "新增角色";
+
+    /// <summary>新增：打开空白表单对话框（直接绑到新对象，确定后加入列表）。</summary>
+    private void AddAsync()
+    {
+        isEdit = false;
+        editTarget = null;
+        editModel = new RoleModel { Enabled = true };
+        dialogTitle = "新增角色";
+        dialogVisible = true;
+    }
+
+    /// <summary>编辑：编辑当前行副本，确定后回写（取消不影响原数据）。</summary>
+    private void EditAsync(RoleModel role)
+    {
+        isEdit = true;
+        editTarget = role;
+        editModel = new RoleModel { Name = role.Name, Code = role.Code, Description = role.Description, Enabled = role.Enabled };
+        dialogTitle = "编辑角色";
+        dialogVisible = true;
+    }
+
+    private async Task SaveAsync()
+    {
+        if (string.IsNullOrWhiteSpace(editModel.Name))
+        {
+            await DialogGrow.AlertAsync("请填写角色名称", "提示");
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(editModel.Code))
+        {
+            await DialogGrow.AlertAsync("请填写角色编码", "提示");
+            return;
+        }
+
+        if (isEdit && editTarget != null)
+        {
+            editTarget.Name = editModel.Name;
+            editTarget.Code = editModel.Code;
+            editTarget.Description = editModel.Description;
+            editTarget.Enabled = editModel.Enabled;
+        }
+        else
+        {
+            roles.Add(editModel);
+        }
+
+        dialogVisible = false;
+        StateHasChanged();
+    }
+
+    private async Task DeleteAsync(RoleModel role)
+    {
+        var ok = await DialogGrow.ConfirmAsync($"确认删除角色「{role.Name}」？", "删除确认");
+        if (ok)
+        {
+            roles.Remove(role);
+            selectedRows.Remove(role);
+            StateHasChanged();
+        }
+    }
+
+    private async Task BatchDeleteAsync()
+    {
+        if (selectedRows.Count == 0) return;
+        var ok = await DialogGrow.ConfirmAsync($"确认删除选中的 {selectedRows.Count} 个角色？", "批量删除");
+        if (ok)
+        {
+            foreach (var r in selectedRows.ToList())
+            {
+                roles.Remove((RoleModel)r);
+            }
+            selectedRows.Clear();
+            StateHasChanged();
+        }
+    }
+}
