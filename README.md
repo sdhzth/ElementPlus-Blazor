@@ -154,6 +154,28 @@ To uninstall the template later:
 dotnet new uninstall <repo-root>/github-upload/templates/ElementPlus.Admin
 ```
 
+##### Build & distribute as a NuGet template package (recommended for teams)
+
+The folder-based `dotnet new install` above keeps a hard link to a local path, which is fragile
+for sharing. For team distribution, pack the template into a **NuGet template package** instead:
+
+```powershell
+# build the .nupkg (output: templates/ElementPlus.Admin.Template/bin/Release/*.nupkg)
+dotnet pack github-upload/templates/ElementPlus.Admin.Template -c Release
+
+# anyone on the team installs it with one command (no repo checkout needed):
+dotnet new install ElementPlus.Blazor.Admin.Template.0.12.1.nupkg
+```
+
+Or push the `.nupkg` to an **internal NuGet feed** so teammates can
+`dotnet new install ElementPlus.Blazor.Admin.Template` by package id. A NuGet-installed template is
+extracted into the user's template cache (path-independent after install) and shows up in the VS
+2022 *New Project* dialog just like the folder install — and it is the more robust of the two.
+
+> The packaging project (`templates/ElementPlus.Admin.Template/ElementPlus.Admin.Template.csproj`)
+> packs the real template (`../ElementPlus.Admin`) verbatim into `content/`, so there is a single
+> source of truth — edit the template under `templates/ElementPlus.Admin/` and re-pack.
+
 #### Scaffold via the VSIX (native VS project template)
 
 The `src/VSExtension` project bundles the same shell as a native Visual Studio project template

@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    NuGet template package for the "Element-Plus Admin 中台模板 (Blazor WebAssembly)" dotnet new template.
+    Build:  dotnet pack -c Release   ->  bin/Release/ElementPlus.Blazor.Admin.Template.0.12.1.nupkg
+    Install: dotnet new install bin/Release/ElementPlus.Blazor.Admin.Template.0.12.1.nupkg
+    The actual template lives one folder up (../ElementPlus.Admin) and is packed verbatim into
+    content/ElementPlus.Admin so there is a single source of truth.
+  -->
+
+  <PropertyGroup>
+    <PackageId>ElementPlus.Blazor.Admin.Template</PackageId>
+    <Title>Element-Plus Admin 中台模板 (Blazor WebAssembly)</Title>
+    <Description>dotnet new template that scaffolds an Element-Plus Blazor WebAssembly admin starter — Login, Dashboard, and User / Role / Permission / Menu management pages — referencing the published Element-Plus / Element-Plus.X / Element-Plus.Markdown 0.12.1 NuGet packages. Namespace is auto-renamed to the new project name on instantiation.</Description>
+    <PackageType>Template</PackageType>
+    <Version>0.12.1</Version>
+    <Authors>Element-Plus Blazor (Smart)</Authors>
+    <Company>Element-Plus Blazor</Company>
+    <PackageTags>dotnet-new;templates;blazor;element-plus;admin;wasm;starter</PackageTags>
+    <PackageProjectUrl>https://github.com/sdhzth/ElementPlus-Blazor</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/sdhzth/ElementPlus-Blazor</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <DevelopmentDependency>true</DevelopmentDependency>
+
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IncludeContentInPack>true</IncludeContentInPack>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <ContentTargetFolders>content</ContentTargetFolders>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <NoDefaultExcludes>true</NoDefaultExcludes>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Pack the existing template verbatim into content/ElementPlus.Admin -->
+    <Content Include="..\ElementPlus.Admin\**\*"
+             Exclude="..\ElementPlus.Admin\**\bin\**;..\ElementPlus.Admin\**\obj\**">
+      <PackagePath>content\ElementPlus.Admin\%(RecursiveDir)%(Filename)%(Extension)</PackagePath>
+    </Content>
+    <Compile Remove="**\*.cs" />
+  </ItemGroup>
+
+</Project>
