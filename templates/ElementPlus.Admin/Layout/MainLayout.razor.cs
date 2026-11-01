@@ -85,7 +85,7 @@ namespace ElementPlus.Blazor.Demo.Layout
         private IReadOnlyList<DemoNavEntry> SearchResults =>
             string.IsNullOrWhiteSpace(navSearch)
                 ? null
-                : DemoNavigation.All
+                : DemoNavigation.Fixed
                     .Where(e => e.Title.Contains(navSearch, StringComparison.OrdinalIgnoreCase)
                                 || e.Path.Contains(navSearch, StringComparison.OrdinalIgnoreCase))
                     .Take(80)

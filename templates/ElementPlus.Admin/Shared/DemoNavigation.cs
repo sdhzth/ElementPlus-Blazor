@@ -35,48 +35,40 @@ namespace ElementPlus.Blazor.Demo.Shared
 
     /// <summary>
     /// 中台模板的导航真源：侧栏菜单、页签标题、面包屑都从这里取，避免漂移。
-    /// 使用者新增业务页时，只需在 <see cref="TemplateSection"/> 里加一条 <see cref="DemoNavEntry"/>。
+    /// <list type="bullet">
+    ///   <item><see cref="Fixed"/>：左侧菜单实际显示的条目（模板默认仅 4 个管理页）。</item>
+    ///   <item><see cref="Registered"/>：已登记但不在左侧菜单显示的页（首页 / 登录 / 控制台），仍可被直接访问并被页签与面包屑引用。</item>
+    /// </list>
+    /// 使用者新增业务页时，只需在 <see cref="Fixed"/> 里加一条 <see cref="DemoNavEntry"/> 即可。
     /// </summary>
     public static class DemoNavigation
     {
-        /// <summary>侧栏顶部的固定入口（首页固定为不可关闭页签）。</summary>
+        /// <summary>侧栏实际显示的菜单项（模板默认：用户 / 角色 / 权限 / 菜单管理）。</summary>
         public static IReadOnlyList<DemoNavEntry> Fixed { get; } = new[]
         {
-            new DemoNavEntry { Path = "/", Title = "首页", Icon = "el-icon-s-home", Closable = false }
+            new DemoNavEntry { Path = "/admin/users", Title = "用户管理", Icon = "el-icon-user", Closable = true },
+            new DemoNavEntry { Path = "/admin/roles", Title = "角色管理", Icon = "el-icon-s-custom", Closable = true },
+            new DemoNavEntry { Path = "/admin/permissions", Title = "权限管理", Icon = "el-icon-key", Closable = true },
+            new DemoNavEntry { Path = "/admin/menus", Title = "菜单管理", Icon = "el-icon-menu", Closable = true }
         };
 
-        /// <summary>「中台模板」分组：登录 / 控制台 / 用户·角色·权限·菜单管理。</summary>
-        public static DemoNavSection TemplateSection { get; } = new DemoNavSection
+        /// <summary>
+        /// 已登记但不在左侧菜单显示的页：首页（默认落地页 / 固定钉页签）、登录页（独立布局）、控制台。
+        /// 保留在此供 <see cref="Find"/> / 页签标题 / 面包屑引用，避免直接访问时标题退化成路径。
+        /// </summary>
+        public static IReadOnlyList<DemoNavEntry> Registered { get; } = new[]
         {
-            Key = "template",
-            Title = TemplateSectionTitle,
-            Icon = "el-icon-menu",
-            Entries = new[]
-            {
-                Template("/login", "登录页 Login（独立布局）", "el-icon-lock"),
-                Template("/dashboard", "控制台 Dashboard", "el-icon-s-data"),
-                Template("/admin/users", "用户管理", "el-icon-user"),
-                Template("/admin/roles", "角色管理", "el-icon-s-custom"),
-                Template("/admin/permissions", "权限管理", "el-icon-key"),
-                Template("/admin/menus", "菜单管理", "el-icon-menu")
-            }
+            new DemoNavEntry { Path = "/", Title = "首页", Icon = "el-icon-s-home", Closable = false },
+            new DemoNavEntry { Path = "/login", Title = "登录页 Login（独立布局）", Icon = "el-icon-lock" },
+            new DemoNavEntry { Path = "/dashboard", Title = "控制台 Dashboard", Icon = "el-icon-s-data" }
         };
 
-        /// <summary>所有侧栏分组，供 SidebarMenu 遍历渲染。</summary>
-        public static IReadOnlyList<DemoNavSection> Sections { get; } = new[]
-        {
-            TemplateSection
-        };
+        /// <summary>侧栏分组（当前模板仅 4 个一级管理页、无子分组；保留结构便于后续扩展多级菜单）。</summary>
+        public static IReadOnlyList<DemoNavSection> Sections { get; } = Array.Empty<DemoNavSection>();
 
-        private const string TemplateSectionTitle = "中台模板";
-
-        /// <summary>「中台模板」分组的条目构造器：Section 固定为 TemplateSectionTitle，面包屑第二级即「中台模板」。</summary>
-        private static DemoNavEntry Template(string path, string title, string icon) =>
-            new() { Path = path, Title = title, Icon = icon, Section = TemplateSectionTitle };
-
-        /// <summary>全部条目（顺序即侧栏顺序），用于「更多」与查找。</summary>
+        /// <summary>全部已登记条目（Fixed + Registered），用于查找、页签与面包屑。</summary>
         public static IReadOnlyList<DemoNavEntry> All { get; } =
-            Fixed.Concat(Sections.SelectMany(s => s.Entries)).ToArray();
+            Fixed.Concat(Registered).ToArray();
 
         private static readonly Dictionary<string, DemoNavEntry> Index =
             All.GroupBy(x => x.Path, StringComparer.OrdinalIgnoreCase)
