@@ -176,6 +176,23 @@ extracted into the user's template cache (path-independent after install) and sh
 > packs the real template (`../ElementPlus.Admin`) verbatim into `content/`, so there is a single
 > source of truth — edit the template under `templates/ElementPlus.Admin/` and re-pack.
 
+##### For external / remote customers (published to NuGet.org)
+
+Once the package is published, **customers in any region** install it with a single command — no
+Git checkout, no local path, no Visual Studio extension required:
+
+```powershell
+# installs the admin starter template from NuGet.org (global CDN)
+dotnet new install ElementPlus.Blazor.Admin.Template
+```
+
+After that, the template shows up in the **VS 2022 *New Project* dialog** (search
+"Element-Plus Admin") on their machine too. The generated project references the public
+`Element-Plus` / `Element-Plus.X` / `Element-Plus.Markdown` `0.12.1` packages on NuGet.org, so
+restore works automatically anywhere NuGet.org is reachable. (If a customer is behind a network
+where NuGet.org is slow, they can instead download the `.nupkg` from the GitHub Releases page and
+run `dotnet new install <downloaded-file>.nupkg`.)
+
 #### Scaffold via the VSIX (native VS project template)
 
 The `src/VSExtension` project bundles the same shell as a native Visual Studio project template
