@@ -1,0 +1,87 @@
+@page "/dashboard"
+@using ElementPlus
+@using ElementPlus.Blazor.Demo
+
+<h1 class="demo-page-title">控制台 Dashboard</h1>
+<p class="demo-page-sub">
+    中台模板 · 首页示例：统计卡片（ElStatistic）+ 最近数据表格（ElTable）+ 待办时间线（ElTimeline）。
+    本页数据来自内存 Mock 列表 <code>employees</code>，<b>实际项目把这份数据换成你的 API 返回即可直接当后台首页用</b>。
+</p>
+
+<ElRow Gutter="16">
+    <ElCol Span="6">
+        <ElCard>
+            <h3 style="margin:0 0 12px;font-size:15px;color:#303133;">员工总数</h3>
+            <ElStatistic Value="@employees.Count" SuffixText="人" />
+        </ElCard>
+    </ElCol>
+    <ElCol Span="6">
+        <ElCard>
+            <h3 style="margin:0 0 12px;font-size:15px;color:#303133;">在职人数</h3>
+            <ElStatistic Value="@employees.Count(e => e.OnDuty)" SuffixText="人" />
+        </ElCard>
+    </ElCol>
+    <ElCol Span="6">
+        <ElCard>
+            <h3 style="margin:0 0 12px;font-size:15px;color:#303133;">部门数量</h3>
+            <ElStatistic Value="@employees.Select(e => e.Department).Distinct().Count()" SuffixText="个" />
+        </ElCard>
+    </ElCol>
+    <ElCol Span="6">
+        <ElCard>
+            <h3 style="margin:0 0 12px;font-size:15px;color:#303133;">本月新增</h3>
+            <ElStatistic Value="@monthNew" SuffixText="人" />
+        </ElCard>
+    </ElCol>
+</ElRow>
+
+<ElRow Gutter="16" Style="margin-top:16px;">
+    <ElCol Span="16">
+        <ElCard>
+            <h3 style="margin:0 0 12px;font-size:15px;color:#303133;">最近员工</h3>
+            <ElTable DataSource="employees" AutoGenerateColumns="false" HasSelectionColumn="false" Border="true">
+                <ElTableColumn Property="Name" Text="姓名" Width="120" />
+                <ElTableColumn Property="Age" Text="年龄" Width="90" Align="right" />
+                <ElTableColumn Property="Department" Text="部门" Width="140" />
+                <ElTableColumn Property="OnDuty" Text="状态" Width="100">
+                    @if (((EmployeeModel)context).OnDuty)
+                    {
+                        <span style="color:#67c23a;font-weight:600;">在职</span>
+                    }
+                    else
+                    {
+                        <span style="color:#909399;">离职</span>
+                    }
+                </ElTableColumn>
+            </ElTable>
+        </ElCard>
+    </ElCol>
+    <ElCol Span="8">
+        <ElCard>
+            <h3 style="margin:0 0 12px;font-size:15px;color:#303133;">待办事项</h3>
+            <ElTimeline>
+                <ElTimelineItem Timestamp="09:00"><text>晨会交班，确认夜班危重患者</text></ElTimelineItem>
+                <ElTimelineItem Timestamp="10:30"><text>审签检验科新模板 v2.14</text></ElTimelineItem>
+                <ElTimelineItem Timestamp="14:00"><text>病案质控例会</text></ElTimelineItem>
+                <ElTimelineItem Timestamp="17:30"><text>周报汇总提交</text></ElTimelineItem>
+            </ElTimeline>
+        </ElCard>
+    </ElCol>
+</ElRow>
+
+@code {
+    /// <summary>演示用内存数据；实际项目改为注入服务后从 API 拉取。</summary>
+    private List<EmployeeModel> employees = new()
+    {
+        new EmployeeModel { Name = "张伟", Age = 34, Department = "门诊部", OnDuty = true },
+        new EmployeeModel { Name = "李娜", Age = 29, Department = "住院部", OnDuty = true },
+        new EmployeeModel { Name = "王芳", Age = 41, Department = "检验科", OnDuty = true },
+        new EmployeeModel { Name = "刘强", Age = 37, Department = "影像科", OnDuty = false },
+        new EmployeeModel { Name = "陈静", Age = 26, Department = "药剂科", OnDuty = true },
+        new EmployeeModel { Name = "杨光", Age = 45, Department = "门诊部", OnDuty = true },
+        new EmployeeModel { Name = "赵敏", Age = 31, Department = "住院部", OnDuty = false },
+        new EmployeeModel { Name = "周杰", Age = 38, Department = "检验科", OnDuty = true },
+    };
+
+    private int monthNew = 3;
+}

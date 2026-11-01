@@ -1,0 +1,32 @@
+@*
+    浮层宿主：全应用必须挂载且只挂载一次。
+
+    下拉面板 / 弹层 / 消息 / 通知 / 对话框都不是原地渲染的，而是组件把“浮层模型”注册进
+    PopupService，再由 ElPopup 统一渲染到页面根部（position:absolute + z-index）。
+    没有这个宿主，ElDatePicker / ElTimePicker / ElDateTimePicker / ElCascader /
+    ElColorPicker / ElSelect / ElAutocomplete / ElDropdown / ElPopover 之类的
+    “点击展开”全部会静默失效——不报错，只是什么都不出现。
+
+    必须放在 Router 之前：ElPopup.OnInitialized 会重建 PopupService 里的集合，
+    若某个页面在首帧就弹了消息，晚挂载的宿主会把这次注册丢掉。
+*@
+<ElPopup />
+
+@* 服务化对话框宿主（ElDialogGrowService）：OpenAsync 打开的对话框全部由它渲染。
+   与 ElPopup 同理，必须放在 Router 之前、且全应用只挂一次。 *@
+<ElDialogGrowHost />
+
+<Router AppAssembly="@typeof(App).Assembly">
+    <Found Context="routeData">
+        <KeepAliveRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <div class="demo-empty">
+                <h2>页面未找到</h2>
+                <p>请从左侧导航选择页面。</p>
+            </div>
+        </LayoutView>
+    </NotFound>
+</Router>

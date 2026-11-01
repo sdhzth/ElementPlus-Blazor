@@ -1,0 +1,191 @@
+@page "/admin/permissions"
+@using ElementPlus
+@using ElementPlus.Blazor.Demo
+@inject ElDialogGrowService DialogGrow
+
+<h1 class="demo-page-title">权限管理（中台列表页模板）</h1>
+<p class="demo-page-sub">
+    与「角色管理」同构：查询栏 + 表格（多选）+ 新增 / 编辑 / 删除，内联 <code>ElDialog</code> 表单。
+    这里演示<b>带枚举下拉（权限类型：菜单 / 按钮 / 接口）</b>的列表页写法，数据存于内存 <code>perms</code>，
+    <b>实际项目换成你的权限 API 即可</b>。
+</p>
+
+<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+    <ElInput TValue="string" @bind-Value="keyword" Placeholder="权限名称关键字" Style="width:200px;" Clearable="true" />
+    <ElSelect TValue="string" @bind-Value="typeFilter" Placeholder="类型" Clearable="true" Style="width:140px;">
+        @foreach (var t in PermissionTypes)
+        {
+            <ElOption TValue="string" Value="@t" Text="@t" />
+        }
+    </ElSelect>
+    <ElButton Type="ButtonType.Primary" OnClick="ApplyQuery">查询</ElButton>
+    <ElButton OnClick="ResetQuery">重置</ElButton>
+    <span style="flex:1;"></span>
+    <ElButton Type="ButtonType.Primary" Icon="el-icon-plus" OnClick="AddAsync">新增</ElButton>
+    <ElButton Type="ButtonType.Danger" OnClick="BatchDeleteAsync" Disabled="@(selectedRows.Count == 0)">批量删除（@selectedRows.Count）</ElButton>
+</div>
+
+<ElTable DataSource="Filtered" AutoGenerateColumns="false" HasSelectionColumn="true" Border="true"
+         @bind-SelectedRows="selectedRows">
+    <ElTableColumn Property="Name" Text="权限名称" Width="180" />
+    <ElTableColumn Property="Code" Text="权限标识" Width="200" />
+    <ElTableColumn Property="Type" Text="类型" Width="120" />
+    <ElTableColumn Property="Enabled" Text="状态" Width="100">
+        @if (((PermissionModel)context).Enabled)
+        {
+            <span style="color:#67c23a;font-weight:600;">启用</span>
+        }
+        else
+        {
+            <span style="color:#909399;">禁用</span>
+        }
+    </ElTableColumn>
+    <ElTableTemplateColumn Text="操作" Width="160" SortNo="-1">
+        @{
+            var row = (PermissionModel)context;
+        }
+        <ElButton Size="ButtonSize.Small" Type="ButtonType.Primary" OnClick="@(() => EditAsync(row))">编辑</ElButton>
+        <ElButton Size="ButtonSize.Small" Type="ButtonType.Danger" OnClick="@(() => DeleteAsync(row))">删除</ElButton>
+    </ElTableTemplateColumn>
+</ElTable>
+
+<ElDialog @bind-ModelValue="dialogVisible" Title="@dialogTitle" Width="480px" AlignCenter="true">
+    <ChildContent>
+        <ElForm Model="@editModel" LabelWidth="@("90px")">
+            <ElFormItem TValue="string" Name="Name" Label="权限名称">
+                <ElInput TValue="string" @bind-Value="editModel.Name" Placeholder="请输入权限名称" />
+            </ElFormItem>
+            <ElFormItem TValue="string" Name="Code" Label="权限标识">
+                <ElInput TValue="string" @bind-Value="editModel.Code" Placeholder="如 user:add / menu:view" />
+            </ElFormItem>
+            <ElFormItem TValue="string" Name="Type" Label="类型">
+                <ElSelect TValue="string" @bind-Value="editModel.Type" Placeholder="请选择类型">
+                    @foreach (var t in PermissionTypes)
+                    {
+                        <ElOption TValue="string" Value="@t" Text="@t" />
+                    }
+                </ElSelect>
+            </ElFormItem>
+            <ElFormItem TValue="bool" Name="Enabled" Label="状态">
+                <ElSwitch TValue="bool" @bind-Value="editModel.Enabled" />
+            </ElFormItem>
+        </ElForm>
+    </ChildContent>
+    <Footer>
+        <ElButton OnClick="() => dialogVisible = false">取消</ElButton>
+        <ElButton Type="ButtonType.Primary" OnClick="SaveAsync">确定</ElButton>
+    </Footer>
+</ElDialog>
+
+@code {
+    private static readonly string[] PermissionTypes = { "菜单", "按钮", "接口" };
+
+    /// <summary>演示用内存数据源；实际项目改为 API 返回的集合。</summary>
+    private List<PermissionModel> perms = new()
+    {
+        new PermissionModel { Name = "查看用户", Code = "user:view", Type = "菜单", Enabled = true },
+        new PermissionModel { Name = "新增用户", Code = "user:add", Type = "按钮", Enabled = true },
+        new PermissionModel { Name = "编辑用户", Code = "user:edit", Type = "按钮", Enabled = true },
+        new PermissionModel { Name = "删除用户", Code = "user:delete", Type = "按钮", Enabled = false },
+        new PermissionModel { Name = "导出报表", Code = "report:export", Type = "接口", Enabled = true },
+        new PermissionModel { Name = "系统设置", Code = "sys:setting", Type = "菜单", Enabled = false },
+    };
+
+    private string keyword = string.Empty;
+    private string typeFilter;
+    private HashSet<object> selectedRows = new();
+
+    /// <summary>按查询条件过滤后的数据（计算属性）。</summary>
+    private List<PermissionModel> Filtered
+        => perms.Where(p =>
+            (string.IsNullOrWhiteSpace(keyword) || p.Name.Contains(keyword)) &&
+            (string.IsNullOrWhiteSpace(typeFilter) || p.Type == typeFilter)).ToList();
+
+    private void ApplyQuery() => StateHasChanged();
+
+    private void ResetQuery()
+    {
+        keyword = string.Empty;
+        typeFilter = null;
+        StateHasChanged();
+    }
+
+    private bool dialogVisible;
+    private bool isEdit;
+    private PermissionModel editModel = new();
+    private PermissionModel editTarget;
+    private string dialogTitle = "新增权限";
+
+    private void AddAsync()
+    {
+        isEdit = false;
+        editTarget = null;
+        editModel = new PermissionModel { Type = "菜单", Enabled = true };
+        dialogTitle = "新增权限";
+        dialogVisible = true;
+    }
+
+    private void EditAsync(PermissionModel perm)
+    {
+        isEdit = true;
+        editTarget = perm;
+        editModel = new PermissionModel { Name = perm.Name, Code = perm.Code, Type = perm.Type, Enabled = perm.Enabled };
+        dialogTitle = "编辑权限";
+        dialogVisible = true;
+    }
+
+    private async Task SaveAsync()
+    {
+        if (string.IsNullOrWhiteSpace(editModel.Name))
+        {
+            await DialogGrow.AlertAsync("请填写权限名称", "提示");
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(editModel.Code))
+        {
+            await DialogGrow.AlertAsync("请填写权限标识", "提示");
+            return;
+        }
+
+        if (isEdit && editTarget != null)
+        {
+            editTarget.Name = editModel.Name;
+            editTarget.Code = editModel.Code;
+            editTarget.Type = editModel.Type;
+            editTarget.Enabled = editModel.Enabled;
+        }
+        else
+        {
+            perms.Add(editModel);
+        }
+
+        dialogVisible = false;
+        StateHasChanged();
+    }
+
+    private async Task DeleteAsync(PermissionModel perm)
+    {
+        var ok = await DialogGrow.ConfirmAsync($"确认删除权限「{perm.Name}」？", "删除确认");
+        if (ok)
+        {
+            perms.Remove(perm);
+            selectedRows.Remove(perm);
+            StateHasChanged();
+        }
+    }
+
+    private async Task BatchDeleteAsync()
+    {
+        if (selectedRows.Count == 0) return;
+        var ok = await DialogGrow.ConfirmAsync($"确认删除选中的 {selectedRows.Count} 个权限？", "批量删除");
+        if (ok)
+        {
+            foreach (var r in selectedRows.ToList())
+            {
+                perms.Remove((PermissionModel)r);
+            }
+            selectedRows.Clear();
+            StateHasChanged();
+        }
+    }
+}

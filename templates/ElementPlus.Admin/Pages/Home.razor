@@ -1,0 +1,30 @@
+@page "/"
+
+<div class="demo-section">
+    <h1 class="demo-page-title">Element-Plus Admin 中台模板</h1>
+    <p class="demo-page-sub">
+        这是一个基于 <code>ElementPlus</code> 组件库的 Blazor WebAssembly 后台管理骨架。
+        包含登录页（独立布局）、控制台，以及用户 / 角色 / 权限 / 菜单管理的「查询 + 表格 + 增删改查」示例页。
+        业务页数据均使用内存 Mock，<b>把 Mock 换成你的 API 即可投产</b>。
+    </p>
+    <div class="demo-row">
+        <a class="el-button el-button--primary" href="/login">登录页（独立布局）</a>
+        <a class="el-button el-button--primary" href="/dashboard">控制台 Dashboard</a>
+        <a class="el-button" href="/admin/users">用户管理</a>
+        <a class="el-button" href="/admin/roles">角色管理</a>
+        <a class="el-button" href="/admin/permissions">权限管理</a>
+        <a class="el-button" href="/admin/menus">菜单管理</a>
+    </div>
+</div>
+
+<div class="demo-section">
+    <h3>三步把 Mock 换成你的后端</h3>
+    <ol>
+        <li>在 <code>Models/</code> 下用你自己的 DTO 替换示例 Model（或直接复用）；</li>
+        <li>在对应 <code>Pages/*Manage.razor</code> 中，把内存 <code>List&lt;T&gt;</code> 改为调用注入的 <code>HttpClient</code> / 服务；</li>
+        <li>在 <code>Shared/DemoNavigation.cs</code> 的 <code>TemplateSection</code> 里加一条新页面即可出现在左侧菜单。</li>
+    </ol>
+    <p class="demo-page-sub">
+        导航真源、侧栏、面包屑、多标签页 keep-alive 均已打通，新增页面无需改动布局代码。
+    </p>
+</div>

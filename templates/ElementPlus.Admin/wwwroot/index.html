@@ -1,0 +1,163 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Element-Plus Admin 中台模板</title>
+    <base href="/" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='3' fill='%23409eff'/><text x='8' y='12' font-size='10' text-anchor='middle' fill='white'>E</text></svg>" />
+    <link href="_content/Element-Plus/css/index.css" rel="stylesheet" />
+    <link href="_content/Element-Plus.X/css/x.css" rel="stylesheet" />
+    <link href="_content/Element-Plus.Markdown/css/codemirror.min.css" rel="stylesheet" />
+    <link href="_content/Element-Plus.Markdown/css/editormd.min.css" rel="stylesheet" />
+    <link href="_content/Element-Plus.Markdown/css/editor.css" rel="stylesheet" />
+    <link href="css/app.css" rel="stylesheet" />
+<style>
+        /* ===== Blazor 启动前的加载屏（品牌标 + 标题 + 细进度条，简约大方） ===== */
+        #boot-splash {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            background: #f5f7fa;
+            font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            opacity: 1;
+            transition: opacity .32s ease, visibility .32s ease;
+        }
+
+        #boot-splash.is-hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .boot-splash__logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #6cb2ff 0%, #409eff 55%, #337ecc 100%);
+            box-shadow: 0 10px 26px rgba(64, 158, 255, .3);
+            color: #fff;
+            font-size: 27px;
+            font-weight: 600;
+            animation: boot-rise .5s cubic-bezier(.22, .68, .36, 1) both;
+        }
+
+        .boot-splash__text {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            animation: boot-rise .5s cubic-bezier(.22, .68, .36, 1) .08s both;
+        }
+
+        .boot-splash__title {
+            font-size: 17px;
+            font-weight: 600;
+            letter-spacing: .4px;
+            color: #303133;
+        }
+
+        .boot-splash__subtitle {
+            font-size: 13px;
+            color: #909399;
+        }
+
+        .boot-splash__bar {
+            width: 168px;
+            height: 3px;
+            border-radius: 3px;
+            background: #e4e9f0;
+            overflow: hidden;
+            animation: boot-rise .5s cubic-bezier(.22, .68, .36, 1) .14s both;
+        }
+
+        .boot-splash__bar::after {
+            content: "";
+            display: block;
+            width: 40%;
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, #a8c9ff, #409eff);
+            animation: boot-slide 1.15s ease-in-out infinite;
+        }
+
+        @keyframes boot-rise {
+            from { opacity: 0; transform: translateY(10px) scale(.97); }
+            to { opacity: 1; transform: none; }
+        }
+
+        @keyframes boot-slide {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(250%); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            #boot-splash,
+            #boot-splash *,
+            #boot-splash .boot-splash__bar::after {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+    </style></head>
+<body>
+    <div id="app"></div>
+
+    <!-- 启动加载屏：刻意放在 #app 之外，Blazor 首次渲染不会清掉它；
+         由下方脚本在应用首帧绘制完成后淡出并移除。 -->
+    <div id="boot-splash" role="status" aria-live="polite">
+        <div class="boot-splash__logo">E</div>
+        <div class="boot-splash__text">
+            <div class="boot-splash__title">Element-Plus Blazor</div>
+            <div class="boot-splash__subtitle">中台后台加载中…</div>
+        </div>
+        <div class="boot-splash__bar"></div>
+    </div>
+    <script>
+        // #app 出现首个子节点（Blazor 已渲染）后，等两个 rAF 让首帧落地，再淡出加载屏。
+        (function () {
+            var splash = document.getElementById('boot-splash');
+            var app = document.getElementById('app');
+            if (!splash || !app) { return; }
+
+            var hidden = false;
+            function hide() {
+                if (hidden) { return; }
+                hidden = true;
+                obs.disconnect();
+                splash.classList.add('is-hidden');
+                window.setTimeout(function () { splash.remove(); }, 400);
+            }
+
+            var obs = new MutationObserver(function () {
+                if (app.children.length === 0) { return; }
+                window.requestAnimationFrame(function () {
+                    window.requestAnimationFrame(hide);
+                });
+            });
+            obs.observe(app, { childList: true });
+        })();
+    </script>
+
+    <script src="_content/Element-Plus/js/dom.js"></script>
+    <!-- 外壳专用：全屏开关 / 页签持久化 / Ctrl+K（不随组件库发布，已随模板附带） -->
+    <script src="js/demo-shell.js"></script>
+    <script src="_content/Element-Plus.X/js/x.js"></script>
+    <!-- ElMarkdownEditor 依赖 CodeMirror（核心 + Editor.md 的 addons / modes 扩展） -->
+    <script src="_content/Element-Plus.Markdown/js/codemirror.min.js"></script>
+    <script src="_content/Element-Plus.Markdown/js/addons.min.js"></script>
+    <script src="_content/Element-Plus.Markdown/js/modes.min.js"></script>
+    <script src="_content/Element-Plus.Markdown/js/continuelist.js"></script>
+    <script src="_content/Element-Plus.Markdown/js/dom.js"></script>
+    <script src="_framework/blazor.webassembly.js"></script>
+</body>
+</html>

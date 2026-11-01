@@ -1,0 +1,9 @@
+﻿@inherits LayoutComponentBase
+
+@* 这里不要再挂 <ElPopup />：浮层宿主全应用只允许一个，App.razor 已经挂在 Router 之前。
+   布局里再挂一个，/login 的宿主就把浮层队列接管走（ElPopup.OnInitialized 会重建那些集合）；
+   离开 /login 时 LayoutView 换回 MainLayout、这棵宿主被拆掉，而 App.razor 的宿主不会再初始化、
+   ElPopup.Dispose 也不退订 —— 接管成了永久的，之后整站的 Loading / 消息 / 对话框全部静默不出现。
+   实测取证见 docs/popup-host-isolation.md。 *@
+
+@Body

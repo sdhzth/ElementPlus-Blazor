@@ -64,12 +64,27 @@ src/
   Components/        # Core library (Element-Plus)
   X/                # Extended components (Element-Plus.X)
   Markdown/         # Markdown support (Element-Plus.Markdown)
-  VSExtension/      # Visual Studio item/project templates
+  VSExtension/      # Visual Studio item/project templates (.vsix)
 demo/
-  Element.Blazor.Demo/  # Example Blazor application
+  Element.Blazor.Demo/  # Example Blazor application (also the admin shell)
+templates/
+  ElementPlus.Admin/ # `dotnet new` project template (separate from the .vsix)
 test/               # Component tests
 docs/               # Design & usage documentation
 ```
+
+> **Two ways to scaffold the admin shell from Visual Studio:**
+>
+> 1. **`dotnet new` template** (recommended) — installs the admin starter as a `dotnet new`
+>    template. After `dotnet new install` you can pick **"Element-Plus Admin 中台模板 (Blazor
+>    WebAssembly)"** directly in the VS 2022 *New Project* dialog.
+> 2. **VSIX project template** — `src/VSExtension` bundles the same shell as a native VS
+>    project template (`ElementAdminServerRenderProject.zip`); building the VSIX registers it in
+>    the *New Project* dialog automatically.
+
+Both produce an **independent Blazor WebAssembly project** that references the published NuGet
+packages (`Element-Plus` / `Element-Plus.X` / `Element-Plus.Markdown` `0.12.1`) and renames the
+namespace to your project name on instantiation.
 
 ### Admin Starter Template (中台模板)
 
@@ -103,6 +118,49 @@ Two CRUD dialog styles are intentionally shown so you can pick one:
 - **Service dialog** (`UserManage`): open any component with one line and `await` its return value.
 - **Inline dialog** (`RoleManage` / `PermissionManage` / `MenuManage`): a local `ElDialog` whose
   form binds directly to a page field — fully self-contained, easiest to copy into a new page.
+
+#### Scaffold via `dotnet new` (recommended)
+
+Install the template from this repo, then create a project in one step:
+
+```powershell
+# 1. install the template (path points at the folder that contains .template.config)
+dotnet new install <repo-root>/github-upload/templates/ElementPlus.Admin
+
+# 2. create a new admin project (namespace is auto-renamed to "MyAdmin")
+dotnet new elementplus-admin -n MyAdmin -o MyAdmin
+
+# 3. build it (references NuGet Element-Plus 0.12.1, no source checkout needed)
+cd MyAdmin
+dotnet build -c Release
+```
+
+After step 1, the template **also appears in the Visual Studio 2022 *New Project* dialog** —
+search for **"Element-Plus Admin"** and it shows up as
+**"Element-Plus Admin 中台模板 (Blazor WebAssembly)"**. The generated project:
+
+- Targets `net10.0` Blazor WebAssembly and references the published NuGet packages
+  (`Element-Plus` / `Element-Plus.X` / `Element-Plus.Markdown` `0.12.1`) — no local source build
+  required.
+- Renames the root namespace from the template's `ElementPlus.Blazor.Demo` to your project name
+  (e.g. `MyAdmin`) in **both file names and file contents** automatically.
+- Ships the same 6 pages (`/login`, `/dashboard`, `/admin/users`, `/admin/roles`,
+  `/admin/permissions`, `/admin/menus`), the `MainLayout` / `LoginLayout` shell, the tab
+  keep-alive host, and `wwwroot/js/demo-shell.js`.
+
+To uninstall the template later:
+
+```powershell
+dotnet new uninstall <repo-root>/github-upload/templates/ElementPlus.Admin
+```
+
+#### Scaffold via the VSIX (native VS project template)
+
+The `src/VSExtension` project bundles the same shell as a native Visual Studio project template
+(`ProjectTemplates/ElementAdminServerRenderProject.zip`, rebuilt to match `Element-Plus` 0.12.1).
+Building the VSIX registers it under **C# → Blazor WebAssembly** in the *New Project* dialog. The
+`source.extension.vsixmanifest` `InstallationTarget` is set to `[17.0,18.0)` so it shows in
+**VS 2022** (the old 2020-era manifest targeted `[16.0,17.0)` and was invisible in VS 2022).
 
 ### Build from Source
 

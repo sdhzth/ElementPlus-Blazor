@@ -1,0 +1,115 @@
+﻿@inherits LayoutComponentBase
+@using ElementPlus.Blazor.Demo.Shared
+@inject NavigationManager Nav
+
+<div class="demo-shell @(sidebarCollapsed ? "is-collapsed" : string.Empty)">
+    <aside class="demo-aside">
+        <div class="demo-brand">
+            <span class="demo-brand-logo">EP</span>
+            <span class="demo-brand-text">
+                <b>Element-Plus Blazor</b>
+                <small>组件演示中心 v0.1</small>
+            </span>
+        </div>
+
+        <div class="demo-aside-scroll">
+            <SidebarMenu Collapse="@sidebarCollapsed"
+                         SearchResults="@SearchResults"
+                         OnSelect="@OnMenuSelect"
+                         @ref="sidebarMenuRef" />
+        </div>
+    </aside>
+
+    <div class="demo-body">
+        <header class="demo-header">
+            <button type="button" class="demo-icon-btn" @onclick="ToggleSidebar"
+                    title="@(sidebarCollapsed ? "展开侧栏" : "折叠侧栏")"
+                    aria-label="@(sidebarCollapsed ? "展开侧栏" : "折叠侧栏")">
+                <i class="@(sidebarCollapsed ? "el-icon-s-unfold" : "el-icon-s-fold")"></i>
+            </button>
+            <button type="button" class="demo-icon-btn" @onclick="RefreshAsync" title="刷新当前页" aria-label="刷新当前页">
+                <i class="el-icon-refresh"></i>
+            </button>
+
+            <ElBreadcrumb Cls="demo-crumb">
+                @{ var crumbs = Crumbs; }
+                @for (var i = 0; i < crumbs.Count; i++)
+                {
+                    var crumb = crumbs[i];
+                    var last = i == crumbs.Count - 1;
+                    if (last)
+                    {
+                        <ElBreadcrumbItem Cls="is-current">@crumb</ElBreadcrumbItem>
+                    }
+                    else
+                    {
+                        <ElBreadcrumbItem To="@CrumbPath(i)">@crumb</ElBreadcrumbItem>
+                    }
+                }
+            </ElBreadcrumb>
+
+            <div class="demo-header-spacer"></div>
+
+            <div class="demo-header-search">
+                <i class="el-icon-search demo-header-search-icon" aria-hidden="true"></i>
+                <input class="demo-header-search-input" type="text" placeholder="搜索组件…"
+                       @ref="searchInput"
+                       @bind="navSearch" @bind:event="oninput"
+                       aria-label="搜索组件" />
+                <span class="demo-kbd">Ctrl K</span>
+            </div>
+
+            <button type="button" class="demo-icon-btn" @onclick="ToggleFullscreenAsync"
+                    title="@(isFullscreen ? "退出全屏" : "全屏")" aria-label="全屏切换"
+                    data-fullscreen="@(isFullscreen ? "on" : "off")">
+                <i class="@(isFullscreen ? "el-icon-c-scale-to-original" : "el-icon-full-screen")"></i>
+            </button>
+
+            <ElDropdown TriggerMode="DropdownTrigger.Click" OnCommand="OnHeaderCommand">
+                <Trigger>
+                    <span class="demo-icon-btn demo-bell" title="通知" role="button" aria-label="通知">
+                        <i class="el-icon-bell"></i>
+                        <span class="demo-bell-dot" aria-hidden="true"></span>
+                    </span>
+                </Trigger>
+                <Items>
+                    <ElDropdownItem Command="@("notice-1")">@(notices[0])</ElDropdownItem>
+                    <ElDropdownItem Command="@("notice-2")">@(notices[1])</ElDropdownItem>
+                    <ElDropdownItem Command="@("notice-3")">@(notices[2])</ElDropdownItem>
+                    <ElDropdownItem Command="@("notice-read")" Divided="true">全部标记已读</ElDropdownItem>
+                </Items>
+            </ElDropdown>
+
+            <ElDropdown TriggerMode="DropdownTrigger.Click" OnCommand="OnHeaderCommand">
+                <Trigger>
+                    <span class="demo-avatar" title="admin" role="button" aria-label="用户菜单">医</span>
+                </Trigger>
+                <Items>
+                    <ElDropdownItem Command="@("profile")">个人中心</ElDropdownItem>
+                    <ElDropdownItem Command="@("password")">修改密码</ElDropdownItem>
+                    <ElDropdownItem Command="@("logout")" Divided="true">退出登录</ElDropdownItem>
+                </Items>
+            </ElDropdown>
+        </header>
+
+        <ElProTabsGrow @ref="tabsRef"
+                       Items="tabs"
+                       @bind-ActivePath="activePath"
+                       ActiveTextColor="@TabActiveTextColor"
+                       ActiveDotColor="@TabActiveDotColor"
+                       CloseButtonDisplay="@tabCloseDisplay"
+                       Sortable="true"
+                       OnSelect="OnTabSelect"
+                       OnClose="OnTabClose"
+                       OnCloseOthers="OnTabsCloseOthers"
+                       OnCloseAll="OnTabsCloseAll"
+                       OnRefreshTab="OnTabRefresh"
+                       OnCloseLeft="OnTabsCloseLeft"
+                       OnCloseRight="OnTabsCloseRight"
+                       OnReorder="OnTabsReorder" />
+
+        <main class="demo-main">
+            @Body
+        </main>
+    </div>
+</div>
