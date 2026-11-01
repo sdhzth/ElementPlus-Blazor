@@ -129,6 +129,7 @@ namespace ElementPlus.Blazor.Demo.Shared
                 Mock("/steps", "步骤条 Steps", "el-icon-sort"),
                 Mock("/statistic", "统计数值 Statistic", "el-icon-data-line"),
                 Mock("/switch", "开关 Switch", "el-icon-switch"),
+                Mock("/model-bind", "模型绑定 @bind-Model", "el-icon-connection"),
                 Mock("/tablev2", "虚拟化表格 TableV2", "el-icon-s-grid"),
                 Mock("/tabs", "标签页 Tabs", "el-icon-folder-opened"),
                 Mock("/tag", "标签 Tag", "el-icon-price-tag"),

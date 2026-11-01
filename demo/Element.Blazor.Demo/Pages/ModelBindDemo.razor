@@ -1,0 +1,41 @@
+@page "/model-bind"
+@using ElementPlus
+
+<h1 class="demo-page-title">模型绑定 / @("@bind-Model")</h1>
+<p class="demo-page-sub">
+    0.12.1 修复了 ElCheckbox / ElSwitch 上 <code>@@bind-Model</code> 的回调缺陷：原先 <code>Model</code> 只是 <code>Value</code> 的别名、缺 <code>ModelChanged</code>，
+    独立（不在 ElFormItem 内）绑定场景下变化写不回宿主页（状态永远翻不过来）。现已补齐 <code>ModelChanged</code> 并转发到 <code>ValueChanged</code>，
+    使 <code>@@bind-Model</code> 与 <code>@@bind-Value</code> 等价可用。下面三组开关点一下，右侧实时值都应跟着翻转。
+</p>
+
+<div class="demo-section">
+    <h3>ElCheckbox · <code>@@bind-Model</code>（bool）</h3>
+    <div class="demo-row">
+        <ElCheckbox TValue="bool" @bind-Model="cbModel">同意条款</ElCheckbox>
+    </div>
+    <p class="demo-note">cbModel = @cbModel　（点一下应变 true，再点变 false —— 修复前恒定 false）</p>
+</div>
+
+<div class="demo-section">
+    <h3>ElSwitch · <code>@@bind-Model</code>（bool）</h3>
+    <div class="demo-row">
+        <ElSwitch TValue="bool" @bind-Model="swModel" ActiveText="开" InactiveText="关" />
+    </div>
+    <p class="demo-note">swModel = @swModel</p>
+</div>
+
+<div class="demo-section">
+    <h3>对照：<code>@@bind-Value</code> 同样可用</h3>
+    <div class="demo-row">
+        <ElCheckbox TValue="bool" @bind-Value="cbValue">Value 绑定</ElCheckbox>
+        <ElSwitch TValue="bool" @bind-Value="swValue" ActiveText="ON" InactiveText="OFF" />
+    </div>
+    <p class="demo-note">cbValue = @cbValue　swValue = @swValue</p>
+</div>
+
+@code {
+    private bool cbModel;
+    private bool swModel;
+    private bool cbValue;
+    private bool swValue = true;
+}
