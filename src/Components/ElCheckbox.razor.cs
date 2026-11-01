@@ -51,6 +51,13 @@ namespace ElementPlus
         }
         [Parameter]
         public EventCallback<TValue> ValueChanged { get; set; }
+        /// <summary>@bind-Model 的变化回调；转发到 ValueChanged，使 @bind-Model 与 @bind-Value 等价可用（修复独立 bool 绑定回调不达页面的缺陷）。</summary>
+        [Parameter]
+        public EventCallback<TValue> ModelChanged
+        {
+            get => ValueChanged;
+            set => ValueChanged = value;
+        }
         [Parameter]
         public EventCallback<Status> StatusChanged { get; set; }
 
