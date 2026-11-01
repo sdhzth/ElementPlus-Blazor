@@ -164,11 +164,11 @@ for sharing. For team distribution, pack the template into a **NuGet template pa
 dotnet pack github-upload/templates/ElementPlus.Admin.Template -c Release
 
 # anyone on the team installs it with one command (no repo checkout needed):
-dotnet new install ElementPlus.Blazor.Admin.Template.0.12.1.nupkg
+dotnet new install Element-Plus.Admin.Template.0.12.1.nupkg
 ```
 
 Or push the `.nupkg` to an **internal NuGet feed** so teammates can
-`dotnet new install ElementPlus.Blazor.Admin.Template` by package id. A NuGet-installed template is
+`dotnet new install Element-Plus.Admin.Template` by package id. A NuGet-installed template is
 extracted into the user's template cache (path-independent after install) and shows up in the VS
 2022 *New Project* dialog just like the folder install — and it is the more robust of the two.
 
@@ -183,7 +183,7 @@ Git checkout, no local path, no Visual Studio extension required:
 
 ```powershell
 # installs the admin starter template from NuGet.org (global CDN)
-dotnet new install ElementPlus.Blazor.Admin.Template
+dotnet new install Element-Plus.Admin.Template
 ```
 
 After that, the template shows up in the **VS 2022 *New Project* dialog** (search

@@ -2,7 +2,7 @@
   "$schema": "http://json.schemastore.org/template.json",
   "author": "Element-Plus Blazor",
   "classifications": [ "Blazor", "Web", "Admin", "Starter", "ElementPlus" ],
-  "identity": "ElementPlus.Blazor.Admin.Template",
+  "identity": "Element-Plus.Admin.Template",
   "name": "Element-Plus Admin 中台模板 (Blazor WebAssembly)",
   "shortName": "elementplus-admin",
   "defaultName": "ElementPlusAdmin",
