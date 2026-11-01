@@ -50,6 +50,9 @@ namespace ElementPlus.Blazor.Demo.Layout
         [Inject]
         private MessageService MessageService { get; set; }
 
+        [Inject]
+        private AuthService Auth { get; set; }
+
         private SidebarMenu sidebarMenuRef;
         private ElProTabsGrow tabsRef;
         private ElementReference searchInput;
@@ -95,6 +98,13 @@ namespace ElementPlus.Blazor.Demo.Layout
 
         protected override async Task OnInitializedAsync()
         {
+            // 登录守卫：未登录访问任何后台页 → 跳登录页（/login 使用独立布局，不进入本 Layout）
+            if (!await Auth.IsLoggedInAsync())
+            {
+                NavigationManager.NavigateTo("/login");
+                return;
+            }
+
             NavigationManager.LocationChanged += OnLocationChanged;
 
             // 侧栏折叠偏好
@@ -616,7 +626,7 @@ namespace ElementPlus.Blazor.Demo.Layout
             }
         }
 
-        private void OnHeaderCommand(DropdownCommandEventArgs e)
+        private async Task OnHeaderCommand(DropdownCommandEventArgs e)
         {
             switch (e.Command as string)
             {
@@ -627,6 +637,8 @@ namespace ElementPlus.Blazor.Demo.Layout
                     MessageService.Info("修改密码为演示占位页");
                     break;
                 case "logout":
+                    // 退出：清除 cookie 中的 token，再回登录页
+                    await Auth.LogoutAsync();
                     NavigationManager.NavigateTo("/login");
                     break;
                 case "notice-read":

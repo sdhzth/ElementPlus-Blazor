@@ -1,4 +1,5 @@
 using ElementPlus.Blazor.Demo;
+using ElementPlus.Blazor.Demo.Shared;
 using ElementPlus;
 using ElementPlus.Lang;
 using ElementPlus.Markdown;
@@ -17,6 +18,9 @@ builder.Services.AddElementPlusServices();
 builder.Services.AddElementPlusX();
 // Element.Markdown 可选包：注册 ElMarkdownEditor 工具栏各个按钮的处理程序
 builder.Services.AddMarkdown();
+
+// 前端登录态服务（演示用：模拟 token 写入 cookie；投产时换成后端登录接口签发真实 JWT）
+builder.Services.AddScoped<AuthService>();
 
 // ElTable / ElTree 通过 [Inject] HttpClient 支持 Url 远程取数，必须注册否则组件无法实例化
 builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
