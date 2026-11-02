@@ -73,20 +73,6 @@ test/               # Component tests
 docs/               # Design & usage documentation
 ```
 
-## Demo Gallery
-
-The demo project ships offline-friendly SVG illustrations used throughout the component gallery
-(e.g. the `LayoutDemo` page). They show the library rendering real medical artifacts — CT, X-ray,
-lab report, and ECG — with **no network dependency** (the files live under
-`demo/Element.Blazor.Demo/wwwroot/images/`):
-
-<p align="center">
-  <img src="demo/Element.Blazor.Demo/wwwroot/images/demo-img-ct.svg" width="230" alt="CT · 胸部平扫" />
-  <img src="demo/Element.Blazor.Demo/wwwroot/images/demo-img-xray.svg" width="230" alt="DR · 左手正位" />
-  <img src="demo/Element.Blazor.Demo/wwwroot/images/demo-img-report.svg" width="230" alt="检验报告单" />
-  <img src="demo/Element.Blazor.Demo/wwwroot/images/demo-img-eeg.svg" width="230" alt="心电图 · 十二导联" />
-</p>
-
 > **Two ways to scaffold the admin shell from Visual Studio:**
 >
 > 1. **`dotnet new` template** (recommended) — installs the admin starter as a `dotnet new`
