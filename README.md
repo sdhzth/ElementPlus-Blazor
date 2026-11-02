@@ -73,6 +73,19 @@ test/               # Component tests
 docs/               # Design & usage documentation
 ```
 
+## Screenshots
+
+A few screenshots captured from the demo project (the component gallery):
+
+<p align="center">
+  <img src="docs/screenshots/elbutton.png" width="360" alt="ElButton component" />
+  <img src="docs/screenshots/charts.png" width="360" alt="Stacked charts" />
+</p>
+<p align="center">
+  <img src="docs/screenshots/account-table-grow.png" width="360" alt="ElAccountTableGrow accounting voucher table" />
+  <img src="docs/screenshots/dropdown-table-grow.png" width="360" alt="EIDropDownTableGrow dropdown table selector" />
+</p>
+
 > **Two ways to scaffold the admin shell from Visual Studio:**
 >
 > 1. **`dotnet new` template** (recommended) — installs the admin starter as a `dotnet new`

@@ -70,6 +70,19 @@ test/                  # 组件测试
 docs/                  # 设计与使用文档
 ```
 
+## 截图
+
+示例项目（组件演示）的部分运行截图：
+
+<p align="center">
+  <img src="docs/screenshots/elbutton.png" width="360" alt="ElButton 按钮组件" />
+  <img src="docs/screenshots/charts.png" width="360" alt="堆叠图表组件" />
+</p>
+<p align="center">
+  <img src="docs/screenshots/account-table-grow.png" width="360" alt="ElAccountTableGrow 记账凭证表格" />
+  <img src="docs/screenshots/dropdown-table-grow.png" width="360" alt="EIDropDownTableGrow 下拉表格选择器" />
+</p>
+
 ### 从源码构建
 
 ```powershell
