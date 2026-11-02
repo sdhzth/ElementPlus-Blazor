@@ -70,6 +70,19 @@ test/                  # 组件测试
 docs/                  # 设计与使用文档
 ```
 
+## 演示图
+
+示例项目自带一组**离线可用**的 SVG 演示图（位于 `demo/Element.Blazor.Demo/wwwroot/images/`），
+贯穿组件演示（如 `LayoutDemo` 页面），展示组件库在医疗场景下的渲染效果——
+CT、X 光、检验报告、心电图，无需联网依赖：
+
+<p align="center">
+  <img src="demo/Element.Blazor.Demo/wwwroot/images/demo-img-ct.svg" width="230" alt="CT · 胸部平扫" />
+  <img src="demo/Element.Blazor.Demo/wwwroot/images/demo-img-xray.svg" width="230" alt="DR · 左手正位" />
+  <img src="demo/Element.Blazor.Demo/wwwroot/images/demo-img-report.svg" width="230" alt="检验报告单" />
+  <img src="demo/Element.Blazor.Demo/wwwroot/images/demo-img-eeg.svg" width="230" alt="心电图 · 十二导联" />
+</p>
+
 ### 从源码构建
 
 ```powershell
