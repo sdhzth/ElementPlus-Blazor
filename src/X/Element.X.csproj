@@ -9,7 +9,7 @@
     <IsPackable>true</IsPackable>
     <PackageId>Element-Plus.X</PackageId>
     <Title>Element-Plus X</Title>
-    <Version>0.12.1</Version>
+    <Version>0.12.2</Version>
     <Authors>Smart</Authors>
     <Company>Element-Plus</Company>
     <Description>AI and conversation scene components for Element-Plus, inspired by Element Plus X. Independent package line published by Smart.</Description>
