@@ -361,6 +361,12 @@ body {
     --el-button-hover-border-color: var(--el-color-primary);
 }
 
+/* plain 按钮 hover 给浅蓝底 + 浅蓝边框，避免白页背景上"隐身"（文字仍为 primary 蓝） */
+.el-button.is-plain:hover {
+    background-color: var(--el-color-primary-light-9);
+    border-color: var(--el-color-primary-light-7);
+}
+
 .el-button.is-disabled,
 .el-button.is-disabled:focus,
 .el-button.is-disabled:hover,
