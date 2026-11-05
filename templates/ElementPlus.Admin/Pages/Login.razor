@@ -16,12 +16,12 @@
     <div class="el-login-right">
         <div class="el-login-form-wrap">
             <h2 class="el-login-heading">欢迎登录</h2>
-            <p class="el-login-desc">请使用演示账号进入组件中心</p>
+            <p class="el-login-desc">演示模式：任意账号密码均可进入</p>
 
             <ElForm Model="@model" OnValidSubmit="@OnLogin">
                 <ElFormItem TValue="string" Name="UserName" Label="账号" Required="true">
                     <ElInput TValue="string" @bind-Value="@model.UserName"
-                        Placeholder="请输入账号（admin）" EnableClearButton="true">
+                        Placeholder="请输入账号" EnableClearButton="true">
                         <template #Prefix>
                             <ElIcon Name="el-icon-user" />
                         </template>
@@ -30,7 +30,7 @@
 
                 <ElFormItem TValue="string" Name="Password" Label="密码" Required="true">
                     <ElInput TValue="string" @bind-Value="@model.Password"
-                        Placeholder="请输入密码（123456）"
+                        Placeholder="请输入密码"
                         Type="InputType.Password" ShowPassword="true">
                         <template #Prefix>
                             <ElIcon Name="el-icon-lock" />
@@ -95,16 +95,9 @@
         await Task.Delay(600);
         loading = false;
 
-        if (model.UserName == "admin" && model.Password == "123456")
-        {
-            // 模拟登录：生成 token 写入 cookie，再跳转到主页
-            await Auth.LoginAsync(model.UserName);
-            Nav.NavigateTo("/");
-        }
-        else
-        {
-            msg = "账号或密码错误，请使用 admin / 123456";
-        }
+        // 演示模式：任意非空账号密码均可登录，输入的用户名会写进模拟 token
+        await Auth.LoginAsync(model.UserName);
+        Nav.NavigateTo("/");
     }
 
     protected override async Task OnInitializedAsync()
