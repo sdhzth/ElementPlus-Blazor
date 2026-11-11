@@ -6,7 +6,7 @@
 # ElementPlus-Blazor
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Target Framework](https://img.shields.io/badge/Target-net10.0-9cf.svg)](#)
+[![Target Framework](https://img.shields.io/badge/Target-net10.0%20%7C%20net11.0-9cf.svg)](#)
 
 **ElementPlus-Blazor** 是一套独立的 Blazor 组件库，对齐 [Element Plus 2.14](https://element-plus.org/)，
 由 **Smart** 维护。它提供丰富的 Razor 组件（`El*` 系列），在 **Blazor Server**、
@@ -19,9 +19,12 @@
 
 | 包名 | 说明 | 目标框架 |
 | --- | --- | --- |
-| `Element-Plus` | 核心组件库 | `net10.0` |
-| `Element-Plus.X` | 扩展 / 额外组件 | `net10.0` |
-| `Element-Plus.Markdown` | Markdown 渲染支持 | `net10.0` |
+| `Element-Plus` | 核心组件库 | `net10.0` / `net11.0` |
+| `Element-Plus.X` | 扩展 / 额外组件 | `net10.0` / `net11.0` |
+| `Element-Plus.Markdown` | Markdown 渲染支持 | `net10.0` / `net11.0` |
+
+> **.NET 11 已实测兼容**：使用 .NET SDK 11.0.100 完成完整构建、`net11.0`
+> 目标编译及全部 2,860 项 bUnit 测试，均通过。
 
 ### 安装
 

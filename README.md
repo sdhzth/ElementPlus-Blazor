@@ -6,7 +6,7 @@
 # ElementPlus-Blazor
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Target Framework](https://img.shields.io/badge/Target-net10.0-9cf.svg)](#)
+[![Target Framework](https://img.shields.io/badge/Target-net10.0%20%7C%20net11.0-9cf.svg)](#)
 
 **ElementPlus-Blazor** is an independent Blazor component library aligned with
 [Element Plus 2.14](https://element-plus.org/), maintained by **Smart**. It ships a rich set of
@@ -20,9 +20,12 @@ Razor components (the `El*` family) and brings the Element Plus look-and-feel to
 
 | Package | Description | Target |
 | --- | --- | --- |
-| `Element-Plus` | Core component library | `net10.0` |
-| `Element-Plus.X` | Extended / extra components | `net10.0` |
-| `Element-Plus.Markdown` | Markdown rendering support | `net10.0` |
+| `Element-Plus` | Core component library | `net10.0` / `net11.0` |
+| `Element-Plus.X` | Extended / extra components | `net10.0` / `net11.0` |
+| `Element-Plus.Markdown` | Markdown rendering support | `net10.0` / `net11.0` |
+
+> **.NET 11 verified**: built and fully tested with the .NET SDK 11.0.100 —
+> a `net11.0` target compile and the complete 2,860-test bUnit suite both pass.
 
 ### Installation
 
