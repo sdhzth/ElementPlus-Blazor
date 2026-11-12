@@ -3365,7 +3365,7 @@ namespace ElementPlus
 
         protected string GetHeaderCellClass(TableHeader header, int columnIndex)
         {
-            return GetCellClass(header, columnIndex, "is-leaf")
+            return GetCellClass(header, columnIndex, true, "is-leaf")
                 + (header.Sortable ? " is-sortable" : string.Empty)
                 + (header.SortOrder == TableSortOrder.Ascending ? " ascending" : string.Empty)
                 + (header.SortOrder == TableSortOrder.Descending ? " descending" : string.Empty)
@@ -3374,7 +3374,7 @@ namespace ElementPlus
 
         protected string GetBodyCellClass(TableHeader header, int columnIndex, object row = null)
         {
-            return GetCellClass(header, columnIndex, IsEditingCell(row, header) ? EditingCellClass : null);
+            return GetCellClass(header, columnIndex, false, IsEditingCell(row, header) ? EditingCellClass : null);
         }
 
         /// <summary>
@@ -3383,16 +3383,21 @@ namespace ElementPlus
         /// </summary>
         protected string GetGroupHeaderCellClass(TableHeader group, int columnIndex)
         {
-            return GetCellClass(group, columnIndex) + " is-group";
+            return GetCellClass(group, columnIndex, true) + " is-group";
         }
 
-        private string GetCellClass(TableHeader header, int columnIndex, params string[] extraClasses)
+        private string GetCellClass(TableHeader header, int columnIndex, bool isHeader, params string[] extraClasses)
         {
+            // EP aligns a column with the is-center / is-right class on th/td (index.css).
+            // HeaderAlign wins for header cells, Align is used for body cells.
+            var align = GetCellAlign(header, isHeader)?.Trim().ToLowerInvariant();
             var builder = HtmlPropertyBuilder.CreateCssClassBuilder()
                 .Add($"el-table_1_column_{columnIndex}", "el-table__cell")
                 .Add(extraClasses)
                 .AddIf(header?.Fixed == TableColumnFixed.Left, "is-fixed-left")
-                .AddIf(header?.Fixed == TableColumnFixed.Right, "is-fixed-right");
+                .AddIf(header?.Fixed == TableColumnFixed.Right, "is-fixed-right")
+                .AddIf(align == "center", "is-center")
+                .AddIf(align == "right", "is-right");
             return builder.ToString();
         }
         // ============ Element Plus 渲染辅助方法 ============
