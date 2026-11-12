@@ -460,6 +460,17 @@
         <ElTableColumn Property="Category" Text="类别" Width="120" ShowOverflowTooltip="true" />
     </ElTable>
     <p class="demo-note" id="ep-ellipsis-note">对照：第一列悬停浮出全文，第二列整段换行显示、悬停不浮；第三列文字放得下，同样不浮。</p>
+
+    <h4>表级全局开关（ShowOverflowTooltip 整表生效）</h4>
+    <ElTable DataSource="ellipsisRows" AutoGenerateColumns="false" HasSelectionColumn="false" Border="true" ShowOverflowTooltip="true">
+        <ElTableColumn Property="Name" Text="名称（全局开，悬停看全文）" Width="170" />
+        <ElTableColumn Property="Category" Text="类别（全局开，短文本放得下不弹）" Width="180" />
+    </ElTable>
+    <p class="demo-note" id="ep-ellipsis-global-note">
+        与上一张表对照：这里列上<b>没写任何开关</b>，仅表级 <code>ShowOverflowTooltip="true"</code> 所有列即具备悬停看全文。
+        注意当前实现的优先级是「列级 true 追加开启，否则落回表级」——表级开后列级写 <code>false</code> 不能单独豁免；
+        要某列退回换行显示，需关掉表级开关、再逐列开 true。
+    </p>
 </div>
 
 <div class="demo-section" id="sec-table-formatter">
