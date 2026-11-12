@@ -73,13 +73,14 @@ jobs:
       # 产物 Element-Plus.Admin.Template.*.nupkg 会被下方 push 的 ./artifacts/*.nupkg 一并推送。
       # 模板版本见 templates/ElementPlus.Admin.Template/ElementPlus.Admin.Template.csproj 的 <Version>，
       # 与 Element-Plus 库版本保持同步（当前 0.12.3）。
-      # 注意：templates/nuget.config 指向仓库根 nuget/（本地源，未提交进 git），
-      # CI 上需用刚 Pack 出的产物现场补齐该目录，模板 restore 才能拿到 Element-Plus 包。
+      # 注意：templates/nuget.config 的 ../../nuget 解析为「仓库目录的上一级 + nuget」
+      # （本地：Element-Blazor-master/nuget；CI：/home/runner/work/<repo>/<repo> 的上一级）。
+      # CI 上该目录不存在，需现场创建；模板包本身不含对 Element-Plus 的依赖，
+      # restore 只要求源目录存在（NU1301 对不存在的目录源硬失败）。
       - name: Seed local nuget folder for template restore
         run: |
-          mkdir -p nuget
-          cp ./artifacts/*.nupkg nuget/
-          cp ./artifacts/*.snupkg nuget/
+          mkdir -p ../nuget
+          cp ./artifacts/*.nupkg ../nuget/ 2>/dev/null || true
 
       - name: Pack admin template
         run: dotnet pack templates/ElementPlus.Admin.Template/ElementPlus.Admin.Template.csproj -c Release -o ./artifacts
