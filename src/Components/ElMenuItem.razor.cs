@@ -322,7 +322,11 @@ namespace ElementPlus
                 }
                 if (Options == null || Options.Router)
                 {
-                    NavigationManager.NavigateTo(Route);
+                    // Route 以 "/" 开头时按「应用内路径」语义处理：Blazor 的 NavigateTo 对根相对
+                    // 路径按站点根解析（Uri 语义），部署在子路径下（如 GitHub Pages /repo/）会丢
+                    // base href 导致跳到站外 404。去掉首斜杠按 base 相对路径导航，
+                    // 根路径与子路径两种部署形态都正确。
+                    NavigationManager.NavigateTo(Route.TrimStart('/'));
                     NavigationManager.LocationChanged += NavigationManager_LocationChanged;
                 }
             }

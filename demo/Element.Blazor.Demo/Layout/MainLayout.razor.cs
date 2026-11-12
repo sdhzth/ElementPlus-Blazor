@@ -407,7 +407,7 @@ namespace ElementPlus.Blazor.Demo.Layout
             {
                 // 全关光了就把首页补回来
                 EnsureTab("/", activate: wasActive);
-                if (wasActive) NavigationManager.NavigateTo("/");
+                if (wasActive) NavigationManager.NavigateTo("");
                 await SaveTabsAsync();
                 return;
             }
@@ -626,7 +626,7 @@ namespace ElementPlus.Blazor.Demo.Layout
                     MessageService.Info("修改密码为演示占位页");
                     break;
                 case "logout":
-                    NavigationManager.NavigateTo("/login");
+                    NavigationManager.NavigateTo("login");
                     break;
                 case "notice-read":
                     MessageService.Success("已全部标记为已读");
