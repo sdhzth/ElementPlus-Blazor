@@ -7,6 +7,9 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Target Framework](https://img.shields.io/badge/Target-net10.0%20%7C%20net11.0-9cf.svg)](#)
+[![在线演示](https://img.shields.io/badge/%E5%9C%A8%E7%BA%BF%E6%BC%94%E7%A4%BA-%E2%96%B6%20ElementPlus--Blazor-blue.svg)](https://sdhzth.github.io/ElementPlus-Blazor/)
+
+> **🚀 在线演示**：<https://sdhzth.github.io/ElementPlus-Blazor/> —— 全部组件在 Blazor WebAssembly 上真实运行，无需安装即可体验。
 
 **ElementPlus-Blazor** 是一套独立的 Blazor 组件库，对齐 [Element Plus 2.14](https://element-plus.org/)，
 由 **Smart** 维护。它提供丰富的 Razor 组件（`El*` 系列），在 **Blazor Server**、

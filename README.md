@@ -7,6 +7,9 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Target Framework](https://img.shields.io/badge/Target-net10.0%20%7C%20net11.0-9cf.svg)](#)
+[![Live Demo](https://img.shields.io/badge/Online%20Demo-%E2%96%B6%20ElementPlus--Blazor-blue.svg)](https://sdhzth.github.io/ElementPlus-Blazor/)
+
+> **🚀 Live demo**: <https://sdhzth.github.io/ElementPlus-Blazor/> — all components running on Blazor WebAssembly, no install needed.
 
 **ElementPlus-Blazor** is an independent Blazor component library aligned with
 [Element Plus 2.14](https://element-plus.org/), maintained by **Smart**. It ships a rich set of
