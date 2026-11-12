@@ -32,6 +32,10 @@ Razor components (the `El*` family) and brings the Element Plus look-and-feel to
 
 ### Installation
 
+> **Current release: `0.12.5`** (see [CHANGELOG.md](CHANGELOG.md) for the version history).
+> The commands below resolve the latest version automatically; pin it with
+> `dotnet add package Element-Plus --version 0.12.5` when a fixed version is required.
+
 ```powershell
 dotnet add package Element-Plus
 # optional extensions / markdown
@@ -102,7 +106,7 @@ A few screenshots captured from the demo project (the component gallery):
 >    the *New Project* dialog automatically.
 
 Both produce an **independent Blazor WebAssembly project** that references the published NuGet
-packages (`Element-Plus` / `Element-Plus.X` / `Element-Plus.Markdown` `0.12.1`) and renames the
+packages (`Element-Plus` / `Element-Plus.X` / `Element-Plus.Markdown` `0.12.5`) and renames the
 namespace to your project name on instantiation.
 
 ### Admin Starter Template (中台模板)
@@ -149,7 +153,7 @@ dotnet new install <repo-root>/github-upload/templates/ElementPlus.Admin
 # 2. create a new admin project (namespace is auto-renamed to "MyAdmin")
 dotnet new elementplus-admin -n MyAdmin -o MyAdmin
 
-# 3. build it (references NuGet Element-Plus 0.12.1, no source checkout needed)
+# 3. build it (references NuGet Element-Plus 0.12.5, no source checkout needed)
 cd MyAdmin
 dotnet build -c Release
 ```
@@ -159,7 +163,7 @@ search for **"Element-Plus Admin"** and it shows up as
 **"Element-Plus Admin 中台模板 (Blazor WebAssembly)"**. The generated project:
 
 - Targets `net10.0` Blazor WebAssembly and references the published NuGet packages
-  (`Element-Plus` / `Element-Plus.X` / `Element-Plus.Markdown` `0.12.1`) — no local source build
+  (`Element-Plus` / `Element-Plus.X` / `Element-Plus.Markdown` `0.12.5`) — no local source build
   required.
 - Renames the root namespace from the template's `ElementPlus.Blazor.Demo` to your project name
   (e.g. `MyAdmin`) in **both file names and file contents** automatically.
@@ -183,8 +187,13 @@ for sharing. For team distribution, pack the template into a **NuGet template pa
 dotnet pack github-upload/templates/ElementPlus.Admin.Template -c Release
 
 # anyone on the team installs it with one command (no repo checkout needed):
-dotnet new install Element-Plus.Admin.Template.0.12.1.nupkg
+dotnet new install Element-Plus.Admin.Template.0.12.5.nupkg
 ```
+
+> `0.12.5` is the version at the time of writing. Replace it with the current version after a
+> release, or omit the version entirely — `dotnet new install Element-Plus.Admin.Template`
+> resolves the latest version from the feed. The same applies to the `0.12.5` references
+> elsewhere in this document.
 
 Or push the `.nupkg` to an **internal NuGet feed** so teammates can
 `dotnet new install Element-Plus.Admin.Template` by package id. A NuGet-installed template is
@@ -207,7 +216,7 @@ dotnet new install Element-Plus.Admin.Template
 
 After that, the template shows up in the **VS 2022 *New Project* dialog** (search
 "Element-Plus Admin") on their machine too. The generated project references the public
-`Element-Plus` / `Element-Plus.X` / `Element-Plus.Markdown` `0.12.1` packages on NuGet.org, so
+`Element-Plus` / `Element-Plus.X` / `Element-Plus.Markdown` `0.12.5` packages on NuGet.org, so
 restore works automatically anywhere NuGet.org is reachable. (If a customer is behind a network
 where NuGet.org is slow, they can instead download the `.nupkg` from the GitHub Releases page and
 run `dotnet new install <downloaded-file>.nupkg`.)
@@ -215,7 +224,8 @@ run `dotnet new install <downloaded-file>.nupkg`.)
 #### Scaffold via the VSIX (native VS project template)
 
 The `src/VSExtension` project bundles the same shell as a native Visual Studio project template
-(`ProjectTemplates/ElementAdminServerRenderProject.zip`, rebuilt to match `Element-Plus` 0.12.1).
+(`ProjectTemplates/ElementAdminServerRenderProject.zip`, template references pinned to
+`Element-Plus` 0.12.5).
 Building the VSIX registers it under **C# → Blazor WebAssembly** in the *New Project* dialog. The
 `source.extension.vsixmanifest` `InstallationTarget` is set to `[17.0,18.0)` so it shows in
 **VS 2022** (the old 2020-era manifest targeted `[16.0,17.0)` and was invisible in VS 2022).

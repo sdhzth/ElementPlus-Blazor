@@ -4,7 +4,163 @@ All notable changes to Element-Blazor are recorded here.
 
 This project follows Semantic Versioning and uses a Keep a Changelog style structure.
 
+> **版本线说明**：nuget.org 已发布 `0.12.0` / `0.12.1` / `0.12.3` / `0.12.4` / `0.12.5`；
+> **`0.12.2` 只在本地源 `nuget/`，从未推送到 nuget.org**（registration 与 nupkg 均 404），
+> 升级请直接用 `0.12.3` 及以上。日期取 nuget.org 的 `published` 时间（UTC）。
+
+## [0.12.5] - 2026-11-12
+
+> 四个包（`Element-Plus` / `.X` / `.Markdown` / `.Admin.Template`）均已 listed，
+> `published=2026-11-12T08:15:16Z`；tag `v0.12.5`；GitHub Pages 演示站同批部署。
+
+### Fixed
+
+- **`ElTable` 列对齐 `Align` / `HeaderAlign` 此前是「死参数」**（`923c69b`）：参数值虽已抄进
+  `TableHeader`，但 `GetCellAlign()` 定义了却从未被调用，`GetCellClass()` 只输出
+  `el-table_1_column_N / el-table__cell / is-leaf / is-fixed-*`；而 CSS 里的
+  `.el-table td.is-center, th.is-center { text-align: center }` 一直存在，只是没人挂类 ⇒
+  表头 `th` 和表体 `td` 一律 `text-align: left`（连 `Align="right"` 也是 left）。
+  现按 Element Plus 类名约定输出 `is-center` / `is-right`：表头优先取 `HeaderAlign`，
+  表体取 `Align`，分组表头同样生效；**CSS 一行未改**，不影响其他页面。
+  demo `/table` 浏览器实测（探针 `demo/tools/probes/diag-table-align.cjs`）：居中列
+  `center`、右对齐列 `right`、默认列 `left`；线上 Pages 版本亦复测通过。
+- 回归：新增 5 项 bUnit（`test/Element.ComponentTests/ElTableColumnAlignTests.cs`，
+  含默认左 / 居中 / 右 / `HeaderAlign` 只覆盖表头 / 多列互不干扰），5/5 通过；
+  全量 **2866 / 2871**，5 个失败均为既有 `VendoredLibraryGuardTests` 环境性失败
+  （仓库根无 `.gitattributes`，与本批无关）。
+- 0.12.4 及更早的过渡写法仍可用：`ClassName="is-center" LabelClassName="is-center"`
+  （`ClassName` 进 td、`LabelClassName` 进 th）。
+
+### Changed
+
+- 版本 `0.12.4 → 0.12.5`：三个库 csproj、模板包 csproj、
+  **模板工程 `templates/ElementPlus.Admin/ElementPlus.Blazor.Demo.csproj` 里三个写死的
+  `PackageReference Version`**（最容易漏，漏了 `dotnet new` 生成的项目仍引用旧包）、
+  `publish.yml` 版本注释全部同步；解包核验模板包内引用确为 `0.12.5`。
+- **发布后文档/模板元数据整理**：README 中英版标注当前版本 `0.12.5`，离线安装示例里
+  写死的 `0.12.1` 全部同步；VSIX `ProjectTemplates/ElementAdminServerRenderProject.zip`
+  内 `$safeprojectname$.csproj` / `MyTemplate.vstemplate` 的 4 处版本引用同步到 `0.12.5`
+  （字节级替换，其余 28 个条目逐字节不变）；CHANGELOG 补齐 `0.12.0`–`0.12.5` 段落。
+
+## [0.12.4] - 2026-11-12
+
+> 四个包均已 listed，`published=2026-11-12T07:19:00Z`；tag `v0.12.4`。
+
+### Added
+
+- **`ElTable.AutoFitHeight`**：表格高度自动贴合页面剩余空间，同时**仍可自己设定高度**
+  （`1e84680`）。新增参数 `AutoFitHeight`(bool)、`FitBottomPadding`(默认 12)、
+  `FitMinHeight`(默认 120)、`FitMaxHeight`(0 = 不限)；唯一判定点 `EffectiveHeight`，
+  **手动 `Height` / `MaxHeight` > 0 时优先**，此时不绑定 JS 测高，两者不冲突。
+  `wwwroot/js/dom.js` 新增 `elementTableAutoFitHeightInit`（监听 resize / scroll /
+  ResizeObserver，去重、DOM 移除自清理），C# 侧对应 `[JSInvokable] JsTableAutoFitHeight`；
+  demo `TableDemo.razor` 增加对照示例，新增 `ElTableAutoFitHeightTests.cs`。
+  ```razor
+  <ElTable Data="@rows" AutoFitHeight="true" FitBottomPadding="16">...</ElTable>
+  <ElTable Data="@rows" Height="400">...</ElTable>
+  <ElTable Data="@rows" MaxHeight="320">...</ElTable>
+  ```
+- README（中英）加入演示站徽章与横幅（`ace6bb1`）。
+
+### Fixed
+
+- CI `publish.yml` 的 `NU1301`：`templates/nuget.config` 的 `../../nuget` 在 CI 上解析到
+  checkout 上一级，seed 目录由 `mkdir -p nuget` 改为 **`mkdir -p ../nuget`**
+  （`e11cc36`、`dfab785`），修复后模板包可正常打包发布。
+- 浏览器实测发现 `rect.top` 为负时自动高度会虚高，已 clamp 到 0。
+- 回归 2861 / 2866，5 个既有环境性失败。
+
+## [0.12.3] - 2026-11-12
+
+> 四个包均已 listed，`published=2026-11-12T05:52:20Z`。
+
+### Added
+
+- **GitHub Pages 免费演示站**：新增 `.github/workflows/pages-demo.yml`，publish WASM 后
+  改 `<base href="/ElementPlus-Blazor/">`、复制 `404.html`、生成 `.nojekyll`，站点
+  <https://sdhzth.github.io/ElementPlus-Blazor/>（`7d20a4d`）。
+- demo 增加表级 `ShowOverflowTooltip` 对照示例（全局开关 vs 列级开关，`3d73f71`）。
+- README 记录 .NET 11 兼容性：SDK `11.0.100` 编译 net10 项目、临时切 `net11.0` 编译成功、
+  完整 bUnit 套件通过（`50b6556`）。
+
+### Fixed
+
+- **子路径托管导航 404**（`ee11cd6`）：从 Pages 首页点「全部组件」跳到
+  `https://sdhzth.github.io/all`，绝对路径丢掉 base。`ElMenuItem.razor.cs` 改为
+  `NavigationManager.NavigateTo(Route.TrimStart('/'))`，demo 的 `href="/..."` /
+  `NavigateTo("/...")` 全部改 base-relative。
+
+## [0.12.2] - 2026-11-05
+
+> ⚠️ **只打了本地源 `nuget/`，未发布到 nuget.org**：版本列表从 `0.12.1` 直接跳到
+> `0.12.3`。该版本的改动已包含在 `0.12.3` 及之后的版本中。
+
+### Added
+
+- `templates/nuget.config` 增加本地源（`../../nuget`），模板工程 `PackageReference`
+  对齐 `0.12.2`（`ea13b63`）。
+- README 换上 4 张真实运行截图 `docs/screenshots/{elbutton,charts,
+  account-table-grow,dropdown-table-grow}.png`（`4787691`）。
+
+### Fixed
+
+- **plain 按钮 hover 白底白字看不清**（`5b3a6f1`）：`src/Components/wwwroot/css/index.css`
+  追加 `.el-button.is-plain:hover { background-color: var(--el-color-primary-light-9);
+  border-color: var(--el-color-primary-light-7); }`，置于旧规则之后覆盖。
+- 模板登录页放开固定 `admin/123456`，任意非空账号密码即可进入主页（`ea13b63`）。
+
+### Removed
+
+- 移除 4 张演示 SVG `demo-img-*.svg`（`62fe148` revert + `5f77857` 删除）。
+  ⚠️ demo 的 `ButtonDemo.razor` / `LayoutDemo.razor` / `TableDemo.razor` 仍残留
+  `/images/demo-img-*.svg` 绝对路径引用，Pages 上会产生 4 个 404（历史遗留，未修）。
+
+## [0.12.1] - 2026-11-01
+
+> `published=2026-11-01T01:16:35Z`；tag `v0.12.1`。
+
+### Added
+
+- **VS / `dotnet new` 中台模板三件套**：`src/VSExtension` 的
+  `ProjectTemplates/ElementAdminServerRenderProject.zip`（VS 2022 新建项目）、
+  `templates/ElementPlus.Admin`（`dotnet new elementplus-admin`）、
+  `templates/ElementPlus.Admin.Template`（团队分发的模板 nupkg）。模板含
+  `/login`、`/dashboard`、`/admin/users|roles|permissions|menus`，登录路由守卫 +
+  mock JWT cookie，实例化时命名空间自动替换成项目名。
+- **发布链路**：`publish.yml` 改用 NuGet Trusted Publishing（OIDC，`NuGet/login@v1`），
+  并顺便打包发布模板包，全程无需长期 API Key（`395d673`、`a30c5c4`、`fdac551`）。
+
+### Fixed
+
+- **`ElCheckbox<T>` / `ElSwitch<T>` 的 `@bind-Model` 回调不达宿主**（`ee4f306`）：`Model`
+  是 `Value` 的别名，但回调侧只配了 `ValueChanged`，`ModelChanged` 无 `[Parameter]` 承接，
+  被 `CaptureUnmatchedValues` 静默吞掉 ⇒ 界面会翻、宿主字段永远旧值且不报错。
+  改为转发属性 `get => ValueChanged; set => ValueChanged = value;`（不引入第三条状态通路）。
+  补 7 项 `ElBindModelTests`（含 `@bind-Value` 未回归的正向对照与变异验证）。
+
+## [0.12.0] - 2026-10-31
+
+> `published=2026-10-31T13:53:00Z`；tag `v0.12.0`。
+
+### Changed
+
+- **破坏性**：根命名空间 / 程序集名 `Element` → **`ElementPlus`**（0.11.0 引入，0.12.0 为
+  稳定化抬版）。下游必须把 `@using Element` 改成 `@using ElementPlus`，并把 DI 入口
+  `AddElementServices()` 改成 **`AddElementPlusServices()`**（漏改会 `CS1061`）。
+- `PackageId` 仍是 `Element-Plus*` ⇒ 静态资源 `/_content/Element-Plus/...`、
+  `build/Element-Plus.props` 照旧，宿主 HTML 无需改动。
+- `0.11.0 → 0.12.0` 为原样抬版：包体 A/B 仅 `nuspec` / `.psmdcp` / `ElementPlus.dll`
+  三项不同，dll 同尺寸、仅版本串与 MVID 差异；CSS / JS / 字体逐字节相同。
+
+### Notes
+
+- 0.11.0 改名的完整明细（847 文件 / 1140 处、字节级 ASCII 替换、
+  `InternalsVisibleTo("ElementPlus.ComponentTests")` 等）见下方 `## [Unreleased]` 批次记录。
+
 ## [Unreleased]
+
+> 本节保留开发期批次明细（0.10.x / 0.11.x 及 0.12.x 实现细节，按时间倒序）；
+> 各版本的发布归纳见上方 `## [0.12.x]` 段落。
 
 ### Added
 
