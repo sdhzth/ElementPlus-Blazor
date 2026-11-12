@@ -77,6 +77,18 @@ namespace ElementPlus
         private HashSet<string> registeredColumnSignatures = new HashSet<string>();
         private IDictionary<ElCheckbox<bool>, object> rowCheckBoxses = new Dictionary<ElCheckbox<bool>, object>();
         internal int headerHeight = 49;
+        /// <summary>AutoFitHeight 由 JS 测量回传的高度（null = 尚未测量 / 未启用）。</summary>
+        private int? autoFitHeight;
+        private bool autoFitBound;
+        private DotNetObjectReference<ElTable> autoFitDotNetRef;
+
+        /// <summary>
+        /// 实际生效的固定高度：手动 Height 优先；否则在 AutoFitHeight 且无 MaxHeight 时用 JS 实测值。
+        /// 所有样式判定都走这里，保证手动设定与自动撑满互不打架。
+        /// </summary>
+        internal int EffectiveHeight =>
+            Height > 0 ? Height :
+            (AutoFitHeight && MaxHeight <= 0 && autoFitHeight.HasValue ? autoFitHeight.Value : 0);
         internal List<object> rows = new List<object>();
         internal List<object> hiddenRows = new List<object>();
         private List<object> sourceRows = new List<object>();
@@ -819,13 +831,32 @@ namespace ElementPlus
         public bool EnablePagination { get; set; } = true;
 
         /// <summary>
-        /// 表格内容高度。
+        /// 表格固定高度（像素）。手动设定时优先级最高，AutoFitHeight 自动让位。
         /// </summary>
         [Parameter]
         public int Height { get; set; }
 
         [Parameter]
         public int MaxHeight { get; set; }
+
+        /// <summary>
+        /// 自动把表格高度撑满视口剩余空间（表格内部滚动，页面不滚动）。
+        /// 仅在未手动设定 Height / MaxHeight 时生效；窗口 resize 与容器尺寸变化会自动重算。
+        /// </summary>
+        [Parameter]
+        public bool AutoFitHeight { get; set; }
+
+        /// <summary>自动撑满时距视口底部预留的空白（像素），默认 12。</summary>
+        [Parameter]
+        public int FitBottomPadding { get; set; } = 12;
+
+        /// <summary>自动撑满时的最小高度（像素），默认 120，避免窗口过矮时表格被压没了。</summary>
+        [Parameter]
+        public int FitMinHeight { get; set; } = 120;
+
+        /// <summary>自动撑满时的最大高度（像素），0 表示不限制。</summary>
+        [Parameter]
+        public int FitMaxHeight { get; set; }
 
         [Parameter]
         public bool EnableMarkupString { get; set; }
@@ -1452,7 +1483,7 @@ namespace ElementPlus
         {
             get
             {
-                if (Height <= 0 && MaxHeight <= 0)
+                if (EffectiveHeight <= 0 && MaxHeight <= 0)
                 {
                     // 定高会把自定义 <Empty> 片段裁掉半截（宿主常给 100+px 的 ElEmpty），
                     // 而 EP 这条规则本来就是 min-height —— 正文区没有固定高度时让内容自己撑开。
@@ -1460,7 +1491,7 @@ namespace ElementPlus
                 }
 
                 // 定高/限高表格仍按正文高度给死值，空态才会落在可见区中间
-                var height = Math.Max(60, (Height > 0 ? Height : MaxHeight) - (ShowHeader ? headerHeight : 0));
+                var height = Math.Max(60, (EffectiveHeight > 0 ? EffectiveHeight : MaxHeight) - (ShowHeader ? headerHeight : 0));
                 return $"height:{height}px";
             }
         }
@@ -1529,6 +1560,56 @@ namespace ElementPlus
             }
         }
 
+        /// <summary>
+        /// 把「自动撑满剩余高度」交给 dom.js 的 elementTableAutoFitHeightInit：
+        /// JS 量出表格顶部到视口底部的可用高度，窗口/容器变化时回传 JsTableAutoFitHeight。
+        /// 手动 Height / MaxHeight 存在时完全不绑定；无 JS 环境（bUnit）静默降级。
+        /// </summary>
+        private async Task BindAutoFitHeightAsync()
+        {
+            if (!AutoFitHeight || Height > 0 || MaxHeight > 0 || autoFitBound)
+            {
+                return;
+            }
+
+            try
+            {
+                autoFitDotNetRef ??= DotNetObjectReference.Create(this);
+                await JSRuntime.InvokeVoidAsync("elementTableAutoFitHeightInit", Container, autoFitDotNetRef, FitBottomPadding);
+                autoFitBound = true;
+            }
+            catch
+            {
+                // bUnit 等无 JS 环境：忽略，保持 Height=0 的自然高度行为。
+            }
+        }
+
+        /// <summary>
+        /// dom.js 自动测量的回调：把可用高度 clamp 到 FitMinHeight / FitMaxHeight 后写入 EffectiveHeight。
+        /// 手动设定 Height / MaxHeight 时忽略回传，保证「自己设定高度」优先。
+        /// </summary>
+        [JSInvokable]
+        public Task JsTableAutoFitHeight(int height)
+        {
+            if (!AutoFitHeight || Height > 0 || MaxHeight > 0)
+            {
+                return Task.CompletedTask;
+            }
+
+            var value = Math.Max(FitMinHeight, height);
+            if (FitMaxHeight > 0)
+            {
+                value = Math.Min(value, FitMaxHeight);
+            }
+
+            if (value != autoFitHeight)
+            {
+                autoFitHeight = value;
+                StateHasChanged();
+            }
+            return Task.CompletedTask;
+        }
+
         /// <summary>这一列的表头是否渲染拖拽手柄（登记时已把列级/表级 Resizable 归并进 TableHeader.Resizable）。</summary>
         internal bool IsResizableColumn(TableHeader header)
         {
@@ -1590,6 +1671,8 @@ namespace ElementPlus
         {
             resizeDotNetRef?.Dispose();
             resizeDotNetRef = null;
+            autoFitDotNetRef?.Dispose();
+            autoFitDotNetRef = null;
             Dispose(true);
             GC.SuppressFinalize(this);
             return ValueTask.CompletedTask;
@@ -1648,6 +1731,7 @@ namespace ElementPlus
             await base.OnAfterRenderAsync(firstRender);
             await SyncScrollBindingAsync();
             await BindColumnResizeAsync();
+            await BindAutoFitHeightAsync();
             await FocusPendingEditingCellAsync();
             if (renderCompleted)
             {

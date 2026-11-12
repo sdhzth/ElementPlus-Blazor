@@ -5954,3 +5954,56 @@ window.elementTableColumnResizeInit = function (headerEl, bodyEl, dotNetRef) {
         document.addEventListener('mouseup', onUp, true);
     }
 };
+
+// ElTable.AutoFitHeight：把表格高度撑满视口剩余空间（表格内部滚动，页面不滚动）。
+// 手动 Height / MaxHeight 优先，此时 .NET 侧不会调用本函数。
+// 高度 = window.innerHeight - 表格顶部距视口距离 - FitBottomPadding；
+// 窗口 resize 与父容器尺寸变化（侧栏折叠、工具栏增减）都会重算，回传 JsTableAutoFitHeight。
+window.elementTableAutoFitHeightInit = function (el, dotNetRef, bottomPadding) {
+    if (!el || typeof el.getBoundingClientRect !== 'function') return;
+
+    var state = el.__elAutoFit;
+    if (state) {
+        // 幂等：重渲染重复调用只更新参数并立即重算一次
+        state.ref = dotNetRef;
+        state.padding = bottomPadding;
+        if (state.calc) state.calc();
+        return;
+    }
+
+    state = el.__elAutoFit = { ref: dotNetRef, padding: bottomPadding, lastH: 0, calc: null, ro: null };
+    var calc = function () {
+        // 组件已从 DOM 移除：自行摘掉监听，避免泄漏（Blazor 释放阶段不再同步调 JS）
+        if (!el.isConnected) {
+            window.removeEventListener('resize', calc);
+            window.removeEventListener('scroll', calc, true);
+            if (state.ro) state.ro.disconnect();
+            delete el.__elAutoFit;
+            return;
+        }
+        var rect = el.getBoundingClientRect();
+        // 表格已滚出视口上方时 top 为负，不能把「视口底 − 负 top」当成可用高度（会虚高），按 0 处理
+        var top = Math.max(0, rect.top);
+        var h = Math.floor(window.innerHeight - top - (state.padding || 0));
+        // 表格自身高度变化不会改变 rect.top，lastH 去重可避免 ResizeObserver 回环
+        if (h <= 0 || h === state.lastH) return;
+        state.lastH = h;
+        try {
+            var p = state.ref.invokeMethodAsync('JsTableAutoFitHeight', h);
+            if (p && typeof p.catch === 'function') p.catch(function () { });
+        } catch (err) {
+            // .NET 侧已销毁（页面切走）：忽略
+        }
+    };
+    state.calc = calc;
+
+    window.addEventListener('resize', calc);
+    // 表格初始位于首屏下方时，滚动进入视口才量得到正确高度（lastH 去重，滚动不会反复重渲染）
+    window.addEventListener('scroll', calc, true);
+    if (typeof ResizeObserver !== 'undefined') {
+        // 观察父容器：可用高度由它决定，且不会被表格自身高度变化牵着走
+        state.ro = new ResizeObserver(calc);
+        state.ro.observe(el.parentElement || el);
+    }
+    calc();
+};

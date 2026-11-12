@@ -36,11 +36,11 @@
     }
 
     styles.Add("width:100%");
-    var fixedHeight = Height > 0 ? Height : MaxHeight;
+    var fixedHeight = EffectiveHeight > 0 ? EffectiveHeight : MaxHeight;
     if (fixedHeight > 0)
     {
         tableClsList.Add("el-table--scrollable-y");
-        styles.Add((Height > 0 ? "height:" : "max-height:") + fixedHeight + "px");
+        styles.Add((EffectiveHeight > 0 ? "height:" : "max-height:") + fixedHeight + "px");
     }
     if (IsEmpty)
     {
@@ -331,7 +331,7 @@
             if (fixedHeight > 0)
             {
                 var bodyHeight = Math.Max(0, fixedHeight - (ShowHeader ? headerHeight : 0));
-                bodyStyleList.Add((Height > 0 ? "height:" : "max-height:") + bodyHeight + "px");
+                bodyStyleList.Add((EffectiveHeight > 0 ? "height:" : "max-height:") + bodyHeight + "px");
             }
             <div class="el-table__body-wrapper @ScrollClass" style="@string.Join(";", bodyStyleList)" @ref="bodyWrapperElement">
                 <table cellspacing="0" cellpadding="0" border="0" class="el-table__body" style="@(TableWidthStyle + (string.IsNullOrEmpty(TableLayout) ? "" : ";table-layout:" + TableLayout))">

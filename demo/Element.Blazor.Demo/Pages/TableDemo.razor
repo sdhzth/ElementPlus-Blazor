@@ -321,6 +321,33 @@
     </div>
 </div>
 
+<div class="demo-section" id="sec-auto-fit-height">
+    <h3>⑨′ 自动撑满剩余高度（AutoFitHeight） vs 自己设定高度</h3>
+    <p class="demo-page-sub">
+        <code>AutoFitHeight="true"</code> 时由 <code>dom.js</code> 量出「视口底部 − 表格顶部 − FitBottomPadding」，
+        窗口缩放、滚动进视口、父容器尺寸变化都会自动重算；表头固定、表体独立滚动，页面不再整体滚。
+        <b>只要手动设了 <code>Height</code> 或 <code>MaxHeight</code>，就以手动值为准</b>，自动测量自动让位。
+        另外可用 <code>FitMinHeight</code>（默认 120）/ <code>FitMaxHeight</code>（0=不限）夹住范围。
+    </p>
+
+    <p class="demo-note">
+        <ElButton Type="ButtonType.Primary" Size="ButtonSize.Small" OnClick="@(() => fitMode = true)">自动撑满</ElButton>
+        <ElButton Size="ButtonSize.Small" OnClick="@(() => fitMode = false)">手动固定 300px</ElButton>
+        当前模式：<b>@(fitMode ? "AutoFitHeight = true（撑满剩余空间）" : "Height = 300（手动）")</b>
+    </p>
+
+    <ElTable DataSource="fixedRows" AutoFitHeight="@fitMode" Height="@(fitMode ? 0 : 300)"
+             FitBottomPadding="16" FitMinHeight="180" FitMaxHeight="620"
+             Border="true" Stripe="true" HasSelectionColumn="false"
+             AutoGenerateColumns="false" EnablePagination="false">
+        <ElTableColumn Property="Id" Text="ID" Width="70" Align="right" />
+        <ElTableColumn Property="Name" Text="名称" Width="200" />
+        <ElTableColumn Property="Category" Text="类别" Width="130" />
+        <ElTableColumn Property="Price" Text="单价(元)" Width="110" Align="right" />
+        <ElTableColumn Property="Stock" Text="库存" Width="100" Align="right" />
+    </ElTable>
+</div>
+
 <div class="demo-section" id="sec-ep-features">
     <h3>⑩ EP 进阶能力：合计行 / 单元格合并 / 默认排序 / 实例方法</h3>
     <p class="demo-page-sub">
@@ -500,6 +527,9 @@
 </div>
 
 @code {
+    // ⑨′ 自动撑满剩余高度 / 手动固定高度 对照开关
+    private bool fitMode = true;
+
     // ===== 单元格格式化函数（Formatter）—— EP 2.14.0 table/src/config.ts:193-208 的四档口径 =====
     // 第三个参数必须是属性原值（decimal / int），不是默认渲染器的文本；显示成「非原值:…」就说明接线又坏了。
     private static readonly Func<object, object, object, int, object> FormatPrice =

@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <PackageId>Element-Plus</PackageId>
     <Title>Element-Plus</Title>
-    <Version>0.12.3</Version>
+    <Version>0.12.4</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Smart</Authors>
     <IsPackable>true</IsPackable>

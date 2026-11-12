@@ -9,7 +9,7 @@
     <IsPackable>true</IsPackable>
     <PackageId>Element-Plus.Markdown</PackageId>
     <Title>Element-Plus Markdown</Title>
-    <Version>0.12.3</Version>
+    <Version>0.12.4</Version>
     <Authors>Smart</Authors>
     <Company>Element-Plus</Company>
     <Description>Markdown editor components for Element-Plus, aligned with the Element Plus 2.14 design baseline. Independent package line published by Smart.</Description>
