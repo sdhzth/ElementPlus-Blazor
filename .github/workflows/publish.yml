@@ -72,7 +72,7 @@ jobs:
       # 打包 dotnet new 模板（NuGet 模板包）。该工程无编译产物，直接 pack 即可，
       # 产物 Element-Plus.Admin.Template.*.nupkg 会被下方 push 的 ./artifacts/*.nupkg 一并推送。
       # 模板版本见 templates/ElementPlus.Admin.Template/ElementPlus.Admin.Template.csproj 的 <Version>，
-      # 与 Element-Plus 库版本保持同步（当前 0.12.4）。
+      # 与 Element-Plus 库版本保持同步（当前 0.12.5）。
       # 注意：templates/nuget.config 的 ../../nuget 解析为「仓库目录的上一级 + nuget」
       # （本地：Element-Blazor-master/nuget；CI：/home/runner/work/<repo>/<repo> 的上一级）。
       # CI 上该目录不存在，需现场创建；模板包本身不含对 Element-Plus 的依赖，
