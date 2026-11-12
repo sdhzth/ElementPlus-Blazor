@@ -1,0 +1,71 @@
+# 将 demo（Blazor WASM，纯静态产物）发布到 GitHub Pages，免费公开访问。
+# 站点地址：https://sdhzth.github.io/ElementPlus-Blazor/
+#
+# 首次启用需在仓库设置一次：
+#   Settings → Pages → Build and deployment → Source 选「GitHub Actions」
+# 之后 push 到 main（或手动 workflow_dispatch）即自动发布。
+#
+# 注意：
+# - demo 用 ProjectReference 直引 src/，CI 直接构建整个仓库，无需外部 NuGet 源。
+# - 项目站点挂在仓库子路径 /ElementPlus-Blazor/ 下，需改 <base href>；
+#   index.html 其余引用全是相对路径，sed 一处即可。
+# - 必须放 .nojekyll：Jekyll 默认忽略下划线开头的目录（_framework 会被吞）。
+# - 复制 index.html 为 404.html：客户端路由（/TableDemo 等）刷新时
+#   GitHub Pages 返回 404 → 回落到 404.html → 与 index.html 相同内容 → 应用正常接管。
+name: Deploy Demo to GitHub Pages
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'demo/**'
+      - 'src/**'
+      - '.github/workflows/pages-demo.yml'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish demo (Blazor WASM)
+        run: dotnet publish demo/Element.Blazor.Demo/Element.Blazor.Demo.csproj -c Release -o publish
+
+      - name: Prepare for project-site hosting
+        run: |
+          cd publish/wwwroot
+          sed -i 's|<base href="/" />|<base href="/ElementPlus-Blazor/" />|' index.html
+          cp index.html 404.html
+          touch .nojekyll
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: publish/wwwroot
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
