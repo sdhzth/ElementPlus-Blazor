@@ -4,9 +4,42 @@ All notable changes to Element-Blazor are recorded here.
 
 This project follows Semantic Versioning and uses a Keep a Changelog style structure.
 
-> **版本线说明**：nuget.org 已发布 `0.12.0` / `0.12.1` / `0.12.3` / `0.12.4` / `0.12.5`；
+> **版本线说明**：nuget.org 已发布 `0.12.0` / `0.12.1` / `0.12.3` / `0.12.4` / `0.12.5` / `0.12.6`；
 > **`0.12.2` 只在本地源 `nuget/`，从未推送到 nuget.org**（registration 与 nupkg 均 404），
 > 升级请直接用 `0.12.3` 及以上。日期取 nuget.org 的 `published` 时间（UTC）。
+
+## [0.12.6] - 2026-11-13
+
+### Added
+
+- **`ElForm.LabelContentOffset`**（`bool`，默认 `true`）与 **`ElFormItem.LabelContentOffset`**
+  （`bool?`，`null` 跟随表级、非 null 优先）：从源头控制非 `top` 布局下是否给
+  `.el-form-item__content` 生成 `margin-left:<LabelWidth>`。表级设 `false` 后内容区不再被
+  标签宽度推右；行级参数可单独恢复/关闭某一行。
+- demo `/form` 新增 6 组对照（默认 / 关闭缩进 60px、120px、300px、auto / 行级覆盖），
+  并新增浏览器探针 `demo/tools/probes/diag-form-label-offset.cjs`。
+
+### Changed
+
+- 浏览器实测（Edge headless）确认关闭缩进后内容区紧贴标签右侧：60 / 120 / 300 / auto
+  四种宽度下 `content.left == label.right`，`overlap=false`、同一行；标签宽度变化只改变
+  内容区起点与可用宽度，不再叠加第二份缩进。默认布局因为 label `float:left` 占位 +
+  内联 `margin-left` 叠加，120px 标签实际把内容推到标签右侧再 +120px。
+- 版本 `0.12.5 → 0.12.6`：三个库 csproj、模板包 csproj、模板工程三处
+  `PackageReference`、`publish.yml` 注释、README 中英版、VSIX 模板 zip 内引用全部同步。
+
+### Fixed
+
+- 澄清 `LabelPosition=""` 的语义：空串/空白/`null` 会被 `ElForm` 的 setter 直接忽略，
+  getter 回落 `LabelAlign`（默认 `Left` → `"left"`），**不能**用来取消内容区缩进；
+  取消缩进应使用 `LabelContentOffset="false"` 或 `LabelPosition="top"`。
+
+### Tests
+
+- 新增 `ElFormLabelContentOffsetTests` 10 项（默认 / 表级关 / 行级双向覆盖 / `top` /
+  空宽度 / `Inline` / 空 `LabelPosition` 回归 / 行级自定义宽度），10/10 通过；
+  全量 **2876 / 2881**，5 个失败均为既有 `VendoredLibraryGuardTests` 环境性失败
+  （仓库根无 `.gitattributes`，与本批无关）。
 
 ## [0.12.5] - 2026-11-12
 

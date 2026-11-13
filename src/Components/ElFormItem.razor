@@ -59,7 +59,9 @@
         }
 
         var hasLabel = !string.IsNullOrWhiteSpace(Label) || LabelContent != null || !string.IsNullOrWhiteSpace(Image);
-        if (finalLabelPosition != "top" && hasLabel && !string.IsNullOrWhiteSpace(resolvedLabelWidth))
+        // 行级 bool? 优先，null 时回落到表级；top 布局本来就不产生缩进。
+        var offsetEnabled = LabelContentOffset ?? Form?.LabelContentOffset ?? true;
+        if (finalLabelPosition != "top" && hasLabel && offsetEnabled && !string.IsNullOrWhiteSpace(resolvedLabelWidth))
         {
             bodyStyles.Add($"margin-left:{resolvedLabelWidth}");
         }

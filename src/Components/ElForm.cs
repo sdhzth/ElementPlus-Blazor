@@ -126,6 +126,14 @@ namespace ElementPlus
         [Parameter]
         public object LabelWidth { get; set; } = string.Empty;
 
+        /// <summary>
+        /// 非 top 布局时，是否给内容区加上与标签宽度相同的 margin-left。
+        /// 默认 true（保持 Element Plus 原有排版）；设为 false 可让内容区不被标签宽度推右。
+        /// 单个 ElFormItem 可用同名 bool? 参数覆盖此表级设置。
+        /// </summary>
+        [Parameter]
+        public bool LabelContentOffset { get; set; } = true;
+
         [Parameter]
         public string LabelSuffix { get; set; } = string.Empty;
 

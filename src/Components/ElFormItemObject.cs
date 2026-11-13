@@ -51,6 +51,12 @@ namespace ElementPlus
         [Parameter]
         public object LabelWidth { get; set; }
 
+        /// <summary>
+        /// 是否给内容区加上与标签宽度相同的 margin-left（null 表示跟随 ElForm.LabelContentOffset）。
+        /// </summary>
+        [Parameter]
+        public bool? LabelContentOffset { get; set; }
+
         [Parameter]
         public string Name
         {

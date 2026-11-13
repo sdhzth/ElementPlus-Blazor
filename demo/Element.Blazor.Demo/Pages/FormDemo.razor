@@ -198,12 +198,72 @@
 </div>
 
 <div class="demo-section">
+    <h3>ElForm · 标签宽度与内容区缩进（LabelContentOffset）</h3>
+    <p>下面几组都设置了 <code>LabelWidth</code>：默认会额外给内容区生成 <code>margin-left</code>；<code>LabelContentOffset="false"</code> 则从源头不生成缩进。输入框统一固定 220px 宽，便于观察位置。</p>
+
+    <div data-offset-probe="default-120">
+        <h4>默认 · LabelWidth=120px（内容区有缩进）</h4>
+        <ElForm Model="@offsetModel" LabelWidth="@("120px")">
+            <ElFormItem TValue="string" Name="Name" Prop="Name" Label="姓名">
+                <ElInput TValue="string" @bind-Value="offsetModel.Name" Style="width:220px;" />
+            </ElFormItem>
+        </ElForm>
+    </div>
+
+    <div data-offset-probe="off-60">
+        <h4>关闭缩进 · LabelWidth=60px</h4>
+        <ElForm Model="@offsetModel" LabelWidth="@("60px")" LabelContentOffset="false">
+            <ElFormItem TValue="string" Name="Name" Prop="Name" Label="姓名">
+                <ElInput TValue="string" @bind-Value="offsetModel.Name" Style="width:220px;" />
+            </ElFormItem>
+        </ElForm>
+    </div>
+
+    <div data-offset-probe="off-120">
+        <h4>关闭缩进 · LabelWidth=120px</h4>
+        <ElForm Model="@offsetModel" LabelWidth="@("120px")" LabelContentOffset="false">
+            <ElFormItem TValue="string" Name="Name" Prop="Name" Label="姓名">
+                <ElInput TValue="string" @bind-Value="offsetModel.Name" Style="width:220px;" />
+            </ElFormItem>
+        </ElForm>
+    </div>
+
+    <div data-offset-probe="off-300">
+        <h4>关闭缩进 · LabelWidth=300px</h4>
+        <ElForm Model="@offsetModel" LabelWidth="@("300px")" LabelContentOffset="false">
+            <ElFormItem TValue="string" Name="Name" Prop="Name" Label="姓名">
+                <ElInput TValue="string" @bind-Value="offsetModel.Name" Style="width:220px;" />
+            </ElFormItem>
+        </ElForm>
+    </div>
+
+    <div data-offset-probe="off-auto">
+        <h4>关闭缩进 · LabelWidth=auto</h4>
+        <ElForm Model="@offsetModel" LabelWidth="@("auto")" LabelContentOffset="false">
+            <ElFormItem TValue="string" Name="Name" Prop="Name" Label="姓名">
+                <ElInput TValue="string" @bind-Value="offsetModel.Name" Style="width:220px;" />
+            </ElFormItem>
+        </ElForm>
+    </div>
+
+    <div data-offset-probe="item-override">
+        <h4>表级关闭 · 行级 LabelContentOffset="true" 恢复缩进</h4>
+        <ElForm Model="@offsetModel" LabelWidth="@("160px")" LabelContentOffset="false">
+            <ElFormItem TValue="string" Name="Name" Prop="Name" Label="姓名" LabelContentOffset="true">
+                <ElInput TValue="string" @bind-Value="offsetModel.Name" Style="width:220px;" />
+            </ElFormItem>
+        </ElForm>
+    </div>
+</div>
+
+<div class="demo-section">
     <h3>当前绑定值（Mock 模型快照）</h3>
     <pre class="demo-json">@System.Text.Json.JsonSerializer.Serialize(model, new System.Text.Json.JsonSerializerOptions { WriteIndented = true })</pre>
 </div>
 
 @code {
     private FormModel model = new FormModel();
+    private FormModel offsetModel = new FormModel();
 
     private ElInput<string> pwdInput;
     private string epBase = string.Empty;

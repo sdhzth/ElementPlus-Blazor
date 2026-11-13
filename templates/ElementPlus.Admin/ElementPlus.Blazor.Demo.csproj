@@ -16,9 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Element-Plus" Version="0.12.5" />
-    <PackageReference Include="Element-Plus.X" Version="0.12.5" />
-    <PackageReference Include="Element-Plus.Markdown" Version="0.12.5" />
+    <PackageReference Include="Element-Plus" Version="0.12.6" />
+    <PackageReference Include="Element-Plus.X" Version="0.12.6" />
+    <PackageReference Include="Element-Plus.Markdown" Version="0.12.6" />
   </ItemGroup>
 
 </Project>
