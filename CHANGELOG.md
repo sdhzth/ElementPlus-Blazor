@@ -4,9 +4,30 @@ All notable changes to Element-Blazor are recorded here.
 
 This project follows Semantic Versioning and uses a Keep a Changelog style structure.
 
-> **版本线说明**：nuget.org 已发布 `0.12.0` / `0.12.1` / `0.12.3` / `0.12.4` / `0.12.5` / `0.12.6`；
+> **版本线说明**：nuget.org 已发布 `0.12.0` / `0.12.1` / `0.12.3` / `0.12.4` / `0.12.5` / `0.12.6` / `0.12.7`；
 > **`0.12.2` 只在本地源 `nuget/`，从未推送到 nuget.org**（registration 与 nupkg 均 404），
 > 升级请直接用 `0.12.3` 及以上。日期取 nuget.org 的 `published` 时间（UTC）。
+
+## [0.12.7] - 2026-11-15
+
+### Fixed
+
+- **`ElSelect` 在 `ElForm`/`ElFormItem` 内异步赋初值不回显**（模板项目 `Home.razor` 的
+  `ElDialog` + `ElForm` + `ElSelect @bind-Value` 场景实证）：两处叠加缺陷——
+  ① 首帧 `OnParametersSet` 里 `Value = FormItem.OriginValue` 无条件覆盖，当
+  `FormItem.Name` 与 Model 属性名不一致时 `OriginValue` 为 `null`，刚赋的初值被冲掉；
+  ② `FormItem.OriginValueHasRendered` 一次性守卫让后续重渲染直接 `return`，
+  `Label` 永不重算，触发器一直显示占位符。修复为：仅当表单确实给过非空初值才推送；
+  守卫分支改为「值有但没文本」时补一次回显（真注册选项 → 扫帧兜底）并同步表单项值
+  （校验与 `GetValue` 可拿到）。bUnit 复现 `ElSelectFormItemLateValueTests`
+  （修复前 late/early 两档均复现失败，修复后 2/2 通过）。
+
+### Changed
+
+- 新增回归测试 `ElSelectFormItemLateValueTests`（首帧后赋值 + `OnInitialized` 预置值两档）；
+  全量回归 2878/2883，5 个失败为既有 `VendoredLibraryGuardTests` 环境性问题（无 `.gitattributes`）。
+- 版本 `0.12.6 → 0.12.7`：三个库 csproj、模板包 csproj、模板工程三处 `PackageReference`、
+  `publish.yml` 注释、README 中英版、VSIX 模板 zip 内引用全部同步。
 
 ## [0.12.6] - 2026-11-13
 

@@ -306,11 +306,24 @@ namespace ElementPlus
 
             if (FormItem.OriginValueHasRendered)
             {
+                // 首帧之后值才异步赋上（OnAfterRenderAsync / 接口回填，模板项目 Home.razor 实证）时，
+                // 原本这里直接 return，Label 永远停在空串、触发器一直顶着占位符。
+                // 补一次「值有但没文本」的回显，并把值同步给表单项（校验与 GetValue 才能拿到）。
+                if (Value != null && string.IsNullOrEmpty(Label))
+                {
+                    Label = dict != null && dict.TryGetValue(Value, out var lateText) ? lateText
+                        : Options.FirstOrDefault(x => TypeHelper.Equal(x.Key, Value))?.Text
+                        ?? ResolveLabelFromUnmountedOptions();
+                    SetFieldValue(Value, false);
+                }
                 return;
             }
             FormItem.OriginValueHasRendered = true;
-            if (FormItem.Form?.Values.Any() ?? false)
+            if ((FormItem.Form?.Values.Any() ?? false) && !TypeHelper.Equal(FormItem.OriginValue, default(TValue)))
             {
+                // 只在表单真的给过初值（OriginValue 非 null）时才推送：
+                // FormItem.Name 与 Model 属性名对不上时 OriginValue 为 null，
+                // 无条件覆盖会把绑定好的非空初值冲掉（表现为触发器一直显示占位符）。
                 Value = FormItem.OriginValue;
             }
 
@@ -318,8 +331,10 @@ namespace ElementPlus
             {
                 Label = Label ?? dict[Value];
             }
-            // 表单里的下拉同样可能是「预置值 + 声明式子项」，dict 为空时算不出文本
-            Label = Label ?? ResolveLabelFromUnmountedOptions();
+            // 表单里的下拉同样可能是「预置值 + 声明式子项」，dict 为空时算不出文本；
+            // 已注册的真选项优先于扫帧
+            Label = Label ?? Options.FirstOrDefault(x => TypeHelper.Equal(x.Key, Value))?.Text
+                ?? ResolveLabelFromUnmountedOptions();
             SetFieldValue(Value, false);
         }
 
