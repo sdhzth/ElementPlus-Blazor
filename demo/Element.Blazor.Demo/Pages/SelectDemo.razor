@@ -17,6 +17,26 @@
 </div>
 
 <div class="demo-section">
+    <h3>默认选中第一条</h3>
+    <p class="demo-note">
+        组件不需要额外参数：<code>@("@bind-Value")</code> 绑定字段显示的就是它的当前值，<b>在数据加载后把字段赋成第一项的 <code>Value</code></b> 即可。
+        注意三点：① 赋的是 <code>Value</code> 不是 <code>Name</code>（赋 Name 无匹配项，仍显示 Placeholder）；② 编辑回显场景建议加
+        <code>string.IsNullOrEmpty</code> 判断，避免冲掉已有值；③ 若选项是 <code>OnInitializedAsync</code> 异步加载，赋值后记得 <code>StateHasChanged()</code>。
+    </p>
+    <div class="demo-row">
+        <ElSelect TValue="string" @bind-Value="defaultValue" Placeholder="请选择">
+            @foreach (var d in _defaultFirstList)
+            {
+                <ElOption TValue="string" Value="@d.Value" Text="@d.Name" />
+            }
+        </ElSelect>
+        <ElButton Size="ButtonSize.Small" OnClick="ResetDefaultFirst">重置为空（回 Placeholder）</ElButton>
+        <ElButton Size="ButtonSize.Small" OnClick="SetDefaultFirst">赋回第一条</ElButton>
+    </div>
+    <p class="demo-note">defaultValue=@defaultValue（页面初始化时已自动选中「@_defaultFirstList[0].Name」，无需点击任何东西）</p>
+</div>
+
+<div class="demo-section">
     <h3>多选 + 可筛选 + 折叠标签</h3>
     <div class="demo-row">
         <ElSelect TValue="string" @bind-Value="value2" Multiple="true" Filterable="true" CollapseTags="true" Placeholder="多选">
@@ -108,6 +128,24 @@
     private IList<string> value3 = new List<string>();
     private string value4;
     private string value5;
+
+    /// <summary>「默认选中第一条」示例：模拟业务里 Value/Name 数据对（如 ClfsList）。</summary>
+    private readonly List<(string Value, string Name)> _defaultFirstList = new()
+    {
+        ("wash", "清洗"), ("repair", "维修"), ("replace", "更换"), ("scrap", "报废")
+    };
+    private string defaultValue = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        // 默认第一条：同步初始化直接赋第一项的 Value（异步场景在 await 之后赋并 StateHasChanged）
+        if (string.IsNullOrEmpty(defaultValue) && _defaultFirstList.Count > 0)
+            defaultValue = _defaultFirstList[0].Value;
+    }
+
+    private void ResetDefaultFirst() => defaultValue = string.Empty;
+
+    private void SetDefaultFirst() => defaultValue = _defaultFirstList[0].Value;
 
     private readonly List<string> _cities = new()
     {
