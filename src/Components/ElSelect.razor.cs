@@ -314,7 +314,9 @@ namespace ElementPlus
                     Label = dict != null && dict.TryGetValue(Value, out var lateText) ? lateText
                         : Options.FirstOrDefault(x => TypeHelper.Equal(x.Key, Value))?.Text
                         ?? ResolveLabelFromUnmountedOptions();
-                    SetFieldValue(Value, false);
+                    // 该字段先前已经报过错（如值为空时点过一次提交，红字还挂着），
+                    // 回填的值要触发重校验把错误清掉；无错时不校验，保持初始态不被标 success。
+                    SetFieldValue(Value, FormItem.HasValidationError);
                 }
                 return;
             }

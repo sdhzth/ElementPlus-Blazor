@@ -4,9 +4,28 @@ All notable changes to Element-Blazor are recorded here.
 
 This project follows Semantic Versioning and uses a Keep a Changelog style structure.
 
-> **版本线说明**：nuget.org 已发布 `0.12.0` / `0.12.1` / `0.12.3` / `0.12.4` / `0.12.5` / `0.12.6` / `0.12.7`；
+> **版本线说明**：nuget.org 已发布 `0.12.0` / `0.12.1` / `0.12.3` / `0.12.4` / `0.12.5` / `0.12.6` / `0.12.7` / `0.12.8`；
 > **`0.12.2` 只在本地源 `nuget/`，从未推送到 nuget.org**（registration 与 nupkg 均 404），
 > 升级请直接用 `0.12.3` 及以上。日期取 nuget.org 的 `published` 时间（UTC）。
+
+## [0.12.8] - 2026-11-16
+
+### Fixed
+
+- **`ElSelect` 异步回填值后旧校验错误（required 红字）不消失**：`ElForm` + `ElFormItem`
+  内的 `ElSelect` 在首帧后才赋初值（模板项目 `Home.razor` 场景），若此前点过一次提交、
+  Model `[Required]` 属性已报 "The 报修科室 field is required"，异步回填后触发器回显正常，
+  但错误红字一直挂着——因为 0.12.7 晚值回显分支用 `SetFieldValue(Value, false)` 同步表单项，
+  `validate:false` 不触发重校验。修复为回显同步时传 `FormItem.HasValidationError`：
+  已有错误则重校验清错，无错则维持不校验（不把初始态标 success）。
+
+### Changed
+
+- 新增回归测试 `ElSelectLateValueValidationTests`（回填后校验通过 + 先报错再回填红字自动消失）；
+  修复前 1/2 失败（红字 20 秒超时不消失），修复后 2/2 通过，全量 2880/2885（5 个既有
+  `VendoredLibraryGuardTests` 环境性失败：主工作区无 `.gitattributes`）。
+- 版本 `0.12.7 → 0.12.8`：三个库 csproj、模板包 csproj、模板工程三处 `PackageReference`、
+  `publish.yml` 注释、README 中英版、VSIX 模板 zip 内引用全部同步。
 
 ## [0.12.7] - 2026-11-15
 
