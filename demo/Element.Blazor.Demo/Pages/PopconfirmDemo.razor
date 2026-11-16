@@ -42,8 +42,38 @@
     </ElPopconfirm>
 </div>
 
+<div class="demo-section" id="sec-popconfirm-fixed">
+    <h3>表格操作列里使用（FixedPopper 钉视口，不再被裁剪/挤压）</h3>
+    <p class="demo-page-sub">
+        气泡是触发按钮的子孙元素，默认 absolute 会被表格的 overflow 链（<code>.cell</code> hidden →
+        <code>.el-table__body-wrapper</code> auto → <code>.el-table</code> hidden）裁掉——表现为只露一条黑边，
+        或者整条气泡跟按钮挤成一行。本库默认 <code>FixedPopper="true"</code>：弹出瞬间实测触发按钮的视口矩形，
+        把气泡钉成 <code>position:fixed</code>，在哪个容器里都能浮在最顶层；上方放不下自动翻到下方（箭头跟着翻）。
+        本表列总宽超出容器，可横向滚动后点「删除」验证。
+    </p>
+
+    <div style="width:560px;max-width:100%;">
+        <ElTable DataSource="opRows" AutoGenerateColumns="false" HasSelectionColumn="false" Border="true">
+            <ElTableColumn Property="Id" Text="ID" Width="80" />
+            <ElTableColumn Property="Name" Text="名称" Width="220" />
+            <ElTableColumn Property="Category" Text="类别" Width="220" />
+            <ElTableColumn Property="Supplier" Text="供应商" Width="220" />
+            <ElTableColumn Property="Price" Text="单价" Width="140" Align="right" />
+            <ElTableTemplateColumn Text="操作" Width="140" Fixed="TableColumnFixed.Right">
+                <ElPopconfirm Title="确定要删除该条记录吗？" OnConfirm="OnConfirm" OnCancel="OnCancel">
+                    <Reference>
+                        <ElButton Size="ButtonSize.Small" Type="ButtonType.Danger">删除</ElButton>
+                    </Reference>
+                </ElPopconfirm>
+            </ElTableTemplateColumn>
+        </ElTable>
+    </div>
+    <p class="demo-note">最近一次操作：@lastAction</p>
+</div>
+
 @code {
     private string lastAction = "无";
+    private List<Product> opRows = MockData.Products.Take(4).ToList();
 
     private void OnConfirm() => lastAction = "已确认";
 

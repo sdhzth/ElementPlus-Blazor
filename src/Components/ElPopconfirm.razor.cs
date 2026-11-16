@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using System;
 using System.Threading.Tasks;
 
 namespace ElementPlus
@@ -7,6 +8,9 @@ namespace ElementPlus
     public partial class ElPopconfirm : ElementComponentBase
     {
         private bool internalVisible;
+        private ElementReference referenceRef;
+        private string fixedPopperStyle;
+        private string fixedPlacement;
 
         #region 内容
 
@@ -46,6 +50,23 @@ namespace ElementPlus
 
         [Parameter]
         public int Offset { get; set; } = 8;
+
+        /// <summary>
+        /// 把气泡钉成 <c>position:fixed</c>，坐标取弹出时实测的触发元素视口矩形（<see cref="TextClip"/>）。
+        /// 默认 <c>true</c> —— 与 ElTooltip 的 <see cref="ElTooltip.FixedPopper"/>（批次㊶）同一套基建，
+        /// 但这里默认开：气泡是触发 span 的子孙，absolute 会被「最近的非 visible overflow 祖先」裁掉
+        /// —— 表格单元格是 <c>.cell(hidden) → .el-table__body-wrapper(auto) → .el-table(hidden)</c>，
+        /// 确认气泡一露头就被裁/挤压成一条（消费方实拍：气泡与按钮挤成一行）。fixed 的包含块是
+        /// 视口，只要祖先没有 <c>transform/filter/contain</c> 就不受 overflow 裁剪。
+        /// <para>
+        /// 与 <see cref="Offset"/> 共用同一个间距；<c>Placement="top"</c> 上方放不下自动翻到下方，
+        /// 翻面结果一并落到 <c>x-placement</c>（箭头跟着翻）。JS 量不到（bUnit、元素已移除）时
+        /// 静默退回 absolute，不抛异常。页面滚动时气泡不跟随（打开时一次定标，与 ElTable 的
+        /// 筛选面板同一取舍）；确需 absolute 老行为可显式 <c>FixedPopper="false"</c>。
+        /// </para>
+        /// </summary>
+        [Parameter]
+        public bool FixedPopper { get; set; } = true;
 
         #endregion
 
@@ -140,6 +161,10 @@ namespace ElementPlus
 
         protected bool IsVisible => !Disabled && (Trigger == PopperTrigger.Manual ? ModelValue : internalVisible);
 
+        /// <summary>实际生效的 placement。<see cref="FixedPopper"/> 翻面时（上方放不下改下方）箭头要跟着翻，
+        /// 所以 <c>x-placement</c> 读这一条而不是 <see cref="Placement"/>；未翻面时两者恒等。</summary>
+        protected string EffectivePlacement => fixedPlacement ?? Placement;
+
         /// <summary>实际渲染的 icon class（考虑 HideIcon + 默认值 + Type）</summary>
         protected string EffectiveIcon
         {
@@ -186,13 +211,22 @@ namespace ElementPlus
             .Add(Cls)
             .ToString();
 
-        protected string PopoverStyleValue => HtmlPropertyBuilder.CreateCssStyleBuilder()
-            .Add("position:absolute")
-            .Add("z-index:var(--el-index-popper, 2000)")
-            .AddIf(Width > 0, $"width:{Width}px")
-            .Add(GetPlacementStyle())
-            .Add(PopperStyle)
-            .ToString();
+        protected string PopoverStyleValue
+        {
+            get
+            {
+                var fixedMode = FixedPopper && fixedPopperStyle != null;
+                return HtmlPropertyBuilder.CreateCssStyleBuilder()
+                    .Add("z-index:var(--el-index-popper, 2000)")
+                    .AddIf(Width > 0, $"width:{Width}px")
+                    // fixed 时坐标整条由 fixedPopperStyle 给（自带 position/left/top/right/bottom/transform），
+                    // absolute 那套 bottom:100%/left:50% 锚点必须让位，否则两组锚点同时生效会把气泡顶出去。
+                    .Add(fixedMode ? fixedPopperStyle : "position:absolute")
+                    .AddIf(!fixedMode, GetPlacementStyle())
+                    .Add(PopperStyle)
+                    .ToString();
+            }
+        }
 
         protected string IconClass => HtmlPropertyBuilder.CreateCssClassBuilder()
             .Add("el-popconfirm__icon")
@@ -236,6 +270,10 @@ namespace ElementPlus
         {
             if (Disabled) visible = false;
 
+            // 先量后渲染：气泡首帧就落在 fixed 坐标上，不会闪一帧 absolute。
+            // 量不到（bUnit / 元素已移除）时 fixedPopperStyle 为 null，自然退回 absolute。
+            await UpdateFixedPopperAsync(visible);
+
             if (Trigger == PopperTrigger.Manual)
             {
                 if (ModelValueChanged.HasDelegate) await ModelValueChanged.InvokeAsync(visible);
@@ -246,6 +284,47 @@ namespace ElementPlus
             }
 
             if (OnVisibleChange.HasDelegate) await OnVisibleChange.InvokeAsync(visible);
+        }
+
+        /// <summary>
+        /// 弹出时实测触发元素的视口矩形，把气泡钉成 position:fixed（见 <see cref="FixedPopper"/>）。
+        /// 关闭即清坐标；量不到就保持 null（absolute 老路径），一次失败不能把整页渲染带崩。
+        /// </summary>
+        private async Task UpdateFixedPopperAsync(bool visible)
+        {
+            if (!FixedPopper)
+            {
+                return;
+            }
+
+            if (!visible)
+            {
+                fixedPopperStyle = null;
+                fixedPlacement = null;
+                return;
+            }
+
+            fixedPopperStyle = null;
+            fixedPlacement = null;
+            TextClipState state;
+            try
+            {
+                state = await TextClip.MeasureRectAsync(JSRuntime, referenceRef);
+            }
+            catch (Exception)
+            {
+                // 弹出与测量之间元素被移除（表格刷新、行折叠、宿主整块重建）时 JS 互操作会抛；
+                // 这里退回 absolute 让气泡照常出现，不能让一次点击把整页渲染带崩。
+                return;
+            }
+
+            if (state == null || (state.RectWidth <= 0 && state.RectHeight <= 0))
+            {
+                // bUnit 未打桩时拿到 default，等价于「量不到」，同样退回 absolute
+                return;
+            }
+
+            fixedPopperStyle = TextClip.BuildFixedPopperStyle(state, Placement, out fixedPlacement, Offset);
         }
 
         private string GetPlacementStyle()

@@ -70,23 +70,21 @@ namespace ElementPlus
 
         /// <summary>
         /// 把浮层钉成 <c>position:fixed</c>，坐标取悬停时实测的触发元素视口矩形（<see cref="TextClip"/>）。
-        /// 默认 <c>false</c>：absolute，行为与本参数加入前逐字节一致。
-        /// <para>
-        /// 为什么需要它：浮层渲染在触发 span <b>内部</b>（本仓没有 EP 那套 teleport 到 body 的传送门），
-        /// 而 absolute 的裁剪来自「最近的非 visible overflow 祖先」那条链 —— 表格单元格是
+        /// 默认 <c>true</c>：浮层渲染在触发 span <b>内部</b>（本仓没有 EP 那套 teleport 到 body 的传送门），
+        /// absolute 会被「最近的非 visible overflow 祖先」裁掉 —— 表格单元格是
         /// <c>.cell(overflow:hidden) → .el-table__body-wrapper(auto) → .el-table(hidden)</c>，
-        /// 侧栏菜单是 <c>.demo-aside-scroll(auto)</c>。挂在这类盒子里的浮层一露头就被裁没，
-        /// 表现为「hover 什么都不出来」。fixed 的包含块是视口，只要祖先没有
+        /// 侧栏菜单是 <c>.demo-aside-scroll(auto)</c>；挂在这类盒子里的浮层一露头就被裁没
+        /// （消费方实拍：tooltip 只露一条黑边）。fixed 的包含块是视口，只要祖先没有
         /// <c>transform/filter/contain</c> 就不受 overflow 裁剪。
-        /// </para>
         /// <para>
         /// 与 <see cref="Offset"/> 共用同一个间距；<c>Placement="top"</c> 时上方放不下会自动翻到下方，
         /// 翻面结果一并落到 <c>x-placement</c> 上，箭头跟着翻。JS 量不到（bUnit、元素已被移除）时
-        /// 静默退回 absolute，不抛异常。
+        /// 静默退回 absolute，不抛异常。页面滚动时浮层不跟随（悬停时一次定标，与 ElTable 筛选面板
+        /// 同一取舍）；确需 absolute 老行为可显式 <c>FixedPopper="false"</c>。
         /// </para>
         /// </summary>
         [Parameter]
-        public bool FixedPopper { get; set; }
+        public bool FixedPopper { get; set; } = true;
 
         /// <summary>显示后自动关闭的毫秒数（EP auto-close，0 = 不自动关闭）</summary>
         [Parameter]

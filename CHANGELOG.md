@@ -4,9 +4,36 @@ All notable changes to Element-Blazor are recorded here.
 
 This project follows Semantic Versioning and uses a Keep a Changelog style structure.
 
-> **版本线说明**：nuget.org 已发布 `0.12.0` / `0.12.1` / `0.12.3` / `0.12.4` / `0.12.5` / `0.12.6` / `0.12.7` / `0.12.8`；
+> **版本线说明**：nuget.org 已发布 `0.12.0` / `0.12.1` / `0.12.3` / `0.12.4` / `0.12.5` / `0.12.6` / `0.12.7` / `0.12.8` / `0.12.9`；
 > **`0.12.2` 只在本地源 `nuget/`，从未推送到 nuget.org**（registration 与 nupkg 均 404），
 > 升级请直接用 `0.12.3` 及以上。日期取 nuget.org 的 `published` 时间（UTC）。
+
+## [0.12.9] - 2026-11-16
+
+### Fixed
+
+- **`ElPopconfirm` 气泡在表格/裁剪容器里被裁剪、挤压**：气泡是触发 span 的子孙元素，默认
+  `position:absolute` 会被表格的 overflow 链（`.cell` hidden → `.el-table__body-wrapper` auto →
+  `.el-table` hidden）裁掉——表现为只露一条黑边，或整条气泡与按钮挤成一行（消费方实拍）。
+  新增 `FixedPopper`（**默认 true**）：弹出瞬间实测触发元素的视口矩形，气泡钉成
+  `position:fixed`，任何容器里都浮在最顶层；上方放不下自动翻到下方（`x-placement` 与箭头
+  跟着翻）；JS 量不到（bUnit、元素已移除）时静默退回 absolute。确需老行为可显式
+  `FixedPopper="false"`。注意取舍：气泡在打开时一次定标，页面滚动不跟随（与 ElTable
+  筛选面板同一取舍）。
+
+### Changed
+
+- **`ElTooltip.FixedPopper` 默认 `false → true`**：同一根因——表格单元格里的 tooltip
+  默认 absolute 会被裁成一条黑边。默认钉视口后无需任何参数即可正常悬浮；
+  显式 `FixedPopper="false"` 退回 absolute 老行为。
+- demo：`PopconfirmDemo` 新增「表格操作列里使用」小节（窄容器 + 横向滚动 + 操作列删除按钮，
+  配 `verify-popconfirm-fixed.cjs` 浏览器探针）；`TableDemo` 新增 ⑤′「操作列固定右侧」
+  （`Fixed="TableColumnFixed.Right"`）示例。
+- 新增回归测试 `ElPopconfirmFixedPopperTests`（6 用例：fixed 坐标、翻面、Offset、关掉对照、
+  量不到退回、关闭清坐标重开重量）；全量 2886/2891（5 个既有 `VendoredLibraryGuardTests`
+  环境性失败），浏览器实测 9/9 PASS（气泡越过表格上缘、命中测试拿到气泡自身、滚动后坐标重测）。
+- 版本 `0.12.8 → 0.12.9`：三个库 csproj、模板包 csproj、模板工程、`publish.yml`、README
+  中英版、VSIX 模板 zip 内引用全部同步。
 
 ## [0.12.8] - 2026-11-16
 
@@ -237,6 +264,20 @@ This project follows Semantic Versioning and uses a Keep a Changelog style struc
 
 ### Added
 
+- 🟢 **批次168 · `ElCheckbox<T>` / `ElSwitch<T>` 补上 `ModelChanged`，`@bind-Model` 从此真的能用（随包 0.12.1）**（2026-11-01）。
+  - **症状**：`@bind-Model` 写上去，界面照常翻，宿主那个字段永远是旧值——回调不达页面，且**一条错误都不报**。
+  - **根因（形状与批次⑮ 的 `IndeterminateChanged` 完全同族，见本文件那条 2026-10-10 的记录）**：`Model` 是 `Value` 的别名（`ElCheckbox.razor.cs:47`、`ElSwitch.razor.cs:62`），但回调侧只配了 `ValueChanged`。同一个件里 `ModelValue`/`ModelValueChanged`（`ElSwitch.razor.cs:55`/`:52`）倒是成对的——**同一件事只做了一半**。`@bind-Model` 编译出 `Model` + `ModelChanged` 两个特性，后者没有 `[Parameter]` 承接，被 `ElementComponentBase.Attributes` 的 `[Parameter(CaptureUnmatchedValues = true)]` 静默吞掉。
+  - **改法**：转发属性，不开第三条状态通路——`get => ValueChanged; set => ValueChanged = value;`（`ElCheckbox.razor.cs:56`、`ElSwitch.razor.cs:69`）⇒ `@bind-Model` 与 `@bind-Value` 等价，`@bind-Value` 那条一路没动（有对照测试钉着）。
+  - **出库（0.12.0 → 0.12.1）**：消费侧包体 A/B 实测——nupkg 仍 22 件，只有 `nuspec` / `.psmdcp` / `ElementPlus.dll` / `Element.xml` / `LICENSE` 五项不同；dll 3,060,736 → **3,061,248 B（+512）**，`Element.xml` 1,213,989 → 1,214,539 B（+550）；XML `<member>` 集合 **4,875 → 4,877，移除 0 条**，新增正是这两颗 `ModelChanged`，既有成员文档文本 0 处改动。`index.css` / `js/dom.js` / `build/Element-Plus.props` / 两颗字体 / 两份词条**逐字节相同** ⇒ 宿主 `wwwroot/index.html` 与消费代码**零改动**。
+  - **交付形状三笔（下次别当噪声）**：① 包内 pdb 记录的构建路径从 `…\Element-Blazor-master\src\Components\obj\Release\net10.0\` 变成 `…\Element-Blazor-master\github-upload\src\Components\obj\…` ⇒ 0.12.1 是**从另一份源码副本**打的包；实测两棵树各 671 文件、逐字节 0 差 ⇒ `src/` 仍是测试基准。② `LICENSE` 第 3 行署名 `Copyright (c) 2019-present ElementPlus-Blazor contributors` → `Copyright (c) 2026 smart`。③ 本地源里 `Element-Plus.X.0.12.1` 已打（依赖自动抬到主包 0.12.1），`Element-Plus.Markdown` 只到 0.12.0；主包不依赖这两件 ⇒ 消费侧还原不受影响。
+  - **测试**：0.12.1 **出厂带 0 条测试**（改完没测就打包）。本次补 `test/Element.ComponentTests/ElBindModelTests.cs` **7 条 `[Fact]`**：两颗参数存在性、`@bind-Model` 宿主字段随点击翻转、第二次点击翻回、`ModelChanged` 落在 `ValueChanged` 槽、以及 `@bind-Value` 未因别名回归的**正向对照** ⇒ `失败: 0 / 通过: 7 / 总计: 7`。
+    **有牙验证**：把两颗别名临时改回 0.12.1 之前的普通 `{ get; set; }`（`cp` 备份 → 变异 → `cp` 还原 → `md5sum -c` 两个 OK，全程不碰 `git checkout`）后同过滤器 **失败 5 / 通过 2**；还原后复跑回到 7/7。全量套件 `失败 5 / 通过 2847 / 总计 2852`，那 5 条是既有的 `VendoredLibraryGuardTests`（仓库根无 `.gitattributes`），与本批无关。
+  - **消费方接入（AIDBAgent，2026-11-02 实升级并复验）**：`src/AIDBAgent.Client/AIDBAgent.Client.csproj:24` pin `0.12.0 → 0.12.1`，**页面一行未改** —— 该仓三处开关用的是显式 `Value` + `ValueChanged`（`Pages/Playbook.razor:79/179/184`）和 `@bind-Value`（`Pages/Relations.razor:92`），**`@bind-Model` 零处**（别和 13 处 `@bind-ModelValue` 混：那 13 处全挂在 `ElDialog` 上，走的是本来就成对的 `ModelValue`/`ModelValueChanged`，与本批无关）⇒ 新槽对它是纯加法。反过来记一句：它哪天写 `@bind-Model`，在 0.12.0 上会**静默不生效**（不报错、不警告），0.12.1 才可用。
+    换包账本四样（读数档 `_probe/logs/t143_accept_t143d.run.log`）：① 本地源 `nuget/Element-Plus.0.12.1.nupkg` 1,808,395 B / md5 `306a4b893783fd122e7c4fdcdd61a38c`；② 包内 `lib/net10.0/ElementPlus.dll` 3,061,248 / `a976184af58d8d041168ef6e36a4314c`，与消费方 `bin/Debug/net10.0/ElementPlus.dll` **逐字节相同**；③ `obj/project.assets.json` 实解析到 `Element-Plus/0.12.1`（不是只改了 csproj）；④ 真正下发的 `src/AIDBAgent.Client/bin/Debug/net10.0/wwwroot/_framework/ElementPlus.daqnif8l3q.wasm` 3,061,017 B / `0315ecb0ec095ae84d9037350784434d`，扫服务字节：`0.12.1` 命中（ASCII 2 / UTF-16 3）、`0.12.0` 与 `0.11.0` 各 **0** 次、`ModelChanged` **2** 次——版本号 ≠ 内容身份，所以第四样按字节扫，不信标签。
+    构建与运行时复验：`dotnet build AIDBAgent.slnx -c Debug` **RC=0 / `: error ` 0 条**；一次性主机（5196，自己的 `_probe/t138` 内容根与独立 store，不碰开发者那台 5180）上两支库面尺子 `t138_ui.mjs` **59 PASS / 0 FAIL**、`t141_cleanup.mjs` **27 PASS / 0 FAIL**（覆盖 ElTable / ElAlert / ElSwitch / MessageBox / 下载），与升级前基线（`t138_ui_t141d.txt` 59/0、`t141_cleanup_t141c.txt` 27/0）**逐条同数** ⇒ 无回归。
+    **一条跨会话施工坑**：Debug bin 是共享的，别的会话只要还挂着从 `bin\Debug\net10.0\AIDBAgent.Server.exe` 起的服务端，本仓 `dotnet build` 就 MSB3027/MSB3021 复制 `AIDBAgent.Shared.dll` 失败（重试 10 次全败）。处置口径是**等它收工**，不是杀别人的进程；升级链第一步 preflight 就是数这个占用者，非 0 直接退出。
+  - **未办**：`Model` 与 `Value` 共用同一存储，`@bind-Model` 与 `@bind-Value` 混写在同一件上没有独立语义，宿主二选一。
+
 - 🔴 **命名空间与程序集名统一改为 `ElementPlus`（破坏性变更，随包 0.11.0）**（2026-10-30）。
   - **要改什么**：根命名空间 `Element` → **`ElementPlus`**，子命名空间同步（`Element.X` / `Element.Markdown` / `Element.ControlRenders` / `Element.ControlConfigs` / `Element.Core` / `Element.Model` / `Element.Lang` …）；程序集名 `Element.dll` → **`ElementPlus.dll`**（X / Markdown 同理 `ElementPlus.X` / `ElementPlus.Markdown`）。
   - **下游必做一步**：`@using Element` → **`@using ElementPlus`**（`_Imports.razor` 或单页）。只引包不改这行会编译不过（CS0246）。
@@ -246,6 +287,9 @@ This project follows Semantic Versioning and uses a Keep a Changelog style struc
   - **验证**：`src/Components` / `X` / `Markdown` / `demo`(WASM) / `Element.ComponentTests` Release 全绿（0 错）；`dotnet test` **2847 通过 / 5 失败 / 2852**，失败项与改前完全一致 —— `VendoredLibraryGuardTests.VendoredBytesStayExactOnCheckout`，根因是**仓库根没有 `.gitattributes`**（既有故障，非本批引入）。
   - **未办**：`src/VSExtension`（独立 .NET Fx 4.7.2 VSIX，不引用主库）已跟着改成 `ElementPlus.VSExtension`，但本机无 VS SDK，**未做编译验证**。
   - **出库（0.10.36 → 0.11.0；X / Markdown 0.10.7 → 0.11.0）**：`pack -c Release` 三个包 RC=0，包内 `lib/net10.0/ElementPlus.dll`、`ElementPlus.X.dll`、`ElementPlus.Markdown.dll`，依赖与 staticwebassets 条目数照旧；Markdown / X 对主包的依赖已自动抬到 `0.11.0`。
+  - 🔴 **补记（消费侧 2026-11-01 在 zyweb 撞出来后回填，本仓原先 0 处记录）**：同一批改名还把 **DI 入口 `Extension.AddElementServices()` → `AddElementPlusServices()`**（`src/Components/Extension.cs:25`），宿主漏改是 `Program.cs(…,18): error CS1061`。这条不在上面「要改什么」里，也不在 0.11.0 那天的条目里 ⇒ 只按 CHANGELOG 施工会以为换了 `@using` 就完。
+    另记一个交付形状问题：`~/.nuget/packages/element-plus/0.11.0/lib/net10.0/ElementPlus.dll` 的落盘时间是 10-31 20:19，而**同一个版本号**在 10-31 00:12 已构建成功过（当时还没有这条改名）⇒ 0.11.0 被**原地重打**，版本号不能当内容的身份证；21:04 再抬成 0.12.0。
+  - **出库（0.11.0 → 0.12.0）**：消费侧包体 A/B 实测是**原样抬版**——nupkg 内 22 件只有 `Element-Plus.nuspec`、`.psmdcp`、`lib/net10.0/ElementPlus.dll` 三项不同；dll 同尺寸 3,060,736 B、字节差 79（PE 时间戳 + MVID/GUID + 两处版本串 `1`→`2`）；≥6 字符 ASCII 串集合两边各 15,384 条，差集**只有那两条版本串**；`index.css` / `js/dom.js` / `build/Element-Plus.props` / 字体逐字节相同。XML 文档成员差集（0.10.36 vs 0.12.0，各 4,875 条）里唯一的移除/新增就是上面那条 DI 改名 ⇒ 除 `AddElementPlusServices()` 外宿主零改码。
 - 🟢 **批次107 · 饼/环图左/右图例列的预留宽从死值 120 改成「按该列最宽图例文字实测」（消费方批次110zzz-w：首页四张图排成一行后环塌成一条线）**（2026-10-29，随包 0.10.36）。
   - **触发点**：宿主 `emrelecrecordplusgroup` 首页 `/`，用户 2026-10-29 的截图标注「**这4个拍成一行，中间有细微的间隙**」⇒ 四张画布从 `Width="250"` 收到 `Width="180"`（消费方 `Pages/Home.razor`）。收完复验时探针量到性别饼图与病案状态环图的 `rOuter` **都只剩 16**，圆心「一览」（实测 30px 宽）画到洞口（1.2·16 = 19.2px）外面（`_tools/v1/b110zzz/probe_wlib_改前.out`）。
     这不是「收宽度收错了」：摆四条路（画布回到 250 / 图例挪到下方 / 摘掉图例 / 改库按实测）给用户选，用户**点名选 4「改库：图例预留宽按实测」**。
