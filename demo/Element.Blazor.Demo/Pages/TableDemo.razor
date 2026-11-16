@@ -3,7 +3,8 @@
 
 <h1 class="demo-page-title">ElTable 进阶：可编辑表格 & 自定义模板列</h1>
 <p class="demo-page-sub">
-    ElTable 自带行内编辑能力（<code>IsEditable</code>）；单元格渲染则可完全交给 <code>ChildContent</code> / <code>ElTableTemplateColumn</code> 接管。本页两个 demo 分开演示。
+    ElTable 自带行内编辑能力（<code>IsEditable</code>）；单元格渲染则可完全交给 <code>ChildContent</code> / <code>ElTableTemplateColumn</code> 接管。
+    操作列放右边有两种需求：<b>排在最后一列</b>（写在最后 / 给大 <code>SortNo</code>）与<b>固定右侧</b>（<code>Fixed="TableColumnFixed.Right"</code>，见 ⑤′）—— 后者横向滚动时仍钉在右边。
 </p>
 
 <div class="demo-section">
@@ -175,6 +176,40 @@
     </ElTable>
 
     <p class="demo-note" id="op-detail">@opDetailText</p>
+</div>
+
+<div class="demo-section" id="sec-fixed-right">
+    <h3>⑤′ 操作列固定在右边（Fixed="TableColumnFixed.Right"）</h3>
+    <p class="demo-page-sub">
+        「操作列在右边」有两种做法，别混：<b>① 排在最后一列</b> —— 把操作列写在最后、或给一个比其它列都大的 <code>SortNo</code>，它只是位置靠后，横向滚动时会跟着滚走；
+        <b>② 固定右侧</b> —— 加 <code>Fixed="TableColumnFixed.Right"</code>，列通过 <code>position:sticky; right:0</code> 钉在表格右边，横向滚动时始终可见。
+    </p>
+    <p class="demo-page-sub">
+        固定效果<b>要有横向滚动才看得出来</b>：本表特意给窄宽度 <code>Style="width:640px"</code>，并把前面几列都设成宽列（总宽 &gt; 640px），拖动下方滚动条即可看到操作列不动。
+        只固定一列（操作列）没问题；若固定多列到右侧，当前 CSS 的 <code>right:0</code> 写死会让它们重叠，需要各自累加偏移。
+    </p>
+
+    <ElTable DataSource="fixedRightRows" AutoGenerateColumns="false" HasSelectionColumn="false"
+             Border="true" Style="width:640px">
+        <ElTableColumn Property="Id" Text="ID" Width="90" />
+        <ElTableColumn Property="Name" Text="名称" Width="260" />
+        <ElTableColumn Property="Category" Text="类别" Width="240" />
+        <ElTableColumn Property="Supplier" Text="供应商" Width="260" />
+        <ElTableColumn Property="Price" Text="单价" Width="180" Align="right" />
+        <ElTableTemplateColumn Text="操作" Width="160" Fixed="TableColumnFixed.Right">
+            @{
+                var fr = (Product)context;
+                <span class="op-cell" @onclick="e => { }" @onclick:stopPropagation>
+                    <ElButton Size="ButtonSize.Small" Type="ButtonType.Primary"
+                              OnClick="@(() => FixedRightEdit(fr))">编辑</ElButton>
+                    <ElButton Size="ButtonSize.Small" Type="ButtonType.Danger"
+                              OnClick="@(() => FixedRightDelete(fr))">删除</ElButton>
+                </span>
+            }
+        </ElTableTemplateColumn>
+    </ElTable>
+
+    <p class="demo-note" id="fixed-right-detail">@fixedRightDetailText</p>
 </div>
 
 <div class="demo-section">
@@ -909,11 +944,27 @@
         deptTable?.CollapseAllTree();
     }
 
-    // ===== ⑤ 操作列置顶 + 当前行记录获取 =====
+    // ===== ⑤ / ⑤′ 操作列：置顶 + 固定右侧 + 当前行记录获取 =====
 
     /// <summary>⑤ 用一份独立数据源，避免污染其它 demo 的共享 Mock。</summary>
     private List<Product> opRows = MockData.Products.Take(5).ToList();
     private string opDetailText = "点「编辑 / 删除」按钮（取 context 行对象），或点任意单元格（触发 RowClick）看结果。";
+
+    /// <summary>⑤′ 操作列固定右侧示例的数据源与回显文本。</summary>
+    private List<Product> fixedRightRows = MockData.Products.Take(6).ToList();
+    private string fixedRightDetailText = "拖动表格下方横向滚动条：前面几列会滚走，操作列始终固定在右侧。";
+
+    private void FixedRightEdit(Product p)
+    {
+        fixedRightDetailText = $"[固定列] 编辑 → #{p.Id} {p.Name}";
+        StateHasChanged();
+    }
+
+    private void FixedRightDelete(Product p)
+    {
+        fixedRightDetailText = $"[固定列] 删除 → #{p.Id} {p.Name}";
+        StateHasChanged();
+    }
 
     /// <summary>① 模板列里拿当前行：context 强制转成 Product 即可直接用。</summary>
     private void OpEdit(Product p)
