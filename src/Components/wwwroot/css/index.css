@@ -4919,12 +4919,10 @@ a.el-breadcrumb__inner:hover {
     width: 100%;
 }
 
-/* ==== 全局细滚动条：纵向 4px / 横向 6px + 悬停才显形 ==== */
+/* ==== 全局细滚动条：纵向 4px / 横向布局占位恒 12px + 悬停才显形 ==== */
 /* 用户长期硬要求：滚动条要细、平时若隐若现（完全透明），鼠标移到滚动容器上（或直接压到滚动条上）
    才浮现，移出即消失。原本两轴一律 4px；2026-10-10 用户先反馈「横向的滚动条稍微宽一点，要不不容易拖动」
    （4px 的横向条只有两三个像素能压到，抓不住就没法拖），同日批次⑫ 又指定**横向取 6px**。
-   纵向仍留 4px：表头/表体的列边界对齐依赖纵向槽宽（见 ElDropDownTableGrow 的 scrollbar-gutter 段），
-   那一轴动不得。Chromium 里 width 管纵向、height 管横向，两轴本就分开，互不影响。
    6px 就是 EP 2.14.0 自家滚条的字面值：theme-chalk/src/scrollbar.scss 的
    `.el-scrollbar__bar.is-horizontal{height:6px}`（批次⑩ 取 8px 是把 `bottom:2px` 内缩也算进可压区域，
    用户既然直接指定 6px，就回到与 EP 声明一致的那个值）。
@@ -4933,7 +4931,20 @@ a.el-breadcrumb__inner:hover {
    例如 demo app.css 给 #app 设的 scrollbar-color），Chromium 就忽略
    ::-webkit-scrollbar 伪元素、回落平台 15px 轨道 —— 滚动条于是「改不动」。
    故此处先用 `*` 把两者复位成 auto（= initial）挡住继承，宽度统一交给
-   ::-webkit-scrollbar 精确控制。Firefox 无该伪元素，走段末 @supports 回落。 */
+   ::-webkit-scrollbar 精确控制。Firefox 无该伪元素，走段末 @supports 回落。
+
+   【2026-11-17 布局占位恒定（消灭「滚动条显隐抖动」）】
+   此前横向轨道是「静止 6px、悬停 12px」两档（*:hover::-webkit-scrollbar 切换），且 dom.js 的
+   显形重建会让轨道随 hover 出现/消失 —— 轨道厚度占布局，表格一行「滚动条显隐」内容区就上下/左右
+   跳 4~12px（用户实拍：ElTable 下方滚动条显隐时整表抖动）。
+   现在：横向轨道**布局占位恒等于悬停最厚值**（--el-sb-h-hover, 12px），删除悬停加高规则 ——
+   轨道全透明，静止时视觉与 6px 时代完全一样（什么也看不见）；悬停时拇指照样 12px 显形。
+   视觉三态与旧口径逐像素一致，唯一区别是布局永不切换、且按压区恒 12px（更好抓）。
+   成本：横向可滚容器底部常驻 12px 透明占位（旧口径悬停时本来也是 12px）。
+   --el-sb-h（6px）保留为「静止视觉厚度」标记：常显拇指的组件（ElDropDownTableGrow 面板等）
+   用它与 --el-sb-h-hover 的差算透明 border 内缩量，维持静止 6px 视觉（见各组件段）。
+   纵向仍留 4px：表头/表体的列边界对齐依赖纵向槽宽（见 ElDropDownTableGrow 的 scrollbar-gutter 段），
+   那一轴动不得。Chromium 里 width 管纵向、height 管横向，两轴本就分开，互不影响。 */
 * {
     scrollbar-width: auto;
     scrollbar-color: auto;
@@ -4941,7 +4952,7 @@ a.el-breadcrumb__inner:hover {
 
 *::-webkit-scrollbar {
     width: var(--el-sb-w, 4px);
-    height: var(--el-sb-h, 6px);
+    height: var(--el-sb-h-hover, 12px);
     background-color: transparent;
 }
 
@@ -4974,18 +4985,13 @@ a.el-breadcrumb__inner:hover {
     background-color: rgba(0, 0, 0, .32);
 }
 
-/* 鼠标进入横向可滚的容器 → 横条厚度翻倍（6px → 12px），便于按住拖曳；移出立刻收回。
-   用户口径（批次94 #154）：「鼠标不移动上去是这个默认的高度，鼠标移动上去后，高度变大1倍，
-   便于拖曳，鼠标移走，恢复原来默认高度（拖曳过程中不要改变高度就是默认高度放大1倍的高度）」。
-   只改 height（Chromium 里 height 管横条、width 管纵条），纵向 4px 那一轴一动不动。
-   拖曳期间指针本来就在容器内，:hover 一直成立，所以高度不会中途缩回。
-   取值走 --el-sb-h-hover：需要退出这档加高的宿主（滚道刻意归零、或有自己的口径）
-   在宿主上设 --el-sb-h-hover: 0px（或自己的厚度）即可，不必再去打特异性战争。 */
-*:hover::-webkit-scrollbar {
-    height: var(--el-sb-h-hover, 12px);
-}
+/* 【2026-11-17 已删除的规则】*:hover::-webkit-scrollbar { height: var(--el-sb-h-hover, 12px) }：
+   悬停把横向轨道 6→12px 占布局、移出缩回，是「滚动条显隐时表格抖动」的元凶之一（用户实拍）。
+   现轨道布局占位恒 12px（见段首注释），拇指悬停显形/加深逻辑不变 —— 视觉三态与旧口径一致。 */
 
-/* EP 的 ElScrollbar 用 noShowScrollbar 时靠这类宿主把原生滚道归零，不许被上面的悬停加高复活 */
+/* EP 的 ElScrollbar 用 noShowScrollbar 时靠这类宿主把原生滚道归零。
+   2026-11-17 起全局横向轨道的布局占位直接读 --el-sb-h-hover（见段首「布局占位恒定」），
+   这两个宿主设 0px 即整条归零 —— 语义从「退出悬停加高档」变为「退出轨道占位档」，钩子名不变。 */
 .el-scrollbar__wrap--hidden-default,
 .el-pro-tabs-grow__scroll {
     --el-sb-h-hover: 0px;
@@ -10140,15 +10146,21 @@ div.el-form-item div.el-select {
 }
 .el-thin-scrollbar::-webkit-scrollbar,
 .el-tree-v2__body::-webkit-scrollbar {
-    /* 与全局同口径：纵向 4px（列/行对齐依赖这一轴），横向 6px（EP 自家 is-horizontal 的取值）。
-       走 --el-sb-w/--el-sb-h 这两个钩子，才不会被段首那条 *:hover::-webkit-scrollbar 加高漏掉。 */
+    /* 与全局同口径：纵向 4px（列/行对齐依赖这一轴），横向布局占位恒 12px（见段首「布局占位恒定」）。
+       走 --el-sb-w/--el-sb-hover 钩子与全局那条同源。
+       静止拇指透明 → 视觉与旧「静止 6px」时代一致；拇指常显的场景（下方 always-on）
+       用 :horizontal 透明 border 维持静止 6px 视觉。 */
     width: var(--el-sb-w, 4px);
-    height: var(--el-sb-h, 6px);
-}
-/* 本段特异性与全局那条打平但位置更靠后，加高要在这里再补一次（同批次94 #154 口径） */
-.el-thin-scrollbar:hover::-webkit-scrollbar,
-.el-tree-v2__body:hover::-webkit-scrollbar {
     height: var(--el-sb-h-hover, 12px);
+}
+/* 【2026-11-17 已删除】本段的 :hover 加高规则：与全局那条同因同果（轨道厚度切换占布局 = 抖动），
+   随「布局占位恒定」一并移除。显形仍靠 :hover 拇指上色 + dom.js 的 overflow 重建。 */
+/* always-on 的拇指常显：横向那条用上下透明 border 把视觉厚度从 12px 收回 6px（静止档），
+   悬停时放开 border 恢复 12px —— 与全局 hover 口径一致。纵向拇指不受影响（:horizontal 只命中横条）。 */
+.el-tree-v2.is-scrollbar-always-on .el-tree-v2__body::-webkit-scrollbar-thumb:horizontal {
+    border-top: calc((var(--el-sb-h-hover, 12px) - var(--el-sb-h, 6px)) / 2) solid transparent;
+    border-bottom: calc((var(--el-sb-h-hover, 12px) - var(--el-sb-h, 6px)) / 2) solid transparent;
+    background-clip: padding-box;
 }
 .el-thin-scrollbar::-webkit-scrollbar-thumb,
 .el-tree-v2__body::-webkit-scrollbar-thumb {

@@ -36,17 +36,20 @@
    实测结论（不是推断）见 Temp/diag-batch8-scrollbar-zero2.log 的 B 段：headSlot 0 / bodySlot 0、
    clientW 316/316、三列宽差值全 0、滚轮 inner 0→43 照旧生效。常驻尺子：verify-batch8.cjs 的 G1/G2/G3。
 
-   —— 横轴（height 只管横向那条）按 #154 的库口径装回一根可拖的条：静止 var(--el-sb-h, 6px)、
-   悬停 var(--el-sb-h-hover, 12px)。走钩子而不是写字面数字，是为了跟 index.css 那段同源：
+   —— 横轴（height 只管横向那条）按 #154 的库口径装回一根可拖的条。2026-11-17 起库口径改为
+   「布局占位恒定」：轨道恒 var(--el-sb-h-hover, 12px)，拇指静止用透明 border 收回 6px 视觉、
+   悬停放开 border 显 12px —— 视觉三态与旧「静止 6 / 悬停 12」完全一致，但布局不再随 hover 切换
+   （旧口径实测：面板内表格鼠标进出时内容区跟着跳，同 ElTable 的抖动根因）。
+   走钩子而不是写字面数字，是为了跟 index.css 那段同源：
    用户改全站口径时这里自动跟上，反过来这里也不必再去打特异性战争。
-   Chromium 里 height 不占 clientWidth，所以加高横条不会拽歪列边界（上面那条依赖只在 width 轴上）。
+   Chromium 里 height 不占 clientWidth，所以横条不会拽歪列边界（上面那条依赖只在 width 轴上）。
 
    —— 表头容器只给 0×0：EP 给 .el-table__header-wrapper 的是 overflow:hidden
    （index.css 里实测到两处 .el-table__header-wrapper{overflow:hidden}），它没有横向可滚的内容，
-   6px 只会画一条拖不动、还从表头底部吃掉 6px 高度、并且让表头/表体的可视高度不相等的条。 */
+   轨道只会在表头底部白吃高度、并且让表头/表体的可视高度不相等。 */
 .el-dropdown-table-grow__panel .el-table__body-wrapper::-webkit-scrollbar {
     width: 0;
-    height: var(--el-sb-h, 6px);
+    height: var(--el-sb-h-hover, 12px);
     background: transparent;
 }
 .el-dropdown-table-grow__panel .el-table__header-wrapper::-webkit-scrollbar {
@@ -54,12 +57,16 @@
     height: 0;
     background: transparent;
 }
-/* 悬停加高必须在本组件再写一遍，不能指望 index.css 那条全局的 *:hover::-webkit-scrollbar：
-   本条静止档的特异性是 (0,2,0) 且样式表更晚，压得住全局那条 (0,1,0) 的悬停档 ——
-   也就是说组件把静止钉成 6px 的同时，也顺手把全站统一的 12px 挡在了外面。
-   少了下面这条，面板横条会永远停在 6px（批次94 常驻探针 ⑬ 当时量到的正是这个形状）。 */
-.el-dropdown-table-grow__panel .el-table__body-wrapper:hover::-webkit-scrollbar {
-    height: var(--el-sb-h-hover, 12px);
+/* 静止拇指常显（rgba .35）：上下透明 border 把视觉厚度收回 var(--el-sb-h) 档；
+   悬停放开 border 显全轨厚。:horizontal 只命中横条，纵轴本组件本就是 0。 */
+.el-dropdown-table-grow__panel .el-table__body-wrapper::-webkit-scrollbar-thumb:horizontal {
+    border-top: calc((var(--el-sb-h-hover, 12px) - var(--el-sb-h, 6px)) / 2) solid transparent;
+    border-bottom: calc((var(--el-sb-h-hover, 12px) - var(--el-sb-h, 6px)) / 2) solid transparent;
+    background-clip: padding-box;
+}
+.el-dropdown-table-grow__panel .el-table__body-wrapper:hover::-webkit-scrollbar-thumb:horizontal {
+    border-top-width: 0;
+    border-bottom-width: 0;
 }
 .el-dropdown-table-grow__panel .el-table__body-wrapper::-webkit-scrollbar-thumb,
 .el-dropdown-table-grow__panel .el-table__header-wrapper::-webkit-scrollbar-thumb {

@@ -4740,12 +4740,24 @@ window.elementBindFadeScrollbar = function (root) {
             }
             return;
         }
-        // 槽位恒定：先钉住 gutter，再跨两帧「互换 overflow 取值」强制 Blink 重建/重绘滚条。
-        try {
-            if (el.style.scrollbarGutter !== 'stable') {
-                el.style.scrollbarGutter = 'stable';
-            }
-        } catch (e) {
+
+        // 【2026-11-17 消灭「滚动条显隐抖动」】两条旧做法都动布局，全部废弃：
+        // ① 旧：无条件 el.style.scrollbarGutter = 'stable' —— 会把「没溢出轴」的槽**永久**预留出来
+        //    （实测：只横溢的表格首次 hover clientW 638→634 且不复原；Blazor 一重建元素又复位，
+        //    下次 hover 再跳一遍）。用户实拍「ElTable 滚动条显隐时整表抖动」的主源就是它。
+        // ② 旧：两轴一律 auto<->scroll 互换 —— scroll 会把**没溢出轴**的轨道也渲染出来
+        //    （横条 6px 高度、纵条 4px 宽度），移出恢复 auto 轨道又消失 → 每次进出抖两下。
+        //    scrollbar-gutter 只预留纵向槽，横向那条的高度它管不着，钉 gutter 救不了横轴。
+        // 新：**只互换真实溢出的轴**。溢出轴在 auto 与 scroll 两种取值下轨道都在、几何分毫不差，
+        //    但 overflow 取值变化本身仍足以逼 Blink 重建滚条（显形机制不受影响）→ 布局零位移。
+        var cY = getComputedStyle(el).overflowY;
+        var cX = getComputedStyle(el).overflowX;
+        var overY = el.scrollHeight - el.clientHeight > 1;
+        var overX = el.scrollWidth - el.clientWidth > 1;
+        var swapY = overY ? ((cY === 'scroll') ? 'auto' : 'scroll') : null;
+        var swapX = overX ? ((cX === 'scroll') ? 'auto' : 'scroll') : null;
+        if (swapY === null && swapX === null) {
+            return; // 理论到不了（isScrollContainer 已滤过），兜底不写任何内联样式
         }
 
         // 只在「第一次」把元素真实的（非 hidden 的）overflow 记下来作为复原基准。
@@ -4758,26 +4770,10 @@ window.elementBindFadeScrollbar = function (root) {
             el.__elFadePrevX = (el.style.overflowX && el.style.overflowX !== 'hidden') ? el.style.overflowX : '';
         }
 
-        // 关键修复：原先是 overflow:hidden 两帧 —— 这会让滚条在两帧内「彻底消失」（sbw 变 0），
-        // 进入/离开滚动容器、或在多个滚动容器间移动鼠标时就会看到滚条一闪一闪。
-        // 改为 auto<->scroll 互换：两种取值在「内容溢出」时滚条始终可见，
-        // 仍借 overflow 变化触发 Blink 重绘滚条（让 :hover 拇指显形），但滚条不再消失 → 消除闪烁。
-        var cY = getComputedStyle(el).overflowY;
-        var cX = getComputedStyle(el).overflowX;
-        var swapY = (cY === 'scroll') ? 'auto' : 'scroll';
-        var swapX = (cX === 'scroll') ? 'auto' : 'scroll';
-        // 非滚动取值（visible/clip 等，理论上不会走到这里）兜底成 auto，避免写出非法值
-        if (cY !== 'scroll' && cY !== 'auto' && cY !== 'overlay') { swapY = 'auto'; }
-        if (cX !== 'scroll' && cX !== 'auto' && cX !== 'overlay') { swapX = 'auto'; }
-
-        // 这里曾有一对「把 scrollTop/scrollLeft 钉回切换前旧值」的写回（那是 overflow:hidden 年代的遗留：
-        // hidden 会让浏览器丢掉滚动位置）。auto↔scroll 两边都可滚、client 尺寸不变，位置根本不会丢
-        // （浏览器实测 .demo-main / .el-scrollbar__wrap / .el-table__body-wrapper 两轴偏移都是 0），
-        // 反过来却会盖掉别人在这两帧里的滚动：读到的旧值是「进入时」的，写回发生在两帧之后，
-        // 中间任何一次真实滚动（滚轮、scrollIntoView、程序化赋值）都被按旧值弹回去。
-        // 上面 isVirtualScroller 那段注释记的是同一类回跳，只是当时只给虚拟滚动容器开了豁免。
-        el.style.overflowY = swapY;
-        el.style.overflowX = swapX;
+        // auto<->scroll 互换只发生在溢出轴上：滚条不消失、client 尺寸不变，滚动位置不会丢；
+        // 反过来也不写回旧值（会盖掉别人在这两帧里的真实滚动，见下方原注释）。
+        if (swapY) { el.style.overflowY = swapY; }
+        if (swapX) { el.style.overflowX = swapX; }
 
         requestAnimationFrame(function () {
             requestAnimationFrame(function () {

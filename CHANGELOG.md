@@ -4,9 +4,24 @@ All notable changes to Element-Blazor are recorded here.
 
 This project follows Semantic Versioning and uses a Keep a Changelog style structure.
 
-> **版本线说明**：nuget.org 已发布 `0.12.0` / `0.12.1` / `0.12.3` / `0.12.4` / `0.12.5` / `0.12.6` / `0.12.7` / `0.12.8` / `0.12.9`；
+> **版本线说明**：nuget.org 已发布 `0.12.0` / `0.12.1` / `0.12.3` / `0.12.4` / `0.12.5` / `0.12.6` / `0.12.7` / `0.12.8` / `0.12.9` / `0.12.10`；
 > **`0.12.2` 只在本地源 `nuget/`，从未推送到 nuget.org**（registration 与 nupkg 均 404），
 > 升级请直接用 `0.12.3` 及以上。日期取 nuget.org 的 `published` 时间（UTC）。
+
+## [0.12.10] - 2026-11-17
+
+### Fixed
+
+- **鼠标进出 ElTable 时表格上下/左右抖动（横向滚动条 hover 加高）**：全局
+  `*:hover::-webkit-scrollbar { height: 12px }` 让横条从静止 6px 变 12px，直接吃掉内容区高度；
+  `dom.js` 的 `repaint()` 又在局部重建时把所有祖先钉上 `scrollbar-gutter:stable`，无溢出轴也被
+  预留 4px 槽，导致 `clientWidth` 638→634 来回跳。现在横向轨道布局占位恒等于悬停厚度
+  （`--el-sb-h-hover`, 12px），拇指用透明 border 内缩维持 6px 静止视觉；`repaint()` 只切换
+  真实溢出的轴，不再全局钉 gutter。`ElDropDownTableGrow` 面板同步该口径。
+- 浏览器探针 `verify-scrollbar-jitter.cjs`：hover 前/中/后 `clientHeight/clientWidth` 恒为
+  `247/638`，横向与纵向抖动均 **0px**；守卫测试 `ScrollbarCaliberGuardTests` 7/7 通过。
+- 版本 `0.12.9 → 0.12.10`：三个库 csproj、模板包 csproj、模板工程、`publish.yml`、README
+  中英版同步。
 
 ## [0.12.9] - 2026-11-16
 
