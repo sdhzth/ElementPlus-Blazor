@@ -64,6 +64,12 @@
         <ElButton Dashed="true">虚线按钮</ElButton>
         <ElButton Type="ButtonType.Primary" Dashed="true">虚线主要</ElButton>
     </div>
+    <p class="demo-note">
+        表格操作列想省空间优先用 <code>Link="true"</code>（渲染 <code>.is-link</code>：<code>height:auto</code> + 内边距 2px，单钮约 34×20px）；
+        <code>Text="true"</code>（渲染 <code>.is-text</code>）保留按钮内边距（约 58×32px），是官方带底色悬浮的文字按钮，不是「纯文字链接」。
+        <code>Type="ButtonType.Text"</code>（渲染 <code>.el-button--text</code>，官方 3.0 废弃写法）左右内边距为 0 但仍占整行按钮高度 32px。
+        相邻按钮默认 <code>margin-left: 12px</code>（官方一致），想更紧可在自己页面给容器加作用域样式收紧。
+    </p>
 </div>
 
 <div class="demo-section">
