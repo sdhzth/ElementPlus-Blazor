@@ -48,6 +48,7 @@
     <div class="demo-row" style="margin-top:12px;align-items:flex-start;">
         <ElInput TValue="string" @bind-Value="autoText" Type="InputType.Textarea" Autosize="true" Rows="2" Placeholder="自适应高度 textarea" />
         <ElInput TValue="string" @bind-Value="fixedText" Type="InputType.Textarea" Rows="2" Placeholder="固定两行 textarea" />
+        <ElInput TValue="string" @bind-Value="fixedOne" Type="InputType.Textarea" Rows="1" Placeholder="固定一行（Rows=1）" Style="width:200px;" id="ep-input-rows1" />
     </div>
 </div>
 
@@ -355,6 +356,7 @@
         groupDirection = groupDirection == "horizontal" ? "vertical" : "horizontal";
     }
     private string fixedText = "第一行";
+    private string fixedOne = "";
 
     private class FormModel
     {

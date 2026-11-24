@@ -4,9 +4,26 @@ All notable changes to Element-Blazor are recorded here.
 
 This project follows Semantic Versioning and uses a Keep a Changelog style structure.
 
-> **版本线说明**：nuget.org 已发布 `0.12.0` / `0.12.1` / `0.12.3` / `0.12.4` / `0.12.5` / `0.12.6` / `0.12.7` / `0.12.8` / `0.12.9` / `0.12.10`；
+> **版本线说明**：nuget.org 已发布 `0.12.0` / `0.12.1` / `0.12.3` / `0.12.4` / `0.12.5` / `0.12.6` / `0.12.7` / `0.12.8` / `0.12.9` / `0.12.10` / `0.12.11`；
 > **`0.12.2` 只在本地源 `nuget/`，从未推送到 nuget.org**（registration 与 nupkg 均 404），
 > 升级请直接用 `0.12.3` 及以上。日期取 nuget.org 的 `published` 时间（UTC）。
+
+## [0.12.11] - 2026-11-24
+
+### Fixed
+
+- **`Rows=1` 的 textarea 仍显示约两行高**：`.el-textarea__inner` 上的
+  `min-height: 60px`（本仓自加规则，Element Plus 官方 `.el-textarea__inner`
+  **没有** min-height，高度完全由 rows 决定）把 1 行高度（约 33px）顶到 60px。
+  删除该规则后 rows 原生属性恢复生效：rows=1 → 33px、rows=2 → 54px（实测）。
+  需要"更矮"或"更高"的兜底高度时用 `InputStyle="min-height:…"` 显式给值。
+- demo：`FormDemo` 的 textarea 行新增「固定一行（Rows=1）」示例
+  （`#ep-input-rows1`），配套 `verify-textarea-rows.cjs` 浏览器探针 5/5 PASS
+  （rows 属性、1/2 行高度、min-height 已删、两行高差）。
+- 相关单测 47/47 通过（ElInputTests / ElFormGeneratedControlTests /
+  ElMentionTests / ScrollbarCaliberGuardTests）。
+- 版本 `0.12.10 → 0.12.11`：三个库 csproj、模板包 csproj、模板工程、
+  `publish.yml`、README 中英版、VSIX 模板 zip 内引用全部同步。
 
 ## [0.12.10] - 2026-11-17
 
