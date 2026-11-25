@@ -4,9 +4,32 @@ All notable changes to Element-Blazor are recorded here.
 
 This project follows Semantic Versioning and uses a Keep a Changelog style structure.
 
-> **版本线说明**：nuget.org 已发布 `0.12.0` / `0.12.1` / `0.12.3` / `0.12.4` / `0.12.5` / `0.12.6` / `0.12.7` / `0.12.8` / `0.12.9` / `0.12.10` / `0.12.11`；
+> **版本线说明**：nuget.org 已发布 `0.12.0` / `0.12.1` / `0.12.3` / `0.12.4` / `0.12.5` / `0.12.6` / `0.12.7` / `0.12.8` / `0.12.9` / `0.12.10` / `0.12.11` / `0.12.12`；
 > **`0.12.2` 只在本地源 `nuget/`，从未推送到 nuget.org**（registration 与 nupkg 均 404），
 > 升级请直接用 `0.12.3` 及以上。日期取 nuget.org 的 `published` 时间（UTC）。
+
+## [0.12.12] - 2026-11-25
+
+### Fixed
+
+- **`ShowOverflowTooltip` 开着时「列宽够也省略」**：开着 tooltip 的 `.cell` 此前被钉内联
+  `width:(声明宽-1)px` 近似 EP 的 `realWidth`，但 Σ声明宽 < 容器宽且无 auto 列时
+  `table-layout:fixed` 把富余<b>按比例摊给每一列</b>（实测 60/130/200/120 摊成
+  105/228/351/210），声明宽 ≠ 摊派后的 realWidth ⇒ 列摊到 228px、文字却在 129px 处打点。
+  现在不再输出内联宽度：`.cell` 是 block 流（trigger 已 `display:block`），天然撑满 td
+  实际宽 = EP 的 realWidth；摊宽列随摊随宽，真放不下的列照常省略 + 悬停看全文。
+  （表头 cell 不挂 tooltip 类，与 EP 口径一致。）
+- **`Width="auto"` 整表布局错乱**：`IntString` 字符串档 `"auto"` 此前原样输出成
+  `<col width="auto">`，而记账/钉宽按解析失败回落 80，与浏览器 fixed 布局的均分结果对不上。
+  现在归一为「真正的 auto 列」：col 不写 width 属性、按 80 记账、按均分拿到富余
+  （实测单 auto 列吃到 584px）。
+- demo：`TableDemo` 的 show-overflow-tooltip 节新增两张宽容器对照表——①含
+  `Width="auto"` 列（均分富余）②全列固定宽（等比摊派），配套
+  `verify-table-tooltip-fit.cjs` 探针 **8/8 PASS**；`docs/table-overflow-tooltip.md`
+  同步更正。
+- 全量回归 2887/2892（5 个既有 `VendoredLibraryGuardTests` 环境性失败，非回归）。
+- 版本 `0.12.11 → 0.12.12`：三个库 csproj、模板包 csproj、模板工程、`publish.yml`、
+  README 中英版、VSIX 模板 zip 内引用全部同步。
 
 ## [0.12.11] - 2026-11-24
 

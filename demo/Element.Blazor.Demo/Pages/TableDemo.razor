@@ -533,6 +533,36 @@
         注意当前实现的优先级是「列级 true 追加开启，否则落回表级」——表级开后列级写 <code>false</code> 不能单独豁免；
         要某列退回换行显示，需关掉表级开关、再逐列开 true。
     </p>
+
+    <h4>表级开关 + 宽容器（Σ声明宽 &lt; 容器宽，富余摊派）</h4>
+    <div style="border:1px dashed var(--el-border-color);padding:8px;" id="ep-ellipsis-fit-wrap">
+        <ElTable DataSource="contractRows" AutoGenerateColumns="false" HasSelectionColumn="false" Border="true" ShowOverflowTooltip="true">
+            <ElTableColumn Type="index" Text="序号" Width="60" />
+            <ElTableColumn Property="Code" Text="合同编号" Width="130" />
+            <ElTableColumn Property="Name" Text="合同名称（Width=auto）" Width="auto" />
+            <ElTableColumn Property="Remark" Text="备注（超长文本）" Width="120" />
+        </ElTable>
+    </div>
+    <p class="demo-note" id="ep-ellipsis-fit-note">
+        表级 <code>ShowOverflowTooltip</code> 开：带 <code>Width</code> 的列由 <code>table-layout:fixed</code>
+        钉在声明值上（编号列 130px 放不下 14 字符编号，正确打点）；<code>Width="auto"</code> 列按浏览器规则
+        均分剩余宽度（吃到富余大头）；只有文字真的放不下的列才省略并支持悬停看全文。
+    </p>
+
+    <h4>全列固定宽 + 宽容器（无 auto 列，富余按比例摊给每一列）</h4>
+    <div style="border:1px dashed var(--el-border-color);padding:8px;" id="ep-ellipsis-fit2-wrap">
+        <ElTable DataSource="contractRows" AutoGenerateColumns="false" HasSelectionColumn="false" Border="true" ShowOverflowTooltip="true">
+            <ElTableColumn Type="index" Text="序号" Width="60" />
+            <ElTableColumn Property="Code" Text="合同编号" Width="130" />
+            <ElTableColumn Property="Name" Text="合同名称" Width="200" />
+            <ElTableColumn Property="Remark" Text="备注（超长文本）" Width="120" />
+        </ElTable>
+    </div>
+    <p class="demo-note" id="ep-ellipsis-fit2-note">
+        Σ声明 510px 远小于容器宽、又没有 auto 列时，<code>table-layout:fixed</code> 把富余<b>按比例摊给每一列</b>：
+        编号列从 130px 摊到两倍多 —— <b>列宽摊够了，文字就完整显示，不再出现省略号</b>（此前 .cell 被钉在声明宽
+        129px 上，摊宽后照样提前打点，即「列宽够也省略」）；备注列文字仍超长，照常省略 + 悬停看全文。
+    </p>
 </div>
 
 <div class="demo-section" id="sec-table-formatter">
@@ -595,6 +625,22 @@
         new Product { Id = 1, Name = "一次性使用无菌注射器（带针，20ml 成人体）", Price = 1.20m, Stock = 3200, Category = "耗材", OnSale = true },
         new Product { Id = 2, Name = "0.9% 氯化钠注射液（玻璃瓶 500ml）", Price = 3.50m, Stock = 820, Category = "西药", OnSale = true }
     };
+
+    // 表级 show-overflow-tooltip + 宽容器（Σ声明 390px ≪ 容器）：合同明细形态。
+    // Code 长度约 14 字符（~120px），落在「声明 130 摊宽后」的中间带 —— 修复前 cell 钉 129px 会提前打点。
+    private class ContractRow
+    {
+        public string Code { get; set; }
+        public string Name { get; set; }
+        public string Remark { get; set; }
+    }
+
+    private List<ContractRow> contractRows = Enumerable.Range(1, 4).Select(i => new ContractRow
+    {
+        Code = "GTBDB1C2024030" + i,
+        Name = "固定资产管理系统采购合同（第 " + i + " 期）",
+        Remark = "本条备注文本足够长，超过 120px 声明宽，必须出现省略号并支持悬停看全文"
+    }).ToList();
 
     // ⑨ 固定表头 / 流体高度演示数据：复制多份并赋唯一 Id，避免 Blazor 行 key 冲突
     private List<Product> fixedRows = Enumerable.Range(0, 60).Select(i =>

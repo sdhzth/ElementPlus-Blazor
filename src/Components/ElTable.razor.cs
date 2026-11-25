@@ -1281,7 +1281,17 @@ namespace ElementPlus
         {
             if (header.Width.HasValue)
             {
-                return header.Width.ToString();
+                var raw = header.Width.Value.ToString();
+                // Width="auto"（IntString 字符串档）归一为「真正的 auto 列」：返回 null 让 <col>
+                // 整个不写 width 属性。此前 "auto" 会原样输出成 <col width="auto">，而
+                // ResolveColumnWidthAsInt / CellOverflowStyle 又把它按解析失败回落 80 记账、钉宽，
+                // 与浏览器 fixed 布局的均分结果对不上 —— 消费方 2026-11-25 实测整个表布局错乱。
+                if (string.IsNullOrWhiteSpace(raw) ||
+                    raw.Trim().Equals("auto", StringComparison.OrdinalIgnoreCase))
+                {
+                    return null;
+                }
+                return raw;
             }
 
             if (!string.IsNullOrWhiteSpace(header.MinWidth))
@@ -3547,29 +3557,17 @@ namespace ElementPlus
         protected string CellOverflowClass(TableHeader header) => GetShowOverflowTooltip(header) ? "cell el-tooltip" : "cell";
 
         /// <summary>
-        /// EP <c>table-column/render-helper.ts:196-197</c> 的内联宽度：<c>(realWidth || Number(width)) - 1 px</c>。
-        /// 本仓没有 EP 那套布局引擎算 realWidth，用与 <c>&lt;colgroup&gt;</c> 同源的列宽代替；
-        /// 百分比列宽折算不出像素（<see cref="ResolveColumnWidthAsInt"/> 返回 0）时不设宽度，交给
-        /// <c>table-layout:fixed</c> 或宿主自己的列宽约束 —— 这一条差异记在 docs/table-overflow-tooltip.md。
+        /// 单元格内联宽度（EP <c>render-helper.ts:193-199</c> 的 <c>realWidth - 1</c> 档）—— <b>已停用，恒返回 null</b>。
+        /// <para>
+        /// 此前用「声明宽 - 1」近似 EP 的 realWidth，但本仓没有 EP 的布局引擎：Σ声明宽 &lt; 容器宽时
+        /// <c>table-layout:fixed</c> 会把富余按比例摊给每一列（实测 160/160/200/60 摊成 305/305/381/114），
+        /// 声明宽 ≠ 摊派后的 realWidth ⇒ .cell 被钉在声明宽上，<b>列明明摊到了 305px 文字却在 159px 处打点</b>
+        /// （消费方 2026-11-25 实拍：「列宽够但也省略了」）。而 .cell 本身就是 block 流
+        /// （trigger span 已 display:block，div.cell 默认块级），天然撑满 td 实际宽 = EP 的 realWidth，
+        /// 根本不需要内联宽度 —— 摊宽列随摊随宽，横向滚动场景列宽=声明宽时行为不变。
+        /// </para>
         /// </summary>
-        protected string CellOverflowStyle(TableHeader header)
-        {
-            if (!GetShowOverflowTooltip(header))
-            {
-                return null;
-            }
-
-            // auto 列（批次㊸：无 width 属性、由表格摊剩余宽度）折不出真实像素，
-            // 走下面那条分支会把 .cell 钉成 79px，文字在很宽的列里提前打点。百分比列同理由
-            // ResolveColumnWidthAsInt 返回 0、被下面的 width > 1 挡掉。
-            if (ResolveColumnWidth(header) == null)
-            {
-                return null;
-            }
-
-            var width = ResolveColumnWidthAsInt(header);
-            return width > 1 ? "width:" + (width - 1) + "px" : null;
-        }
+        protected string CellOverflowStyle(TableHeader header) => null;
 
         /// <summary>计算全局 EmptyText 覆盖</summary>
         /// <summary>

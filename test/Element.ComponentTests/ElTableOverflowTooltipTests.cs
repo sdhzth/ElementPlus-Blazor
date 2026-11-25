@@ -104,13 +104,18 @@ namespace ElementPlus.ComponentTests
             Assert.Equal("td", plain.ParentElement.TagName.ToLowerInvariant());
         }
 
+        /// <summary>
+        /// 2026-11-25 起不再输出内联宽度：此前钉「声明宽-1」近似 EP 的 realWidth，但 Σ声明宽 &lt; 容器宽时
+        /// <c>table-layout:fixed</c> 把富余摊给每列，声明宽 ≠ 摊派后的 realWidth ⇒ 列摊到 305px、
+        /// .cell 却钉在 159px，文字提前打点（消费方实拍「列宽够但也省略了」）。
+        /// .cell 是 block 流（trigger display:block），天然撑满 td 实际宽 = EP 的 realWidth，无需内联值。
+        /// </summary>
         [Fact]
-        public void ColumnFlagSetsEpCellWidthOnePixelNarrower()
+        public void FlaggedCellLetsTdRealWidthConstrain()
         {
             var cut = RenderTable(tableFlag: false, columnFlag: true, columnWidth: "170");
 
-            // EP render-helper.ts:195：width = (realWidth || Number(width)) - 1
-            Assert.Equal("width:169px", BodyCells(cut).First().GetAttribute("style"));
+            Assert.Null(BodyCells(cut).First().GetAttribute("style"));
         }
 
         [Fact]
@@ -123,9 +128,9 @@ namespace ElementPlus.ComponentTests
         }
 
         /// <summary>
-        /// 批次㊸ 的 auto 列（<c>Width</c> 为 null → <c>&lt;col&gt;</c> 不写宽度）同理不能钉内联宽度：
+        /// 批次㊸ 的 auto 列（<c>Width</c> 为 null → <c>&lt;col&gt;</c> 不写宽度）同理不钉内联宽度：
         /// 它折出来是兜底的 80，会把 .cell 钉成 79px，文字在摊到 700px 的列里提前打点。
-        /// 正向对照是上面那条 <c>ColumnFlagSetsEpCellWidthOnePixelNarrower</c>（声明 170 → 169px）。
+        /// 正向对照是上面的 <c>FlaggedCellLetsTdRealWidthConstrain</c>（现在所有列都不钉内联宽）。
         /// </summary>
         [Fact]
         public void AutoColumnSkipsInlineWidth()
@@ -229,8 +234,27 @@ namespace ElementPlus.ComponentTests
             var plain = cut.FindAll(".el-dropdown-table-grow__panel tbody td .cell:not(.el-tooltip)");
             Assert.NotEmpty(flagged);
             Assert.NotEmpty(plain);
-            Assert.All(flagged, cell => Assert.Equal("width:89px", cell.GetAttribute("style")));
+            Assert.All(flagged, cell => Assert.Null(cell.GetAttribute("style")));
             Assert.All(plain, cell => Assert.Null(cell.GetAttribute("style")));
+        }
+
+        /// <summary>
+        /// <c>Width="auto"</c> 必须归一成「真正的 auto 列」：col 不写 width 属性（浏览器 fixed 布局
+        /// 均分剩余）、记账按 80 兜底、tooltip 不钉内联宽。此前 "auto" 原样输出成
+        /// <c>&lt;col width="auto"&gt;</c> 且按解析失败回落 80 钉 .cell，布局错乱（消费方 2026-11-25 实测）。
+        /// </summary>
+        [Fact]
+        public void WidthStringAutoNormalizesToRealAutoColumn()
+        {
+            var cut = RenderTable(tableFlag: true, columnFlag: false, columnWidth: "auto");
+
+            var colgroup = cut.FindAll("colgroup col");
+            Assert.All(colgroup, col => Assert.NotEqual("auto", col.GetAttribute("width")));
+            Assert.All(BodyCells(cut), cell =>
+            {
+                Assert.Contains("el-tooltip", cell.ClassList);
+                Assert.Null(cell.GetAttribute("style"));
+            });
         }
     }
 }

@@ -22,14 +22,20 @@
 ```csharp
 // ElTable.razor.cs:2762-2784
 CellOverflowClass(header)  → 开着 ? "cell el-tooltip" : "cell"
-CellOverflowStyle(header)  → 开着且能折算出像素宽 ? "width:" + (width - 1) + "px" : null
+CellOverflowStyle(header)  → 2026-11-25 起恒返回 null（见下方 2026-11-25 更正）
 ```
 
 CSS 侧新增 `.el-table .cell.el-tooltip{min-width:50px;white-space:nowrap}`（`index.css:1784-1787`）。
 
-**与 EP 的一处真实差异（记下来，别当 bug 报）**：EP 的 `realWidth` 来自它自己的布局引擎，本仓没有，
-用与 `<colgroup>` 同源的列宽代替；**百分比列宽折算不出像素**（`ResolveColumnWidthAsInt` 返回 0）时干脆不写内联宽度，
-交给 `table-layout:fixed` 或宿主自己的列宽约束。bUnit `PercentageColumnSkipsInlineWidth` 钉的就是这个分支。
+**2026-11-25 更正：内联 −1px 定宽已停用（消费方实拍「列宽够也省略」）**。此前用「声明宽 − 1」
+近似 EP 的 `realWidth`，但 Σ声明宽 < 容器宽且无 auto 列时 `table-layout:fixed` 把富余**按比例摊给
+每一列**（实测 60/130/200/120 摊成 105/228/351/210），声明宽 ≠ 摊派后的 realWidth ⇒ `.cell` 被钉在
+声明宽上，编号列摊到 228px 文字却在 129px 处打点。而 `.cell` 是 block 流（trigger span 已
+`display:block`），天然撑满 td 实际宽 = EP 的 realWidth，根本不需要内联宽度。实测（探针
+`demo/tools/probes/verify-table-tooltip-fit.cjs` 8/8）：编号列 228px cell 内 14 字符编号完整显示；
+备注列文字 504px > 210px 仍正确省略 + 悬停看全文。`Width="auto"`（IntString 字符串档）同日归一为
+真正的 auto 列：col 不写 width 属性（此前输出 `<col width="auto">` 且按解析失败回落 80 钉宽，
+布局错乱）。
 
 实测（`/grow` 的「科目名称」列，列宽 170）：
 
