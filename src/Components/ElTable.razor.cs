@@ -1223,7 +1223,7 @@ namespace ElementPlus
         private const int FilterIconBoxWidth = 18;
 
         /// <summary>
-        /// 解析列在 <c>&lt;col width&gt;</c> 上使用的宽度：显式 Width &gt; MinWidth &gt; <b>auto（返回 null，属性整个省略）</b>，
+        /// 解析列在 <c>&lt;col width&gt;</c> 上使用的宽度：显式 Width &gt; <b>弹性列（MinWidth / auto，属性整个省略）</b>，
         /// 再把该列表头带的图标盒（排序 24 / 筛选 18，两者都有 42）<b>加在这条宽度之外</b>。
         /// 百分比列原样返回：<c>width</c> 属性写不了 <c>calc()</c>，硬拼数字会把百分比变成固定像素。
         /// </summary>
@@ -1240,16 +1240,18 @@ namespace ElementPlus
             var baseWidth = ResolveBaseColumnWidth(header);
             if (baseWidth == null)
             {
-                // auto 列不吃图标盒加量：它没有钉死的宽度可加，可读性由 ColumnsTotalWidth 里那份
-                // 80+加量的记账兜住（表格宁可横向滚动也不把它压窄）。
+                // auto / MinWidth 弹性列不吃图标盒加量：它们没有钉死的宽度可加，可读性由
+                // ColumnsTotalWidth 里那份记账兜住（表格宁可横向滚动也不把它压窄）。
                 if (!UsesTrailingFiller)
                 {
                     return null;
                 }
 
-                // 开了尾部填充列：富余已经归尾列，这里再把 auto 留在场上会变成「尾列和它均分」，
-                // 所以按 ColumnsTotalWidth 那份记账（80 + 图标盒）钉死，两边同一个数才对得齐。
-                return (DefaultColumnWidth + HeaderIconAllowance(header)).ToString();
+                // 开了尾部填充列：富余已经归尾列，这里再把弹性列留在场上会变成「尾列和它均分」，
+                // 所以按 ColumnsTotalWidth 那份记账（MinWidth 列取 min、auto 列取 80，再加图标盒）钉死，
+                // 两边同一个数才对得齐。
+                var book = FlexColumnMinimum(header) ?? DefaultColumnWidth;
+                return (book + HeaderIconAllowance(header)).ToString();
             }
 
             var allowance = HeaderIconAllowance(header);
@@ -1268,14 +1270,15 @@ namespace ElementPlus
         }
 
         /// <summary>
-        /// 列宽本体（不含表头图标盒）：显式 Width &gt; MinWidth &gt; null。
-        /// null 表示「auto 列」：<c>table-layout:fixed</c> 下不带 width 属性的 <c>&lt;col&gt;</c>
+        /// 列宽本体（不含表头图标盒）：显式 Width；<b>null 表示弹性列</b>（Width="auto"、
+        /// 不写 Width 的列、以及 MinWidth 列——对齐 EP fit 算法的 flexColumns）。
+        /// <c>table-layout:fixed</c> 下不带 width 属性的 <c>&lt;col&gt;</c>
         /// 会<b>均分表格的剩余宽度</b>，这正是 Element Plus 里不写 width 的那一列的行为。
         /// 批次㊸ 之前这里兜底成 80px 并写进属性，于是「声明列宽之和 &lt; 表格宽度」时浏览器把富余
         /// <b>按比例摊给每一列</b>（zyweb 部门维护表 160/160/200/60 在 1106px 容器里实测摊成
         /// 305/305/381/114），操作列永远钉不住、长文本列也不会吸收富余。
-        /// 80px 兜底仍然留在 <see cref="ColumnsTotalWidth"/> 的记账里，所以窄容器依旧靠横向滚动
-        /// 保住可读性（批次⑦ 那条「十个无宽列挤成竖排字母」的回归不会回来）。
+        /// auto 的 80px 兜底与 MinWidth 的 min 值仍然留在 <see cref="ColumnsTotalWidth"/> 的记账里，
+        /// 所以窄容器依旧靠横向滚动保住可读性（批次⑦ 那条「十个无宽列挤成竖排字母」的回归不会回来）。
         /// </summary>
         private static string ResolveBaseColumnWidth(TableHeader header)
         {
@@ -1294,20 +1297,32 @@ namespace ElementPlus
                 return raw;
             }
 
-            if (!string.IsNullOrWhiteSpace(header.MinWidth))
+            // MinWidth 列对齐 EP 的 fit 算法（table-column/layout.ts 的 flexColumns）：它也是「弹性列」，
+            // col 不写 width，与 auto 列一起均分表格剩余宽度。此前这里把 min 钉成固定宽，导致
+            // 「最少 200px、表格宽时跟着变宽」的预期落空（2026-11-25 消费方确认对齐）。
+            // min 值由 <see cref="FlexColumnMinimum"/> 留给记账与尾列钉宽用。
+            return null;
+        }
+
+        /// <summary>
+        /// MinWidth 弹性列的下限（剥掉 px 后缀）。EP 的 flexColumns 每条先保住 min 再均分富余；
+        /// 本仓没有布局引擎、浏览器 fixed 布局对 auto 列只会等分（不认 min），所以 min 只进
+        /// <see cref="ColumnsTotalWidth"/> 的记账（窄容器横向滚动时保住这条底），
+        /// 开尾列时由 <see cref="ResolveColumnWidth"/> 钉在 min+图标盒上把富余让给尾列。
+        /// </summary>
+        private static int? FlexColumnMinimum(TableHeader header)
+        {
+            if (string.IsNullOrWhiteSpace(header.MinWidth))
             {
-                var raw = header.MinWidth.Trim();
-                if (raw.EndsWith("px", StringComparison.OrdinalIgnoreCase))
-                {
-                    raw = raw.Substring(0, raw.Length - 2).Trim();
-                }
-                if (int.TryParse(raw, out var min) && min > 0)
-                {
-                    return min.ToString();
-                }
+                return null;
             }
 
-            return null;
+            var raw = header.MinWidth.Trim();
+            if (raw.EndsWith("px", StringComparison.OrdinalIgnoreCase))
+            {
+                raw = raw.Substring(0, raw.Length - 2).Trim();
+            }
+            return int.TryParse(raw, out var min) && min > 0 ? min : null;
         }
 
         /// <summary>把解析出的宽度串折成整数：剥掉宿主常写的 <c>px</c> 后缀，非法值才回落 80。</summary>
@@ -1353,7 +1368,8 @@ namespace ElementPlus
 
         /// <summary>
         /// 列宽折算成像素，只用于 <see cref="ColumnsTotalWidth"/> 的求和：
-        /// auto 列按 80 + 图标盒记账（属性上不写宽度，但表格最小宽度要给它留住这条底），
+        /// auto 列按 80 + 图标盒记账、MinWidth 弹性列按 min + 图标盒记账（属性上不写宽度，
+        /// 但表格最小宽度要给它们留住这条底），
         /// 百分比列返回 0 不参与像素求和，带 <c>px</c> 后缀的声明要剥掉后缀再算。
         /// </summary>
         private int ResolveColumnWidthAsInt(TableHeader header)
@@ -1361,7 +1377,7 @@ namespace ElementPlus
             var raw = ResolveColumnWidth(header);
             if (raw == null)
             {
-                return DefaultColumnWidth + HeaderIconAllowance(header);
+                return (FlexColumnMinimum(header) ?? DefaultColumnWidth) + HeaderIconAllowance(header);
             }
             if (raw.EndsWith("%", StringComparison.Ordinal))
             {

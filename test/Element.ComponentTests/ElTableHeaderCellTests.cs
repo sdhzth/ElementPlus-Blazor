@@ -251,11 +251,19 @@ namespace ElementPlus.ComponentTests
             Assert.Equal(header, body);
         }
 
-        /// <summary>MinWidth 兜底（去掉 px 后缀取数）也按同一口径加量：90 + 排序盒 24。</summary>
+        /// <summary>
+        /// MinWidth 列对齐 EP fit 算法的 flexColumns（2026-11-25 消费方确认）：也是弹性列，
+        /// 表头与表体的 <c>&lt;col&gt;</c> 一律不写 width，与 auto 列一起均分剩余宽度。
+        /// min 值（90，剥掉 px 后缀）+ 排序盒 24 = 114 转进表格最小宽度记账。
+        /// </summary>
         [Fact]
-        public void MinWidthColumnGetsAllowance()
+        public void MinWidthColumnBecomesFlexCol()
         {
-            Assert.Equal("114", RenderOneColumn(minWidth: "90px", sortable: true).Header);
+            var (header, body, tableStyle) = RenderOneColumn(minWidth: "90px", sortable: true);
+
+            Assert.Null(header);
+            Assert.Null(body);
+            Assert.Contains("max(100%,114px)", tableStyle);
         }
 
         /// <summary>

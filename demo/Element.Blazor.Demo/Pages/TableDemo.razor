@@ -579,6 +579,22 @@
         "auto" 原样写进 <code>&lt;col width="auto"&gt;</code>，浏览器按非法值处理，整个表布局错乱
         （消费方 2026-11-25 实拍）。
     </p>
+
+    <h4>MinWidth 弹性列（对齐 EP fit 算法：先保 min，再与 auto 列均分富余）</h4>
+    <div style="border:1px dashed var(--el-border-color);padding:8px;" id="ep-ellipsis-fit4-wrap">
+        <ElTable DataSource="contractRows" AutoGenerateColumns="false" HasSelectionColumn="false" Border="true" ShowOverflowTooltip="true">
+            <ElTableColumn Type="index" Text="序号" Width="60" />
+            <ElTableColumn Property="Code" Text="合同编号（MinWidth=200 弹性列）" MinWidth="200" />
+            <ElTableColumn Property="Name" Text="合同名称（auto）" Width="auto" />
+            <ElTableColumn Property="Remark" Text="备注（超长文本）" Width="120" />
+        </ElTable>
+    </div>
+    <p class="demo-note" id="ep-ellipsis-fit4-note">
+        <code>MinWidth</code> 列现在也是<b>弹性列</b>（对齐 EP 的 fit 算法）：col 不写 width，
+        与 <code>Width="auto"</code> 列一起<b>等分</b>剩余宽度——想要「最少 200px、表格宽时跟着变宽」
+        就用它。与 EP 的一处差异：浏览器 fixed 布局不认 min，窄容器压到 min 以下时本库靠
+        <code>ColumnsTotalWidth</code> 记账（min 80 兜底）转横向滚动来保底，而不是列内强制撑宽。
+    </p>
 </div>
 
 <div class="demo-section" id="sec-table-formatter">

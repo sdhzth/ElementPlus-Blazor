@@ -4,9 +4,27 @@ All notable changes to Element-Blazor are recorded here.
 
 This project follows Semantic Versioning and uses a Keep a Changelog style structure.
 
-> **版本线说明**：nuget.org 已发布 `0.12.0` / `0.12.1` / `0.12.3` / `0.12.4` / `0.12.5` / `0.12.6` / `0.12.7` / `0.12.8` / `0.12.9` / `0.12.10` / `0.12.11` / `0.12.12`；
+> **版本线说明**：nuget.org 已发布 `0.12.0` / `0.12.1` / `0.12.3` / `0.12.4` / `0.12.5` / `0.12.6` / `0.12.7` / `0.12.8` / `0.12.9` / `0.12.10` / `0.12.11` / `0.12.12` / `0.12.13`；
 > **`0.12.2` 只在本地源 `nuget/`，从未推送到 nuget.org**（registration 与 nupkg 均 404），
 > 升级请直接用 `0.12.3` 及以上。日期取 nuget.org 的 `published` 时间（UTC）。
+
+## [0.12.13] - 2026-11-25
+
+### Changed
+
+- **`MinWidth` 列对齐 EP fit 算法**：`MinWidth` 不再是固定宽钉死的列，而是**弹性列**——
+  `<col>` 不写 width，与 `Width="auto"` 列**等分**表格剩余宽度，实现「最少 200px、表格宽时跟着变宽」。
+  min 值仍进 `ColumnsTotalWidth` 记账（窄容器走横向滚动保底）；开尾部填充列时钉在 min+图标盒，
+  富余让给尾列。与 EP 的差异：浏览器 fixed 布局不认 min，窄容器压到 min 以下时靠表格最小宽度兜底。
+- 新增 demo 表 D（`MinWidth=200` 弹性列 + auto 列），探针扩到 **20/20 PASS**。
+
+### Fixed
+
+- 序号列 `Width="60"` 与 auto 列共存时实测钉死 60px 不吃富余；双 auto 列等分
+  （894px 容器各 357px），加 auto 不再让某列意外撑大。
+- 新增 bUnit 守卫：`AutoWidthVariantsAllNormalizeToNoWidthAttribute`（auto 的 4 种写法）、
+  `IndexSixtyStaysPinnedBesideAutoColumn`、`MinWidthColumnBecomesFlexCol`（含记账口径）。
+- ElTable 单测 205/205，全量 2892/2897（5 个既有环境性失败，非回归）。
 
 ## [0.12.12] - 2026-11-25
 
