@@ -256,5 +256,61 @@ namespace ElementPlus.ComponentTests
                 Assert.Null(cell.GetAttribute("style"));
             });
         }
+
+        /// <summary>auto 的各种写法（大小写 / 前后空白 / 空串）一律归一，不让任何变体漏成字面 <c>width="auto"</c>。</summary>
+        [Theory]
+        [InlineData("auto")]
+        [InlineData("Auto")]
+        [InlineData(" AUTO ")]
+        [InlineData("")]
+        public void AutoWidthVariantsAllNormalizeToNoWidthAttribute(string width)
+        {
+            var cut = RenderTable(tableFlag: true, columnFlag: false, columnWidth: width);
+
+            var widths = cut.FindAll("colgroup col").Select(c => c.GetAttribute("width")).ToArray();
+            Assert.Null(widths[0]);                    // auto 列：col 不写 width
+            Assert.Equal("120", widths[1]);            // 显式列：原样保留
+        }
+
+        /// <summary>
+        /// 消费方 2026-11-25 场景的列宽记账：<c>Type="index" Width="60"</c> 钉死 60（序号列不吃富余、
+        /// 不加图标盒加量），旁边 auto 列不写 width、显式 120 原样 —— col 属性三者一个都不能歪。
+        /// 均分的真实像素分配（等分 vs 按比例）没有布局引擎，由探针 verify-table-tooltip-fit.cjs 表 C 实测。
+        /// </summary>
+        [Fact]
+        public void IndexSixtyStaysPinnedBesideAutoColumn()
+        {
+            var cut = Render<ElTable>(p => p
+                .Add(x => x.DataSource, People())
+                .Add(x => x.AutoGenerateColumns, false)
+                .Add(x => x.HasSelectionColumn, false)
+                .Add(x => x.ShowOverflowTooltip, true)
+                .AddChildContent(builder =>
+                {
+                    var seq = 0;
+                    builder.OpenComponent<ElTableColumn>(seq++);
+                    builder.AddAttribute(seq++, "Type", "index");
+                    builder.AddAttribute(seq++, "Text", "序号");
+                    builder.AddAttribute(seq++, "Width", "60");
+                    builder.CloseComponent();
+                    builder.OpenComponent<ElTableColumn>(seq++);
+                    builder.AddAttribute(seq++, "Property", "Name");
+                    builder.AddAttribute(seq++, "Text", "名称");
+                    builder.AddAttribute(seq++, "Width", "auto");
+                    builder.CloseComponent();
+                    builder.OpenComponent<ElTableColumn>(seq++);
+                    builder.AddAttribute(seq++, "Property", "City");
+                    builder.AddAttribute(seq++, "Text", "城市");
+                    builder.AddAttribute(seq++, "Width", "120");
+                    builder.CloseComponent();
+                }));
+
+            // 只取表头 colgroup 的业务列：FindAll 会把表体 colgroup 和 gutter(width=0) 一并捞进来
+            var widths = cut.FindAll(".el-table__header colgroup col")
+                .Select(c => c.GetAttribute("width"))
+                .Take(3)
+                .ToArray();
+            Assert.Equal(new[] { "60", null, "120" }, widths);
+        }
     }
 }

@@ -563,6 +563,22 @@
         编号列从 130px 摊到两倍多 —— <b>列宽摊够了，文字就完整显示，不再出现省略号</b>（此前 .cell 被钉在声明宽
         129px 上，摊宽后照样提前打点，即「列宽够也省略」）；备注列文字仍超长，照常省略 + 悬停看全文。
     </p>
+
+    <h4>双 auto 列 + 序号 Width="60"（剩余宽度等分给 auto 列，序号钉死）</h4>
+    <div style="border:1px dashed var(--el-border-color);padding:8px;" id="ep-ellipsis-fit3-wrap">
+        <ElTable DataSource="contractRows" AutoGenerateColumns="false" HasSelectionColumn="false" Border="true" ShowOverflowTooltip="true">
+            <ElTableColumn Type="index" Text="序号" Width="60" />
+            <ElTableColumn Property="Code" Text="合同编号（auto）" Width="auto" />
+            <ElTableColumn Property="Name" Text="合同名称（auto）" Width="auto" />
+            <ElTableColumn Property="Remark" Text="备注（超长文本）" Width="120" />
+        </ElTable>
+    </div>
+    <p class="demo-note" id="ep-ellipsis-fit3-note">
+        多条 <code>Width="auto"</code> 列时，<code>table-layout:fixed</code> 把剩余宽度<b>等分</b>给每一条
+        auto 列（不是按比例），显式 <code>Width="60"</code> 的序号列钉死不动、不参与分摊。修复前
+        "auto" 原样写进 <code>&lt;col width="auto"&gt;</code>，浏览器按非法值处理，整个表布局错乱
+        （消费方 2026-11-25 实拍）。
+    </p>
 </div>
 
 <div class="demo-section" id="sec-table-formatter">
