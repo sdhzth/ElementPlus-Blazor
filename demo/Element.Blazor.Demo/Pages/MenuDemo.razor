@@ -104,6 +104,26 @@
 </div>
 
 <div class="demo-section">
+    <h3>横向菜单 + Click 触发（hover 不展开，点击开合）</h3>
+    <p class="demo-note">
+        <code>MenuTrigger="Click"</code> 时鼠标移入标题<b>不会</b>展开弹层——否则紧随其后的点击会被当成
+        「再次点击」立即收起，表现为「一弹出就收回」；展开/收起只由点击标题驱动，选中子项照常收起。
+    </p>
+    <ElMenu Mode="MenuMode.Horizontal" MenuTrigger="MenuTrigger.Click" DefaultActive="c1">
+        <ElMenuItem Index="c1">处理中心</ElMenuItem>
+        <ElSubMenu Index="c2" Label="我的工作台">
+            <ElMenuItem Index="c2-1">选项一</ElMenuItem>
+            <ElMenuItem Index="c2-2">选项二</ElMenuItem>
+        </ElSubMenu>
+        <ElSubMenu Index="c3" Label="消息中心">
+            <ElMenuItem Index="c3-1">已读</ElMenuItem>
+            <ElMenuItem Index="c3-2">未读</ElMenuItem>
+        </ElSubMenu>
+        <ElMenuItem Index="c4">订单管理</ElMenuItem>
+    </ElMenu>
+</div>
+
+<div class="demo-section">
     <h3>手风琴模式（UniqueOpened）+ 编程式 open / close</h3>
     <div class="demo-row" style="gap:8px; align-items:flex-start;">
         <ElMenu @ref="accordionMenu" Mode="MenuMode.Vertical" UniqueOpened="true" Style="width:220px;">

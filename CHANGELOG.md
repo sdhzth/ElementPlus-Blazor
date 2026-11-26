@@ -4,9 +4,22 @@ All notable changes to Element-Blazor are recorded here.
 
 This project follows Semantic Versioning and uses a Keep a Changelog style structure.
 
-> **版本线说明**：nuget.org 已发布 `0.12.0` / `0.12.1` / `0.12.3` / `0.12.4` / `0.12.5` / `0.12.6` / `0.12.7` / `0.12.8` / `0.12.9` / `0.12.10` / `0.12.11` / `0.12.12` / `0.12.13`；
+> **版本线说明**：nuget.org 已发布 `0.12.0` / `0.12.1` / `0.12.3` / `0.12.4` / `0.12.5` / `0.12.6` / `0.12.7` / `0.12.8` / `0.12.9` / `0.12.10` / `0.12.11` / `0.12.12` / `0.12.13` / `0.12.14`；
 > **`0.12.2` 只在本地源 `nuget/`，从未推送到 nuget.org**（registration 与 nupkg 均 404），
 > 升级请直接用 `0.12.3` 及以上。日期取 nuget.org 的 `published` 时间（UTC）。
+
+## [0.12.14] - 2026-11-27
+
+### Fixed
+
+- **横向菜单 `MenuTrigger="Click"` 时「一弹出就收回」**：此前 hover 路径不看触发方式，
+  鼠标移入标题即弹开弹层，紧随其后的 click 被 `OnClickAsync` 当成「再次点击」立即关闭。
+  现在 `MenuTrigger=Click` 时 hover 直接返回（不展开、不延迟），展开只由点击驱动；
+  点击打开时跳过 show-timeout 立即呈现（hover 延迟只属于 hover 场景）。
+  收起仍由 ElPopup 的 hide-timeout / 再次点击标题 / 选中子项驱动。
+- 新增 bUnit 守卫：`HorizontalClickTrigger_TitleHoverDoesNotOpen`（hover 不开）、
+  `HorizontalClickTrigger_TitleClickToggles`（点击开、再点关）；ElMenu 测试 55/55。
+- demo `/menu` 新增「横向菜单 + Click 触发」示例。
 
 ## [0.12.13] - 2026-11-25
 

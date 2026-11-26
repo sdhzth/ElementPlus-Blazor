@@ -415,6 +415,46 @@ namespace ElementPlus.ComponentTests
             Assert.DoesNotContain("is-opened", cut.Find("li.el-sub-menu").GetAttribute("class"));
         }
 
+        /// <summary>
+        /// MenuTrigger=Click 时 hover 不得展开弹层（消费方 2026-11-26 反馈「一弹出就收回」）：
+        /// 鼠标移入标题触发 OnOverAsync 弹开，紧随其后的 click 被 OnClickAsync 当成「再次点击」立即关闭。
+        /// 修复后 hover 路径直接 return，展开只由点击驱动。
+        /// </summary>
+        [Fact]
+        public void HorizontalClickTrigger_TitleHoverDoesNotOpen()
+        {
+            var cut = Render<ElMenu>(p => p
+                .Add(x => x.Mode, MenuMode.Horizontal)
+                .Add(x => x.MenuTrigger, MenuTrigger.Click)
+                .Add(x => x.ChildContent, NestedMenu()));
+
+            cut.Find("div.el-sub-menu__title").TriggerEvent("onmouseenter", new MouseEventArgs());
+            cut.WaitForAssertion(() =>
+                Assert.DoesNotContain("is-opened", cut.Find("li.el-sub-menu").GetAttribute("class")), timeout: TestWait.Timeout);
+
+            // 悬停后再补一帧：确认不是「先开后关」的瞬时态，而是根本没开
+            cut.Find("div.el-sub-menu__title").TriggerEvent("onmouseenter", new MouseEventArgs());
+            Assert.DoesNotContain("is-opened", cut.Find("li.el-sub-menu").GetAttribute("class"));
+        }
+
+        /// <summary>MenuTrigger=Click 的正向档：点击打开；再点一次切换关闭（首次 click 是「开」而不是「关」）。</summary>
+        [Fact]
+        public void HorizontalClickTrigger_TitleClickToggles()
+        {
+            var cut = Render<ElMenu>(p => p
+                .Add(x => x.Mode, MenuMode.Horizontal)
+                .Add(x => x.MenuTrigger, MenuTrigger.Click)
+                .Add(x => x.ChildContent, NestedMenu()));
+
+            cut.Find("div.el-sub-menu__title").Click();
+            cut.WaitForAssertion(() =>
+                Assert.Contains("is-opened", cut.Find("li.el-sub-menu").GetAttribute("class")), timeout: TestWait.Timeout);
+
+            cut.Find("div.el-sub-menu__title").Click();
+            cut.WaitForAssertion(() =>
+                Assert.DoesNotContain("is-opened", cut.Find("li.el-sub-menu").GetAttribute("class")), timeout: TestWait.Timeout);
+        }
+
         [Fact]
         public void Timeouts_DefaultToEpValues()
         {

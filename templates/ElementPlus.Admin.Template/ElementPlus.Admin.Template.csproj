@@ -13,7 +13,7 @@
     <Title>Element-Plus Admin 中台模板 (Blazor WebAssembly)</Title>
     <Description>dotnet new template that scaffolds an Element-Plus Blazor WebAssembly admin starter — Login, Dashboard, and User / Role / Permission / Menu management pages — referencing the published Element-Plus / Element-Plus.X / Element-Plus.Markdown 0.12.9 NuGet packages. Namespace is auto-renamed to the new project name on instantiation.</Description>
     <PackageType>Template</PackageType>
-    <Version>0.12.13</Version>
+    <Version>0.12.14</Version>
     <Authors>Element-Plus Blazor (Smart)</Authors>
     <Company>Element-Plus Blazor</Company>
     <PackageTags>dotnet-new;templates;blazor;element-plus;admin;wasm;starter</PackageTags>

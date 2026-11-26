@@ -31,8 +31,8 @@
 
 ### 安装
 
-> **当前版本：`0.12.13`**（版本历史见 [CHANGELOG.md](CHANGELOG.md)）。下面的命令默认取最新版本；
-> 需要固定版本时用 `dotnet add package Element-Plus --version 0.12.13`。
+> **当前版本：`0.12.14`**（版本历史见 [CHANGELOG.md](CHANGELOG.md)）。下面的命令默认取最新版本；
+> 需要固定版本时用 `dotnet add package Element-Plus --version 0.12.14`。
 
 ```powershell
 dotnet add package Element-Plus

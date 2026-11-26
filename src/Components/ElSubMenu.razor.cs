@@ -442,8 +442,8 @@ namespace ElementPlus
 
         #region 弹层展开 / 收起
 
-        /// <summary>创建弹层并置为展开（不含等待关闭的续体）。</summary>
-        private async Task ShowPopupCoreAsync()
+        /// <summary>创建弹层并置为展开（不含等待关闭的续体）。immediate=true 跳过 show-timeout（点击触发应当即开）。</summary>
+        private async Task ShowPopupCoreAsync(bool immediate = false)
         {
             await SemaphoreSlim.WaitAsync();
             try
@@ -454,7 +454,7 @@ namespace ElementPlus
                     return;
                 }
 
-                var delay = EffectiveShowTimeout;
+                var delay = immediate ? 0 : EffectiveShowTimeout;
                 if (delay > 0)
                 {
                     var showCts = new CancellationTokenSource();
@@ -510,6 +510,13 @@ namespace ElementPlus
         {
             await MeasureEllipsisTooltipAsync();
             if (Disabled || (Options != null && Options.Disabled))
+            {
+                return;
+            }
+            // MenuTrigger=Click 时 hover 不得展开弹层：否则鼠标移入标题即弹开，紧随其后的 click
+            // 会被 OnClickAsync 当成"再次点击"而立即关闭，表现为"弹出后马上收回"。
+            // 收起仍由 ElPopup 的 hide-timeout / 点击标题 / 选中子项驱动。
+            if (Options != null && Options.MenuTrigger == MenuTrigger.Click)
             {
                 return;
             }
@@ -709,7 +716,8 @@ namespace ElementPlus
                 }
                 else
                 {
-                    await ShowPopupCoreAsync();
+                    // 点击触发应当即打开：跳过 show-timeout（hover 延迟只属于 hover 场景）
+                    await ShowPopupCoreAsync(immediate: true);
                 }
                 return;
             }
