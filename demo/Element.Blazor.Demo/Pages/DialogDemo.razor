@@ -105,6 +105,25 @@
                   AriaLabel="无标题提示" ContentClass="no-title-body">
         <ChildContent><p>ShowTitle=false 时整个标题栏（含关闭按钮）都不渲染，仅靠 Esc / 遮罩或按钮关闭。</p></ChildContent>
     </ElDialogGrow>
+    <div class="demo-row demo-row-wrap" style="margin-top:12px;">
+        <ElButton Type="ButtonType.Primary" OnClick="() => GrowTable = true">弹窗内表格（悬停稳定性）</ElButton>
+    </div>
+    <ElDialogGrow @bind-Visible="GrowTable" Title="弹窗内表格" Width="720px" Height="320px">
+        <ChildContent>
+            <div id="grow-table-wrap">
+                <ElTable DataSource="dialogRows" AutoGenerateColumns="false" HasSelectionColumn="false" Border="true"
+                         ShowOverflowTooltip="true" Height="200" id="grow-table">
+                    <ElTableColumn Type="index" Text="序号" Width="60" />
+                    <ElTableColumn Property="Name" Text="名称" Width="160" />
+                    <ElTableColumn Property="City" Text="城市" Width="120" />
+                    <ElTableColumn Property="Note" Text="备注（长文本）" Width="auto" />
+                </ElTable>
+                <div style="height:280px;display:flex;align-items:center;justify-content:center;color:var(--el-text-color-secondary);">
+                    表格下方的区域（占位，用于让弹窗正文也产生竖向滚动）
+                </div>
+            </div>
+        </ChildContent>
+    </ElDialogGrow>
     <p class="demo-note">ElDialogGrow 关闭回传：<b>@growResult</b></p>
 </div>
 
@@ -193,8 +212,25 @@
     private int dynamicTitleSeq;
     private bool GrowDialog;
     private bool GrowNoTitle;
+    private bool GrowTable;
     private string growText = string.Empty;
     private string growResult = "（尚未关闭）";
+
+    // 弹窗内表格悬停稳定性复现：20 行让弹窗正文（320px 高）竖向溢出，
+    // 表格底部贴近弹窗底部 —— 鼠标在表格与其下方之间移动时最近滚动容器发生切换。
+    private List<DialogRow> dialogRows = Enumerable.Range(1, 20).Select(i => new DialogRow
+    {
+        Name = "项目 " + i,
+        City = i % 2 == 0 ? "青岛" : "济南",
+        Note = "备注文本 " + i + " —— 这是一段比较长的说明，用来撑出横向省略号与悬停提示的效果验证。"
+    }).ToList();
+
+    private class DialogRow
+    {
+        public string Name { get; set; }
+        public string City { get; set; }
+        public string Note { get; set; }
+    }
 
     private Task OnGrowResize(ElDialogGrowSize size)
     {
